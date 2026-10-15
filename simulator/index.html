@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AquaGuard AI Gatekeeper Simulator</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #121212; color: #ffffff; padding: 20px; }
+        .container { display: flex; gap: 20px; }
+        .panel { background-color: #1e1e1e; padding: 20px; border-radius: 8px; flex: 1; }
+        h2 { border-bottom: 1px solid #333; padding-bottom: 10px; margin-top: 0; color: #4facfe; }
+        .control-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type=range] { width: 100%; }
+        .value-display { font-size: 1.2em; color: #4facfe; }
+        .status-indicator { padding: 10px; border-radius: 4px; text-align: center; font-weight: bold; margin-top: 10px; }
+        .status-ok { background-color: #1b5e20; color: white; }
+        .status-fault { background-color: #b71c1c; color: white; }
+        pre { background-color: #000; padding: 10px; border-radius: 4px; overflow-x: auto; color: #00ff00; }
+        .confidence-bar { height: 10px; background-color: #333; border-radius: 5px; margin-top: 5px; overflow: hidden; }
+        .confidence-fill { height: 100%; background-color: #4facfe; }
+    </style>
+</head>
+<body>
+    <h1>AquaGuard Edge TinyML Gatekeeper (Simulation)</h1>
+    
+    <div class="container">
+        <!-- Input Panel -->
+        <div class="panel">
+            <h2>Sensor Inputs</h2>
+            <div class="control-group">
+                <label>Temperature (°C): <span id="temp-val" class="value-display">25.0</span></label>
+                <input type="range" id="temp-slider" min="0" max="50" step="0.1" value="25.0">
+            </div>
+            <div class="control-group">
+                <label>pH: <span id="ph-val" class="value-display">7.0</span></label>
+                <input type="range" id="ph-slider" min="0" max="14" step="0.1" value="7.0">
+            </div>
+            <div class="control-group">
+                <label>TDS (ppm): <span id="tds-val" class="value-display">380</span></label>
+                <input type="range" id="tds-slider" min="0" max="1000" step="1" value="380">
+            </div>
+        </div>
+
+        <!-- Dashboard Panel -->
+        <div class="panel">
+            <h2>ML & Actuator Status</h2>
+            <p><strong>System Status:</strong> <span id="sys-status" style="color: #4facfe;">WAITING</span></p>
+            
+            <div style="display: flex; gap: 10px;">
+                <div id="heater-status" class="status-indicator status-ok" style="flex:1;">Heater Relay: ENABLED</div>
+                <div id="pump-status" class="status-indicator status-ok" style="flex:1;">pH Pump: ENABLED</div>
+            </div>
+
+            <h3 style="margin-top: 20px;">ML Confidence Scores</h3>
+            <div id="ml-scores">
+                <!-- Populated dynamically -->
+            </div>
+            
+            <h3 style="margin-top: 20px;">Execution Time (Proof of ML execution)</h3>
+            <div id="timings" style="font-family: monospace; color: #ffeb3b;">
+                Waiting for inference...
+            </div>
+        </div>
+
+        <!-- JSON Output Panel -->
+        <div class="panel">
+            <h2>JSON Payload (Sent to Cloud)</h2>
+            <pre id="json-output">Waiting...</pre>
+        </div>
+    </div>
+
+    <script>
+        const tempSlider = document.getElementById('temp-slider');
+        const phSlider = document.getElementById('ph-slider');
+        const tdsSlider = document.getElementById('tds-slider');
+        
+        function updateDisplay() {
+            document.getElementById('temp-val').innerText = tempSlider.value;
+            document.getElementById('ph-val').innerText = phSlider.value;
+            document.getElementById('tds-val').innerText = tdsSlider.value;
+            runSimulation();
+        }
+
+        tempSlider.addEventListener('input', updateDisplay);
+        phSlider.addEventListener('input', updateDisplay);
+        tdsSlider.addEventListener('input', updateDisplay);
+
+        async function runSimulation() {
+            const data = {
+                temp: parseFloat(tempSlider.value),
+                ph: parseFloat(phSlider.value),
+                tds: parseFloat(tdsSlider.value)
+            };
+
+            try {
+                const response = await fetch('/simulate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.error) {
+                    document.getElementById('json-output').innerText = result.error + "\n" + (result.details || "");
+                    return;
+                }
+
+                // Update UI
+                document.getElementById('json-output').innerText = JSON.stringify(result, null, 2);
+                document.getElementById('sys-status').innerText = result.system_status;
+                
+                // Actuators
+                const heater = document.getElementById('heater-status');
+                if (result.gatekeeper.heater_lockout) {
+                    heater.className = 'status-indicator status-fault';
+                    heater.innerText = 'Heater Relay: LOCKED';
+                } else {
+                    heater.className = 'status-indicator status-ok';
+                    heater.innerText = 'Heater Relay: ENABLED';
+                }
+
+                const pump = document.getElementById('pump-status');
+                if (result.gatekeeper.ph_pump_lockout) {
+                    pump.className = 'status-indicator status-fault';
+                    pump.innerText = 'pH Pump: LOCKED';
+                } else {
+                    pump.className = 'status-indicator status-ok';
+                    pump.innerText = 'pH Pump: ENABLED';
+                }
+                
+                // ML Scores
+                let scoresHtml = '';
+                for (const [label, score] of Object.entries(result.ml_confidence)) {
+                    const pct = (score * 100).toFixed(1);
+                    scoresHtml += `
+                        <div style="margin-bottom: 10px;">
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>${label}</span>
+                                <span>${score.toFixed(5)}</span>
+                            </div>
+                            <div class="confidence-bar">
+                                <div class="confidence-fill" style="width: ${pct}%;"></div>
+                            </div>
+                        </div>
+                    `;
+                }
+                document.getElementById('ml-scores').innerHTML = scoresHtml;
+
+                // Timings
+                document.getElementById('timings').innerText = `DSP: ${result.timing_ms.dsp} ms | Classification: ${result.timing_ms.classification} ms`;
+
+            } catch (error) {
+                console.error("Error running simulation:", error);
+            }
+        }
+        
+        // Initial run
+        updateDisplay();
+    </script>
+</body>
+</html>
