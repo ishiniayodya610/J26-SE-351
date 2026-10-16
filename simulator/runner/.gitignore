@@ -1,0 +1,12 @@
+build/
+*.o
+*.d
+*.gcda
+deploy.zip
+convert/node_modules/
+convert/
+out/
+output.*.txt
+debug.bmp
+.DS_Store
+*.avi
