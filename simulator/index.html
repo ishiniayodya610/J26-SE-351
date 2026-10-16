@@ -3,161 +3,734 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AquaGuard AI Gatekeeper Simulator</title>
+    <title>AquaGuard IoT • Evaluator Hardware Testbed & Digital Twin</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #121212; color: #ffffff; padding: 20px; }
-        .container { display: flex; gap: 20px; }
-        .panel { background-color: #1e1e1e; padding: 20px; border-radius: 8px; flex: 1; }
-        h2 { border-bottom: 1px solid #333; padding-bottom: 10px; margin-top: 0; color: #4facfe; }
-        .control-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input[type=range] { width: 100%; }
-        .value-display { font-size: 1.2em; color: #4facfe; }
-        .status-indicator { padding: 10px; border-radius: 4px; text-align: center; font-weight: bold; margin-top: 10px; }
-        .status-ok { background-color: #1b5e20; color: white; }
-        .status-fault { background-color: #b71c1c; color: white; }
-        pre { background-color: #000; padding: 10px; border-radius: 4px; overflow-x: auto; color: #00ff00; }
-        .confidence-bar { height: 10px; background-color: #333; border-radius: 5px; margin-top: 5px; overflow: hidden; }
-        .confidence-fill { height: 100%; background-color: #4facfe; }
+        :root {
+            --bg-base: #070A11;
+            --bg-surface: #0F172A;
+            --bg-card: #131E36;
+            --border: #1E293B;
+            --border-highlight: #334155;
+            --accent-cyan: #00E5FF;
+            --accent-green: #00E676;
+            --accent-amber: #FFB300;
+            --accent-red: #FF1744;
+            --text-main: #F8FAFC;
+            --text-muted: #94A3B8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 24px;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 24px;
+        }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .brand-badge {
+            background: linear-gradient(135deg, rgba(0, 229, 255, 0.2), rgba(0, 230, 118, 0.2));
+            border: 1px solid var(--accent-cyan);
+            color: var(--accent-cyan);
+            font-size: 11px;
+            font-weight: 800;
+            padding: 4px 8px;
+            border-radius: 6px;
+            letter-spacing: 0.5px;
+        }
+        .brand h1 {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+        .brand p {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+        .status-cluster {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .node-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .dot { width: 8px; height: 8px; border-radius: 50%; }
+        .dot-green { background-color: var(--accent-green); box-shadow: 0 0 8px var(--accent-green); }
+        .dot-cyan { background-color: var(--accent-cyan); box-shadow: 0 0 8px var(--accent-cyan); }
+
+        /* Main Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: 1.1fr 1fr 1.1fr;
+            gap: 20px;
+        }
+
+        .panel {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 12px;
+        }
+        .panel-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--accent-cyan);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Species Selector */
+        .species-select-box {
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px;
+        }
+        .species-select-box label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: 6px;
+        }
+        select {
+            width: 100%;
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px 10px;
+            font-size: 13px;
+            font-weight: 600;
+            outline: none;
+            cursor: pointer;
+        }
+        select:focus { border-color: var(--accent-cyan); }
+
+        /* Scenario Buttons */
+        .scenario-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .btn-scenario {
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 11px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .btn-scenario:hover {
+            border-color: var(--accent-cyan);
+            transform: translateX(3px);
+        }
+        .btn-scenario.active-scenario {
+            border-color: var(--accent-cyan);
+            background-color: rgba(0, 229, 255, 0.08);
+        }
+        .btn-danger { border-color: rgba(255, 23, 68, 0.3); }
+        .btn-danger:hover { border-color: var(--accent-red); background-color: rgba(255, 23, 68, 0.08); }
+        .badge-tag {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 700;
+        }
+        .tag-ok { background-color: rgba(0, 230, 118, 0.15); color: var(--accent-green); }
+        .tag-fault { background-color: rgba(255, 23, 68, 0.15); color: var(--accent-red); }
+
+        /* Slider Controls */
+        .slider-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .slider-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+        .slider-name { color: var(--text-muted); font-weight: 600; }
+        .slider-value { color: var(--accent-cyan); font-weight: 700; font-family: 'JetBrains Mono', monospace; font-size: 14px; }
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            background: #1E293B;
+            border-radius: 3px;
+            outline: none;
+            cursor: pointer;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--accent-cyan);
+            box-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        /* Actuator Relay Status */
+        .actuators-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .actuator-card {
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        .actuator-card.locked {
+            border-color: var(--accent-red);
+            background-color: rgba(255, 23, 68, 0.08);
+        }
+        .actuator-label { font-size: 11px; color: var(--text-muted); font-weight: 600; }
+        .actuator-status { font-size: 12px; font-weight: 800; margin-top: 6px; }
+        .status-green { color: var(--accent-green); }
+        .status-red { color: var(--accent-red); }
+
+        /* Hardware Timings */
+        .timing-bar {
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 14px;
+            display: flex;
+            justify-content: space-around;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+        }
+        .timing-item { text-align: center; }
+        .timing-item span { color: var(--text-muted); font-size: 10px; display: block; }
+        .timing-item strong { color: var(--accent-cyan); font-size: 14px; }
+
+        /* Confidence Bars */
+        .confidence-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .confidence-item {
+            font-size: 12px;
+        }
+        .conf-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+        .bar-bg {
+            height: 6px;
+            background-color: var(--bg-surface);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .bar-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.2s ease;
+        }
+        .fill-normal { background-color: var(--accent-cyan); }
+        .fill-fault { background-color: var(--accent-red); }
+
+        /* JSON Output */
+        pre {
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: #38BDF8;
+            overflow: auto;
+            max-height: 480px;
+            line-height: 1.5;
+        }
+
+        /* Sync Notice */
+        .sync-notice {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(0, 229, 255, 0.06);
+            border: 1px solid rgba(0, 229, 255, 0.2);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 11px;
+            color: var(--accent-cyan);
+            margin-top: auto;
+        }
     </style>
 </head>
 <body>
-    <h1>AquaGuard Edge TinyML Gatekeeper (Simulation)</h1>
-    
-    <div class="container">
-        <!-- Input Panel -->
+
+    <!-- Header -->
+    <div class="top-bar">
+        <div class="brand">
+            <span class="brand-badge">DIGITAL TWIN TESTBED</span>
+            <div>
+                <h1>AquaGuard IoT • Hardware & Sensor Simulation Studio</h1>
+                <p>Simulating Analog Sensor Volts & Intercepting Hardware Relays at the Edge</p>
+            </div>
+        </div>
+        <div class="status-cluster">
+            <div class="node-pill">
+                <div class="dot dot-green"></div>
+                <span>Edge C++ Engine: Port 3000</span>
+            </div>
+            <div class="node-pill">
+                <div class="dot dot-cyan"></div>
+                <span id="gateway-status">Gateway Synced: Port 8000</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main 3-Column Studio -->
+    <div class="grid">
+        
+        <!-- Left Column: Controls & Scenarios -->
         <div class="panel">
-            <h2>Sensor Inputs</h2>
-            <div class="control-group">
-                <label>Temperature (°C): <span id="temp-val" class="value-display">25.0</span></label>
-                <input type="range" id="temp-slider" min="0" max="50" step="0.1" value="25.0">
+            <div class="panel-header">
+                <span class="panel-title">Analog Signal Injection</span>
+                <span style="font-size: 11px; color: var(--text-muted);">Simulated Transducers</span>
             </div>
-            <div class="control-group">
-                <label>pH: <span id="ph-val" class="value-display">7.0</span></label>
-                <input type="range" id="ph-slider" min="0" max="14" step="0.1" value="7.0">
+
+            <!-- Species Profile Selector -->
+            <div class="species-select-box">
+                <label>Active Tank Species (Configures Gatekeeper Baseline)</label>
+                <select id="species-selector" onchange="handleSpeciesChange()">
+                    <option value="discus">🐠 Discus (Temp: 29°C | pH: 6.5 | TDS: 150)</option>
+                    <option value="koi">🐟 Koi Carp (Temp: 22°C | pH: 7.5 | TDS: 350)</option>
+                    <option value="cichlid">🐡 African Cichlid (Temp: 26°C | pH: 8.2 | TDS: 480)</option>
+                    <option value="goldfish">🎏 Fancy Goldfish (Temp: 21°C | pH: 7.2 | TDS: 280)</option>
+                </select>
             </div>
-            <div class="control-group">
-                <label>TDS (ppm): <span id="tds-val" class="value-display">380</span></label>
-                <input type="range" id="tds-slider" min="0" max="1000" step="1" value="380">
+
+            <!-- 1-Click Evaluator Scenarios -->
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+                <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                    1-Click Evaluator Scenarios (Temporal Delta Faults)
+                </label>
+                <div class="scenario-grid">
+                    <button class="btn-scenario active-scenario" onclick="triggerScenario('normal')">
+                        <span>1. Normal Pond Baseline (Steady State)</span>
+                        <span class="badge-tag tag-ok">OPTIMAL (Δ=0)</span>
+                    </button>
+                    <button class="btn-scenario btn-danger" onclick="triggerScenario('ph_probe')">
+                        <span>2. Broken pH Probe (2.2 pH | ΔpH = -4.3)</span>
+                        <span class="badge-tag tag-fault">PUMP LOCKOUT</span>
+                    </button>
+                    <button class="btn-scenario btn-danger" onclick="triggerScenario('temp_spike')">
+                        <span>3. Thermal Spike (36°C | ΔT = +7.0°C)</span>
+                        <span class="badge-tag tag-fault">HEATER LOCKOUT</span>
+                    </button>
+                    <button class="btn-scenario btn-danger" onclick="triggerScenario('tds_spike')">
+                        <span>4. TDS Spike (880 ppm | ΔTDS = +730)</span>
+                        <span class="badge-tag tag-fault">DATA IMPUTED</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Sliders -->
+            <div class="slider-group">
+                <div class="slider-meta">
+                    <span class="slider-name">Temperature Transducer</span>
+                    <span id="temp-val" class="slider-value">29.0 °C</span>
+                </div>
+                <input type="range" id="temp-slider" min="15.0" max="45.0" step="0.1" value="29.0">
+            </div>
+
+            <div class="slider-group">
+                <div class="slider-meta">
+                    <span class="slider-name">pH Electrode Voltage</span>
+                    <span id="ph-val" class="slider-value">6.50</span>
+                </div>
+                <input type="range" id="ph-slider" min="1.0" max="14.0" step="0.05" value="6.5">
+            </div>
+
+            <div class="slider-group">
+                <div class="slider-meta">
+                    <span class="slider-name">TDS Electrical Conductivity</span>
+                    <span id="tds-val" class="slider-value">150 ppm</span>
+                </div>
+                <input type="range" id="tds-slider" min="50" max="1000" step="1" value="150">
+            </div>
+
+            <div style="display: flex; gap: 8px;">
+                <button onclick="resetBaseline()" style="width: 100%; background: rgba(0, 229, 255, 0.1); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); border-radius: 6px; padding: 8px; font-size: 11px; font-weight: 700; cursor: pointer; text-transform: uppercase;">
+                    ↺ Re-Center Temporal Baseline (Δ=0)
+                </button>
+            </div>
+
+            <div class="sync-notice">
+                <span>📡 Dual-Syncing: Edge C++ (3000) & Mobile (8000)</span>
+                <span id="sync-tick">LIVE</span>
             </div>
         </div>
 
-        <!-- Dashboard Panel -->
+        <!-- Middle Column: Edge TinyML Execution Diagnostics -->
         <div class="panel">
-            <h2>ML & Actuator Status</h2>
-            <p><strong>System Status:</strong> <span id="sys-status" style="color: #4facfe;">WAITING</span></p>
-            
-            <div style="display: flex; gap: 10px;">
-                <div id="heater-status" class="status-indicator status-ok" style="flex:1;">Heater Relay: ENABLED</div>
-                <div id="pump-status" class="status-indicator status-ok" style="flex:1;">pH Pump: ENABLED</div>
+            <div class="panel-header">
+                <span class="panel-title">Edge TinyML Execution</span>
+                <span id="sys-status" style="font-size: 11px; font-weight: 800; color: var(--accent-green);">OPTIMAL</span>
             </div>
 
-            <h3 style="margin-top: 20px;">ML Confidence Scores</h3>
-            <div id="ml-scores">
-                <!-- Populated dynamically -->
+            <!-- Hardware Execution Timings -->
+            <div class="timing-bar">
+                <div class="timing-item">
+                    <span>DSP PRE-PROCESS</span>
+                    <strong id="dsp-time">0 ms</strong>
+                </div>
+                <div class="timing-item">
+                    <span>CLASSIFICATION</span>
+                    <strong id="class-time" style="color: var(--accent-green);">1 ms</strong>
+                </div>
+                <div class="timing-item">
+                    <span>RUNTIME</span>
+                    <strong>TFLM INT8</strong>
+                </div>
             </div>
-            
-            <h3 style="margin-top: 20px;">Execution Time (Proof of ML execution)</h3>
-            <div id="timings" style="font-family: monospace; color: #ffeb3b;">
-                Waiting for inference...
+
+            <!-- 1-Second Rates of Change (Deltas) -->
+            <div>
+                <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; display: block;">
+                    1-Second Temporal Rate of Change (TinyML Features)
+                </label>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+                    <div style="background-color: var(--bg-surface); padding: 8px; border-radius: 6px; text-align: center; border: 1px solid var(--border);">
+                        <div style="font-size: 10px; color: var(--text-muted);">Δ TEMP</div>
+                        <div id="delta-temp" style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; margin-top: 4px; color: var(--accent-cyan);">+0.00°C</div>
+                    </div>
+                    <div style="background-color: var(--bg-surface); padding: 8px; border-radius: 6px; text-align: center; border: 1px solid var(--border);">
+                        <div style="font-size: 10px; color: var(--text-muted);">Δ pH</div>
+                        <div id="delta-ph" style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; margin-top: 4px; color: var(--accent-cyan);">+0.00</div>
+                    </div>
+                    <div style="background-color: var(--bg-surface); padding: 8px; border-radius: 6px; text-align: center; border: 1px solid var(--border);">
+                        <div style="font-size: 10px; color: var(--text-muted);">Δ TDS</div>
+                        <div id="delta-tds" style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; margin-top: 4px; color: var(--accent-cyan);">+0 ppm</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actuators -->
+            <div>
+                <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; display: block;">
+                    Physical Actuator Relays (Gatekeeper Interlocks)
+                </label>
+                <div class="actuators-grid">
+                    <div id="heater-card" class="actuator-card">
+                        <div class="actuator-label">Heater Element Relay</div>
+                        <div id="heater-status" class="actuator-status status-green">ENABLED</div>
+                    </div>
+                    <div id="pump-card" class="actuator-card">
+                        <div class="actuator-label">Chemical Dosing Pump</div>
+                        <div id="pump-status" class="actuator-status status-green">ENABLED</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Softmax Confidence Meters -->
+            <div>
+                <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px; display: block;">
+                    Softmax Class Probability (v16 Model)
+                </label>
+                <div id="ml-scores" class="confidence-list">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+            <!-- Imputed Telemetry -->
+            <div>
+                <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; display: block;">
+                    Sanitized Telemetry Forwarded to Cloud
+                </label>
+                <div style="background-color: var(--bg-surface); padding: 12px; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.8;">
+                    <div>• Clean Temp: <span id="clean-temp" style="color: var(--accent-cyan); font-weight: bold;">29.0°C</span> <span id="imputed-temp-tag" style="display:none; color: var(--accent-amber); font-size: 10px;">[IMPUTED SAFE]</span></div>
+                    <div>• Clean pH  : <span id="clean-ph" style="color: var(--accent-cyan); font-weight: bold;">6.50</span> <span id="imputed-ph-tag" style="display:none; color: var(--accent-amber); font-size: 10px;">[IMPUTED SAFE]</span></div>
+                    <div>• Clean TDS : <span id="clean-tds" style="color: var(--accent-cyan); font-weight: bold;">150 ppm</span> <span id="imputed-tds-tag" style="display:none; color: var(--accent-amber); font-size: 10px;">[IMPUTED SAFE]</span></div>
+                </div>
             </div>
         </div>
 
-        <!-- JSON Output Panel -->
+        <!-- Right Column: Raw JSON Telemetry -->
         <div class="panel">
-            <h2>JSON Payload (Sent to Cloud)</h2>
-            <pre id="json-output">Waiting...</pre>
+            <div class="panel-header">
+                <span class="panel-title">Real-Time C++ Telemetry Payload</span>
+                <span style="font-size: 11px; color: var(--text-muted);">stdout stream</span>
+            </div>
+            <pre id="json-output">Executing C++ Edge Impulse runner...</pre>
         </div>
+
     </div>
 
     <script>
         const tempSlider = document.getElementById('temp-slider');
         const phSlider = document.getElementById('ph-slider');
         const tdsSlider = document.getElementById('tds-slider');
-        
-        function updateDisplay() {
-            document.getElementById('temp-val').innerText = tempSlider.value;
-            document.getElementById('ph-val').innerText = phSlider.value;
-            document.getElementById('tds-val').innerText = tdsSlider.value;
+        const speciesSelector = document.getElementById('species-selector');
+
+        // Species baseline reference defaults
+        const speciesBaselines = {
+            discus: { temp: 29.0, ph: 6.50, tds: 150 },
+            koi: { temp: 22.0, ph: 7.50, tds: 350 },
+            cichlid: { temp: 26.0, ph: 8.20, tds: 480 },
+            goldfish: { temp: 21.0, ph: 7.20, tds: 280 }
+        };
+
+        function updateDisplay(triggerSim = true) {
+            document.getElementById('temp-val').innerText = parseFloat(tempSlider.value).toFixed(1) + ' °C';
+            document.getElementById('ph-val').innerText = parseFloat(phSlider.value).toFixed(2);
+            document.getElementById('tds-val').innerText = parseInt(tdsSlider.value) + ' ppm';
+            if (triggerSim) runSimulation();
+        }
+
+        tempSlider.addEventListener('input', () => updateDisplay(true));
+        phSlider.addEventListener('input', () => updateDisplay(true));
+        tdsSlider.addEventListener('input', () => updateDisplay(true));
+
+        async function resetBaseline(customBase = null) {
+            const base = customBase || {
+                temp: parseFloat(tempSlider.value),
+                ph: parseFloat(phSlider.value),
+                tds: parseFloat(tdsSlider.value)
+            };
+            try {
+                await fetch('/reset', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(base)
+                });
+            } catch (e) {
+                console.warn("Reset error:", e);
+            }
             runSimulation();
         }
 
-        tempSlider.addEventListener('input', updateDisplay);
-        phSlider.addEventListener('input', updateDisplay);
-        tdsSlider.addEventListener('input', updateDisplay);
+        async function triggerScenario(type) {
+            const currentSpecies = speciesSelector.value;
+            const base = speciesBaselines[currentSpecies] || speciesBaselines.discus;
+
+            if (type === 'normal') {
+                tempSlider.value = base.temp;
+                phSlider.value = base.ph;
+                tdsSlider.value = base.tds;
+                updateDisplay(false);
+                await resetBaseline(base);
+            } else if (type === 'ph_probe') {
+                // Ensure nominal baseline first
+                await resetBaseline(base);
+                // Broken probe jumps suddenly to 2.2 pH
+                tempSlider.value = base.temp;
+                phSlider.value = 2.20;
+                tdsSlider.value = base.tds;
+                updateDisplay(true);
+            } else if (type === 'temp_spike') {
+                // Ensure nominal baseline first
+                await resetBaseline(base);
+                // Thermal anomaly jumps +7.0°C above baseline
+                tempSlider.value = (base.temp + 7.0).toFixed(1);
+                phSlider.value = base.ph;
+                tdsSlider.value = base.tds;
+                updateDisplay(true);
+            } else if (type === 'tds_spike') {
+                // Ensure nominal baseline first
+                await resetBaseline(base);
+                // TDS transient jump
+                tempSlider.value = base.temp;
+                phSlider.value = base.ph;
+                tdsSlider.value = 880;
+                updateDisplay(true);
+            }
+        }
+
+        async function handleSpeciesChange() {
+            const species = speciesSelector.value;
+            const base = speciesBaselines[species] || speciesBaselines.discus;
+            tempSlider.value = base.temp;
+            phSlider.value = base.ph;
+            tdsSlider.value = base.tds;
+            updateDisplay(false);
+
+            try {
+                // Update central gateway
+                await fetch(`http://localhost:8000/api/fish/set-active/${species}`, { method: 'POST' });
+            } catch (err) {
+                console.warn("Gateway profile update notice:", err);
+            }
+            await resetBaseline(base);
+        }
 
         async function runSimulation() {
-            const data = {
+            const payload = {
                 temp: parseFloat(tempSlider.value),
                 ph: parseFloat(phSlider.value),
                 tds: parseFloat(tdsSlider.value)
             };
 
             try {
+                // 1. Call Standalone Edge C++ runner (Port 3000)
                 const response = await fetch('/simulate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
+                    body: JSON.stringify(payload)
                 });
-                
                 const result = await response.json();
-                
-                if (result.error) {
-                    document.getElementById('json-output').innerText = result.error + "\n" + (result.details || "");
-                    return;
-                }
 
-                // Update UI
+                // 2. Dual-Sync to FastAPI Backend (Port 8000) so mobile app reacts in real time!
+                fetch('http://localhost:8000/api/telemetry/simulate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                }).catch(() => {});
+
+                // Update Raw JSON Inspector
                 document.getElementById('json-output').innerText = JSON.stringify(result, null, 2);
-                document.getElementById('sys-status').innerText = result.system_status;
-                
-                // Actuators
-                const heater = document.getElementById('heater-status');
-                if (result.gatekeeper.heater_lockout) {
-                    heater.className = 'status-indicator status-fault';
-                    heater.innerText = 'Heater Relay: LOCKED';
-                } else {
-                    heater.className = 'status-indicator status-ok';
-                    heater.innerText = 'Heater Relay: ENABLED';
+
+                // Update Status
+                const isOptimal = result.system_status === 'OPTIMAL';
+                const statusEl = document.getElementById('sys-status');
+                statusEl.innerText = result.system_status;
+                statusEl.style.color = isOptimal ? 'var(--accent-green)' : 'var(--accent-red)';
+
+                // Update Timings
+                document.getElementById('dsp-time').innerText = result.timing_ms.dsp + ' ms';
+                document.getElementById('class-time').innerText = result.timing_ms.classification + ' ms';
+
+                // Update Deltas
+                if (result.deltas) {
+                    const dt = result.deltas.delta_temp;
+                    const dp = result.deltas.delta_ph;
+                    const dd = result.deltas.delta_tds;
+
+                    const dtEl = document.getElementById('delta-temp');
+                    dtEl.innerText = (dt >= 0 ? '+' : '') + dt.toFixed(2) + '°C';
+                    dtEl.style.color = Math.abs(dt) > 2.0 ? 'var(--accent-red)' : 'var(--accent-cyan)';
+
+                    const dpEl = document.getElementById('delta-ph');
+                    dpEl.innerText = (dp >= 0 ? '+' : '') + dp.toFixed(2);
+                    dpEl.style.color = Math.abs(dp) > 0.8 ? 'var(--accent-red)' : 'var(--accent-cyan)';
+
+                    const ddEl = document.getElementById('delta-tds');
+                    ddEl.innerText = (dd >= 0 ? '+' : '') + Math.round(dd) + ' ppm';
+                    ddEl.style.color = Math.abs(dd) > 100 ? 'var(--accent-red)' : 'var(--accent-cyan)';
                 }
 
-                const pump = document.getElementById('pump-status');
-                if (result.gatekeeper.ph_pump_lockout) {
-                    pump.className = 'status-indicator status-fault';
-                    pump.innerText = 'pH Pump: LOCKED';
+                // Update Actuators
+                const heaterCard = document.getElementById('heater-card');
+                const heaterStatus = document.getElementById('heater-status');
+                if (result.gatekeeper.heater_lockout) {
+                    heaterCard.className = 'actuator-card locked';
+                    heaterStatus.innerText = 'LOCKED OUT (SAFETY)';
+                    heaterStatus.className = 'actuator-status status-red';
                 } else {
-                    pump.className = 'status-indicator status-ok';
-                    pump.innerText = 'pH Pump: ENABLED';
+                    heaterCard.className = 'actuator-card';
+                    heaterStatus.innerText = 'ENABLED';
+                    heaterStatus.className = 'actuator-status status-green';
                 }
-                
-                // ML Scores
-                let scoresHtml = '';
+
+                const pumpCard = document.getElementById('pump-card');
+                const pumpStatus = document.getElementById('pump-status');
+                if (result.gatekeeper.ph_pump_lockout) {
+                    pumpCard.className = 'actuator-card locked';
+                    pumpStatus.innerText = 'LOCKED OUT (SAFETY)';
+                    pumpStatus.className = 'actuator-status status-red';
+                } else {
+                    pumpCard.className = 'actuator-card';
+                    pumpStatus.innerText = 'ENABLED';
+                    pumpStatus.className = 'actuator-status status-green';
+                }
+
+                // Update Imputed Values
+                document.getElementById('clean-temp').innerText = result.telemetry.temperature_c.toFixed(1) + '°C';
+                document.getElementById('clean-ph').innerText = result.telemetry.ph.toFixed(2);
+                document.getElementById('clean-tds').innerText = Math.round(result.telemetry.tds_ppm) + ' ppm';
+
+                document.getElementById('imputed-temp-tag').style.display = result.diagnostics.temperature.imputed ? 'inline' : 'none';
+                document.getElementById('imputed-ph-tag').style.display = result.diagnostics.ph.imputed ? 'inline' : 'none';
+                document.getElementById('imputed-tds-tag').style.display = result.diagnostics.tds.imputed ? 'inline' : 'none';
+
+                // Update Confidence Meters
+                let html = '';
                 for (const [label, score] of Object.entries(result.ml_confidence)) {
                     const pct = (score * 100).toFixed(1);
-                    scoresHtml += `
-                        <div style="margin-bottom: 10px;">
-                            <div style="display: flex; justify-content: space-between;">
-                                <span>${label}</span>
-                                <span>${score.toFixed(5)}</span>
+                    const isFault = label !== 'normal' && score > 0.5;
+                    const fillClass = isFault ? 'fill-fault' : (label === 'normal' && score > 0.5 ? 'fill-normal' : '');
+                    
+                    html += `
+                        <div class="confidence-item">
+                            <div class="conf-meta">
+                                <span style="text-transform: uppercase; color: ${isFault ? 'var(--accent-red)' : 'var(--text-main)'}">${label}</span>
+                                <span style="font-family: 'JetBrains Mono', monospace;">${pct}%</span>
                             </div>
-                            <div class="confidence-bar">
-                                <div class="confidence-fill" style="width: ${pct}%;"></div>
+                            <div class="bar-bg">
+                                <div class="bar-fill ${fillClass}" style="width: ${pct}%;"></div>
                             </div>
                         </div>
                     `;
                 }
-                document.getElementById('ml-scores').innerHTML = scoresHtml;
+                document.getElementById('ml-scores').innerHTML = html;
 
-                // Timings
-                document.getElementById('timings').innerText = `DSP: ${result.timing_ms.dsp} ms | Classification: ${result.timing_ms.classification} ms`;
-
-            } catch (error) {
-                console.error("Error running simulation:", error);
+            } catch (err) {
+                console.error("Simulation communication failed:", err);
             }
         }
-        
-        // Initial run
-        updateDisplay();
+
+        // Initialize on load
+        updateDisplay(true);
     </script>
 </body>
 </html>

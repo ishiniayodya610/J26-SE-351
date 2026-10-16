@@ -58,9 +58,9 @@ ei_dsp_config_raw_t ei_dsp_config_1128464_2 = {
     1.0f // float scale-axes
 };
 
-const float ei_dn_standard_scaler_mean_1128464_2[3] = { 28.03320890865881, 7.441633616194842, 366.0790196428795 };
-const float ei_dn_standard_scaler_scale_1128464_2[3] = { 0.11222915363801908, 0.6246810524156831, 0.0015213096337187149 };
-const float ei_dn_standard_scaler_var_1128464_2[3] = { 79.39417212250447, 2.5626148200177092, 432080.6017366474 };
+const float ei_dn_standard_scaler_mean_1128464_2[3] = { 0.3857655759412444, 0.014473026956497263, -6.101452437024641 };
+const float ei_dn_standard_scaler_scale_1128464_2[3] = { 0.0954343770171061, 0.4894199174415525, 0.005859760779413374 };
+const float ei_dn_standard_scaler_var_1128464_2[3] = { 109.79695963792751, 4.174810058324563, 29123.27605013282 };
 ei_data_normalization_standard_scaler_config_t ei_data_normalization_standard_scaler_config_1128464_2 = {
     .mean_data = (float *)ei_dn_standard_scaler_mean_1128464_2,
     .mean_data_len = 3,
@@ -157,7 +157,7 @@ const ei_impulse_t impulse_1128464_1 = {
     .project_name = "AquaGuard-TinyML-Gatekeeper",
     .impulse_id = 1,
     .impulse_name = "Impulse #1",
-    .deploy_version = 12,
+    .deploy_version = 24,
 
     .nn_input_frame_size = 3,
     .raw_sample_count = 1,
@@ -166,8 +166,8 @@ const ei_impulse_t impulse_1128464_1 = {
     .input_width = 0,
     .input_height = 0,
     .input_frames = 0,
-    .interval_ms = 300000,
-    .frequency = 0.0033333333333333335,
+    .interval_ms = 1000,
+    .frequency = 1,
 
     .dsp_blocks_size = ei_dsp_blocks_1128464_1_size,
     .dsp_blocks = ei_dsp_blocks_1128464_1,
@@ -183,7 +183,7 @@ const ei_impulse_t impulse_1128464_1 = {
     .inferencing_engine = EI_CLASSIFIER_TFLITE,
 
     .sensor = EI_CLASSIFIER_SENSOR_FUSION,
-    .fusion_string = "temperature + ph + tds",
+    .fusion_string = "delta_temp + delta_ph + delta_tds",
     .slice_size = (1/4),
     .slices_per_model_window = 4,
 
