@@ -28,7 +28,7 @@ sleep 1
 
 # 2. Start Central Gateway Backend (Port 8000)
 echo "[2/3] Starting Central Gateway Backend (Port 8000)..."
-"$PROJECT_ROOT/backend/venv/bin/uvicorn" backend.app.main:app --host 0.0.0.0 --port 8000 &
+"$PROJECT_ROOT/backend/venv/bin/uvicorn" backend.app.main:app --host 0.0.0.0 --port 8000 --reload &
 BACKEND_PID=$!
 
 # Wait briefly for Backend to bind

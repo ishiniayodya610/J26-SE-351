@@ -622,20 +622,15 @@
             };
 
             try {
-                // 1. Call Standalone Edge C++ runner (Port 3000)
+                // 1. Send simulated sensor transducers to Edge IoT Twin (Port 3000)
+                // The Edge node executes local TinyML inference, evaluates actuator safety locks,
+                // and autonomously uplinks telemetry packets to the Central Gateway (Port 8000).
                 const response = await fetch('/simulate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
                 const result = await response.json();
-
-                // 2. Dual-Sync to FastAPI Backend (Port 8000) so mobile app reacts in real time!
-                fetch('http://localhost:8000/api/telemetry/simulate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                }).catch(() => {});
 
                 // Update Raw JSON Inspector
                 document.getElementById('json-output').innerText = JSON.stringify(result, null, 2);
