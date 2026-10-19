@@ -99,7 +99,21 @@ class SimulatorHandler(http.server.SimpleHTTPRequestHandler):
             try:
                 result = subprocess.run(cmd, capture_output=True, text=True, check=True)
                 json_output = result.stdout
-                
+
+                # Parse C++ output and enrich with data_source metadata
+                try:
+                    parsed = json.loads(json_output)
+                    source_type = data.get('source', 'SIMULATED_TESTBED')
+                    is_real = source_type == 'REMOTE_ESP32'
+                    parsed['data_source'] = {
+                        'type': source_type,
+                        'label': 'Live Remote ESP32 (Tank #1)' if is_real else 'Evaluator Testbed Simulator',
+                        'is_real_hardware': is_real
+                    }
+                    json_output = json.dumps(parsed)
+                except Exception:
+                    pass
+
                 # 2. Autonomous IoT Telemetry Uplink: Push telemetry packet to Central Gateway (:8000)
                 # Exactly mirrors physical ESP32 WiFi HTTPClient POST
                 uplink_telemetry_to_gateway(json_output)
@@ -125,8 +139,16 @@ class SimulatorHandler(http.server.SimpleHTTPRequestHandler):
             self.send_response(404)
             self.end_headers()
 
+class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
+    allow_reuse_address = True
+    daemon_threads = True
+
 if __name__ == '__main__':
-    with socketserver.TCPServer(("", PORT), SimulatorHandler) as httpd:
+    with ThreadedTCPServer(("", PORT), SimulatorHandler) as httpd:
         print(f"Edge IoT Device Simulator running at http://localhost:{PORT}")
         print(f"Autonomous Central Gateway Uplink -> {GATEWAY_UPLINK_URL}")
-        httpd.serve_forever()
+        try:
+            httpd.serve_forever()
+        except KeyboardInterrupt:
+            print("\nShutting down Edge IoT Device Simulator.")
+

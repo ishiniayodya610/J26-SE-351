@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   View, 
   Text, 
   StyleSheet, 
   ScrollView, 
   RefreshControl,
-  ActivityIndicator 
+  ActivityIndicator,
+  TouchableOpacity
 } from 'react-native';
 import { 
   Cpu, 
@@ -16,14 +17,18 @@ import {
   Binary, 
   Layers,
   Lock,
-  Unlock
+  Unlock,
+  AlertTriangle,
+  Radio
 } from 'lucide-react-native';
 import { api, TelemetryData } from '@/services/api';
+import { triggerAnomalyHaptic, triggerResolvedHaptic, triggerSelectionHaptic } from '@/services/haptics';
 
 export default function GatekeeperScreen() {
   const [telemetry, setTelemetry] = useState<TelemetryData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const prevStatusRef = useRef<string | null>(null);
 
   const loadData = async () => {
     try {
@@ -43,6 +48,25 @@ export default function GatekeeperScreen() {
     return () => clearInterval(interval);
   }, []);
 
+  // Trigger hardware haptic burst when anomaly is detected
+  useEffect(() => {
+    if (!telemetry) return;
+    const currentStatus = telemetry.system_status;
+    const hasFault = currentStatus !== 'OPTIMAL' || 
+                     Boolean(telemetry.gatekeeper?.heater_lockout) || 
+                     Boolean(telemetry.gatekeeper?.ph_pump_lockout);
+
+    if (prevStatusRef.current !== null) {
+      const prevHadFault = prevStatusRef.current !== 'OPTIMAL';
+      if (hasFault && !prevHadFault) {
+        triggerAnomalyHaptic();
+      } else if (!hasFault && prevHadFault) {
+        triggerResolvedHaptic();
+      }
+    }
+    prevStatusRef.current = currentStatus;
+  }, [telemetry]);
+
   const onRefresh = () => {
     setRefreshing(true);
     loadData();
@@ -59,6 +83,7 @@ export default function GatekeeperScreen() {
   const timing = telemetry?.timing_ms || { dsp: 0, classification: 1, anomaly: 0 };
   const conf = telemetry?.ml_confidence || { normal: 0.98, ph_fault: 0.01, temp_fault: 0.0, tds_fault: 0.01 };
   const gatekeeper = telemetry?.gatekeeper || { heater_lockout: false, ph_pump_lockout: false };
+  const isThermalRunaway = Boolean(telemetry?.thermal_runaway?.active || gatekeeper.thermal_runaway);
   const diagnostics = telemetry?.diagnostics || {};
 
   return (
@@ -91,6 +116,20 @@ export default function GatekeeperScreen() {
             <Text style={styles.latencyLabel}>Anomaly Score</Text>
             <Text style={styles.latencyVal}>{timing.anomaly} ms</Text>
           </View>
+        </View>
+
+        {/* Input Source Indicator */}
+        <View style={[
+          styles.sourceChip,
+          telemetry?.data_source?.is_real_hardware ? styles.sourceChipReal : styles.sourceChipSim
+        ]}>
+          <Radio size={12} color={telemetry?.data_source?.is_real_hardware ? '#00E676' : '#00E5FF'} />
+          <Text style={[
+            styles.sourceChipText,
+            telemetry?.data_source?.is_real_hardware ? styles.sourceTextReal : styles.sourceTextSim
+          ]}>
+            INPUT STREAM: {telemetry?.data_source?.label ? telemetry.data_source.label.toUpperCase() : (telemetry?.data_source?.is_real_hardware ? 'LIVE REMOTE ESP32 HARDWARE' : 'EVALUATOR TESTBED SIMULATOR')}
+          </Text>
         </View>
       </View>
 
@@ -152,14 +191,14 @@ export default function GatekeeperScreen() {
       {/* Hardware Actuator Safety Intercepts */}
       <Text style={styles.sectionTitle}>Actuator Hardware Intercept States</Text>
       <View style={styles.actuatorRow}>
-        <View style={[styles.actCard, gatekeeper.heater_lockout ? styles.actLocked : styles.actUnlocked]}>
-          {gatekeeper.heater_lockout ? <Lock color="#FF1744" size={24} /> : <Unlock color="#00E676" size={24} />}
+        <View style={[styles.actCard, (gatekeeper.heater_lockout || isThermalRunaway) ? styles.actLocked : styles.actUnlocked]}>
+          {(gatekeeper.heater_lockout || isThermalRunaway) ? <Lock color="#FF1744" size={24} /> : <Unlock color="#00E676" size={24} />}
           <Text style={styles.actTitle}>Heater Relay</Text>
-          <Text style={[styles.actStatus, gatekeeper.heater_lockout ? styles.textAlert : styles.textOk]}>
-            {gatekeeper.heater_lockout ? "LOCKED OUT" : "ENABLED"}
+          <Text style={[styles.actStatus, (gatekeeper.heater_lockout || isThermalRunaway) ? styles.textAlert : styles.textOk]}>
+            {isThermalRunaway ? "🚨 WELDED SHUT" : (gatekeeper.heater_lockout ? "LOCKED OUT" : "ENABLED")}
           </Text>
           <Text style={styles.actDesc}>
-            {gatekeeper.heater_lockout ? "Thermal runaway prevented" : "Normal temperature control"}
+            {isThermalRunaway ? "Welded contacts detected - Unplug AC mains!" : (gatekeeper.heater_lockout ? "Thermal runaway prevented" : "Normal temperature control")}
           </Text>
         </View>
 
@@ -203,6 +242,30 @@ export default function GatekeeperScreen() {
           </View>
         ))}
       </View>
+
+      {/* Tactile Haptic Notification Test & Status Card */}
+      <View style={styles.hapticTestCard}>
+        <View style={styles.hapticTestHeader}>
+          <Radio size={20} color="#00E5FF" />
+          <View style={{ flex: 1, marginLeft: 10 }}>
+            <Text style={styles.hapticTestTitle}>Tactile Hardware Haptics Subsystem</Text>
+            <Text style={styles.hapticTestSubtitle}>
+              Double-pulse tactile alarm fires automatically when an anomaly is intercepted by the Gatekeeper.
+            </Text>
+          </View>
+        </View>
+
+        <TouchableOpacity 
+          style={styles.btnTestHaptic}
+          activeOpacity={0.8}
+          onPress={() => {
+            triggerAnomalyHaptic();
+          }}
+        >
+          <Zap size={16} color="#0B0F19" />
+          <Text style={styles.btnTestHapticText}>TEST HAPTIC ALERT VIBRATION</Text>
+        </TouchableOpacity>
+      </View>
     </ScrollView>
   );
 }
@@ -235,6 +298,32 @@ const styles = StyleSheet.create({
   latencyLabel: { color: '#64748B', fontSize: 10, fontWeight: '600' },
   latencyVal: { color: '#F8FAFC', fontSize: 16, fontWeight: 'bold', marginTop: 4 },
   latencyValHighlight: { color: '#00E5FF', fontSize: 16, fontWeight: 'bold', marginTop: 4 },
+  sourceChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    marginTop: 12,
+    borderWidth: 1,
+    alignSelf: 'flex-start',
+  },
+  sourceChipReal: {
+    backgroundColor: 'rgba(0, 230, 118, 0.1)',
+    borderColor: 'rgba(0, 230, 118, 0.35)',
+  },
+  sourceChipSim: {
+    backgroundColor: 'rgba(0, 229, 255, 0.08)',
+    borderColor: 'rgba(0, 229, 255, 0.25)',
+  },
+  sourceChipText: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  sourceTextReal: { color: '#00E676' },
+  sourceTextSim: { color: '#00E5FF' },
   sectionTitle: { color: '#E2E8F0', fontSize: 15, fontWeight: '700', marginBottom: 12 },
   card: {
     backgroundColor: '#131B2E',
@@ -286,4 +375,43 @@ const styles = StyleSheet.create({
     borderBottomColor: '#0F172A',
   },
   tableCell: { color: '#F8FAFC', fontSize: 12 },
+  hapticTestCard: {
+    backgroundColor: 'rgba(0, 229, 255, 0.06)',
+    borderRadius: 14,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 229, 255, 0.25)',
+    marginBottom: 20,
+  },
+  hapticTestHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 14,
+  },
+  hapticTestTitle: {
+    color: '#00E5FF',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  hapticTestSubtitle: {
+    color: '#94A3B8',
+    fontSize: 11,
+    lineHeight: 16,
+    marginTop: 2,
+  },
+  btnTestHaptic: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#00E5FF',
+    borderRadius: 8,
+    paddingVertical: 12,
+    gap: 8,
+  },
+  btnTestHapticText: {
+    color: '#0B0F19',
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
 });
