@@ -4,6 +4,11 @@
 .vscode/
 .idea/
 
+# Environment Variables
+.env
+.env.local
+*.env
+
 # Python
 __pycache__/
 *.py[cod]

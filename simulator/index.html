@@ -83,6 +83,48 @@
         .dot-green { background-color: var(--accent-green); box-shadow: 0 0 8px var(--accent-green); }
         .dot-cyan { background-color: var(--accent-cyan); box-shadow: 0 0 8px var(--accent-cyan); }
 
+        .pulse-toggle-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 229, 255, 0.1);
+            border: 1px solid rgba(0, 229, 255, 0.4);
+            color: var(--accent-cyan);
+            padding: 7px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+        .pulse-toggle-btn:hover {
+            background: rgba(0, 229, 255, 0.22);
+            border-color: var(--accent-cyan);
+            transform: translateY(-1px);
+        }
+        .pulse-toggle-btn.active {
+            background: rgba(0, 230, 118, 0.15);
+            border-color: var(--accent-green);
+            color: var(--accent-green);
+            box-shadow: 0 0 14px rgba(0, 230, 118, 0.35);
+        }
+        .pulse-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--accent-cyan);
+        }
+        .pulse-toggle-btn.active .pulse-indicator {
+            background-color: var(--accent-green);
+            box-shadow: 0 0 8px var(--accent-green);
+            animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.7); }
+            70% { transform: scale(1.15); box-shadow: 0 0 0 8px rgba(0, 230, 118, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 230, 118, 0); }
+        }
+
         /* Main Grid */
         .grid {
             display: grid;
@@ -328,6 +370,10 @@
             </div>
         </div>
         <div class="status-cluster">
+            <button id="pulse-btn" class="pulse-toggle-btn" onclick="toggleAutoPulse()" title="Stream autonomous 2-second telemetry packets matching physical ESP32">
+                <div class="pulse-indicator"></div>
+                <span id="pulse-btn-text">▶ Start 2-Second Live Pulse</span>
+            </button>
             <div class="node-pill">
                 <div class="dot dot-green"></div>
                 <span>Edge C++ Engine: Port 3000</span>
@@ -381,6 +427,10 @@
                     <button class="btn-scenario btn-danger" onclick="triggerScenario('tds_spike')">
                         <span>4. TDS Spike (880 ppm | ΔTDS = +730)</span>
                         <span class="badge-tag tag-fault">DATA IMPUTED</span>
+                    </button>
+                    <button class="btn-scenario btn-danger" onclick="triggerScenario('runaway_heater')" style="border-color: #FF1744; background: rgba(255, 23, 68, 0.15);">
+                        <span>5. 🔥 Stuck Heater Runaway (Welded Relay Creep)</span>
+                        <span class="badge-tag tag-fault" style="background: #FF1744; color: #FFF;">WELDED RUNAWAY</span>
                     </button>
                 </div>
             </div>
@@ -479,6 +529,10 @@
                     <div id="pump-card" class="actuator-card">
                         <div class="actuator-label">Chemical Dosing Pump</div>
                         <div id="pump-status" class="actuator-status status-green">ENABLED</div>
+                    </div>
+                    <div id="runaway-card" class="actuator-card" style="display:none; grid-column: span 2; border-color: #FF1744; background: rgba(255, 23, 68, 0.18);">
+                        <div class="actuator-label" style="color: #FF8A80;">🚨 Physical Relay Status (Thermodynamic Divergence)</div>
+                        <div id="runaway-status" class="actuator-status status-red">WELDED SHUT • UNPLUG MAINS</div>
                     </div>
                 </div>
             </div>
@@ -594,7 +648,32 @@
                 phSlider.value = base.ph;
                 tdsSlider.value = 880;
                 updateDisplay(true);
+            } else if (type === 'runaway_heater') {
+                // Ensure nominal baseline first
+                await resetBaseline(base);
+                simulateSlowThermalCreep(base);
             }
+        }
+
+        let runawayInterval = null;
+        function simulateSlowThermalCreep(base) {
+            if (runawayInterval) clearInterval(runawayInterval);
+            let currentT = base.temp;
+            let step = 0;
+            // Send initial nominal
+            runSimulation(currentT, base.ph, base.tds, 'REMOTE_ESP32');
+            runawayInterval = setInterval(() => {
+                step++;
+                // Creep up by +0.25°C per 2-second pulse (water heat accumulation from stuck heater)
+                currentT = Math.round((currentT + 0.25) * 100) / 100;
+                tempSlider.value = currentT;
+                document.getElementById('temp-val').innerText = currentT.toFixed(2) + ' °C';
+                runSimulation(currentT, base.ph, base.tds, 'REMOTE_ESP32');
+                if (step >= 12 || currentT >= 32.5) {
+                    clearInterval(runawayInterval);
+                    runawayInterval = null;
+                }
+            }, 2000);
         }
 
         async function handleSpeciesChange() {
@@ -614,11 +693,57 @@
             await resetBaseline(base);
         }
 
-        async function runSimulation() {
+        let autoPulseInterval = null;
+
+        function toggleAutoPulse() {
+            const btn = document.getElementById('pulse-btn');
+            const text = document.getElementById('pulse-btn-text');
+            if (autoPulseInterval) {
+                clearInterval(autoPulseInterval);
+                autoPulseInterval = null;
+                btn.classList.remove('active');
+                text.innerText = "▶ Start 2-Second Live Pulse";
+            } else {
+                btn.classList.add('active');
+                text.innerText = "🟢 Streaming Live Pulse (2.0s)";
+                runPulseCycle();
+                autoPulseInterval = setInterval(runPulseCycle, 2000);
+            }
+        }
+
+        function runPulseCycle() {
+            const baseTemp = parseFloat(tempSlider.value);
+            const basePh = parseFloat(phSlider.value);
+            const baseTds = parseFloat(tdsSlider.value);
+
+            // Realistic probe jitter around current slider setting
+            const jitterTemp = (Math.random() - 0.5) * 0.08;
+            const jitterPh = (Math.random() - 0.5) * 0.03;
+            const jitterTds = (Math.random() - 0.5) * 2.5;
+
+            const pTemp = Math.round((baseTemp + jitterTemp) * 100) / 100;
+            const pPh = Math.round((basePh + jitterPh) * 100) / 100;
+            const pTds = Math.round(baseTds + jitterTds);
+
+            runSimulation(pTemp, pPh, pTds, 'REMOTE_ESP32');
+        }
+
+        async function runSimulation(customTemp = null, customPh = null, customTds = null, customSource = 'SIMULATED_TESTBED') {
+            const tempVal = customTemp !== null ? customTemp : parseFloat(tempSlider.value);
+            const phVal = customPh !== null ? customPh : parseFloat(phSlider.value);
+            const tdsVal = customTds !== null ? customTds : parseFloat(tdsSlider.value);
+
+            if (customTemp !== null) {
+                document.getElementById('temp-val').innerText = tempVal.toFixed(2) + ' °C';
+                document.getElementById('ph-val').innerText = phVal.toFixed(2);
+                document.getElementById('tds-val').innerText = Math.round(tdsVal) + ' ppm';
+            }
+
             const payload = {
-                temp: parseFloat(tempSlider.value),
-                ph: parseFloat(phSlider.value),
-                tds: parseFloat(tdsSlider.value)
+                temp: tempVal,
+                ph: phVal,
+                tds: tdsVal,
+                source: customSource
             };
 
             try {
@@ -687,6 +812,21 @@
                     pumpCard.className = 'actuator-card';
                     pumpStatus.innerText = 'ENABLED';
                     pumpStatus.className = 'actuator-status status-green';
+                }
+
+                // Update Welded Relay Runaway Card
+                const runawayCard = document.getElementById('runaway-card');
+                const runawayStatus = document.getElementById('runaway-status');
+                const isRunaway = (result.thermal_runaway && result.thermal_runaway.active) || 
+                                  (result.gatekeeper && result.gatekeeper.thermal_runaway);
+                if (isRunaway) {
+                    runawayCard.style.display = 'block';
+                    const ttc = (result.thermal_runaway && result.thermal_runaway.time_to_critical_min) 
+                                ? `(~${result.thermal_runaway.time_to_critical_min}m to lethal limit)` 
+                                : '';
+                    runawayStatus.innerText = `🚨 WELDED CLOSED ${ttc} • UNPLUG MAINS!`;
+                } else {
+                    runawayCard.style.display = 'none';
                 }
 
                 // Update Imputed Values

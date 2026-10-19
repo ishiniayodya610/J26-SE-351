@@ -204,7 +204,8 @@ void sendTelemetryUplink(float clean_temp, float clean_ph, float clean_tds,
         "},"
         "\"gatekeeper\":{"
             "\"heater_lockout\":%s,"
-            "\"ph_pump_lockout\":%s"
+            "\"ph_pump_lockout\":%s,"
+            "\"thermal_runaway\":%s"
         "},"
         "\"timing_ms\":{\"dsp\":%d,\"classification\":%d},"
         "\"ml_confidence\":{"
@@ -218,8 +219,9 @@ void sendTelemetryUplink(float clean_temp, float clean_ph, float clean_tds,
         temp_fault ? "true" : "false", temp_fault ? "true" : "false",
         ph_fault ? "true" : "false", ph_fault ? "true" : "false",
         tds_fault ? "true" : "false", tds_fault ? "true" : "false",
-        temp_fault ? "true" : "false",
+        (temp_fault || raw_temp >= 31.5f) ? "true" : "false",
         ph_fault ? "true" : "false",
+        (raw_temp >= 31.5f) ? "true" : "false",
         dsp_ms, infer_ms,
         normal_conf, temp_conf, ph_conf, tds_conf
     );

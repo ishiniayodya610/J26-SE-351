@@ -9,14 +9,37 @@ echo "=================================================="
 echo "   AquaGuard: 4-in-1 AI Ecosystem Launcher        "
 echo "=================================================="
 
-# Function to clean up background processes on CTRL+C
+# Function to clean up background processes on CTRL+C or exit
 cleanup() {
     echo ""
     echo "Stopping all AquaGuard background services..."
-    kill $(jobs -p) 2>/dev/null
-    exit 0
+    [ -n "$EDGE_PID" ] && kill -9 $EDGE_PID 2>/dev/null || true
+    [ -n "$BACKEND_PID" ] && kill -9 $BACKEND_PID 2>/dev/null || true
+    kill $(jobs -p) 2>/dev/null || true
+    for PORT in 3000 8000 8081; do
+        PIDS=$(lsof -ti :$PORT 2>/dev/null)
+        if [ -n "$PIDS" ]; then
+            kill -9 $PIDS 2>/dev/null || true
+        fi
+    done
 }
-trap cleanup SIGINT SIGTERM
+trap cleanup EXIT INT TERM
+
+# Proactively free ports 3000, 8000, and 8081 if previously occupied
+for PORT in 3000 8000 8081; do
+    PIDS=$(lsof -ti :$PORT 2>/dev/null)
+    if [ -n "$PIDS" ]; then
+        echo "Clearing port $PORT (PID $PIDS)..."
+        kill -9 $PIDS 2>/dev/null || true
+    fi
+done
+sleep 1
+
+# Ensure C++ TinyML runner binary is compiled
+if [ ! -f "$PROJECT_ROOT/simulator/runner/build/custom" ]; then
+    echo "Compiling C++ Edge Impulse runner binary..."
+    make -C "$PROJECT_ROOT/simulator/runner" -j4 APP_CUSTOM=1
+fi
 
 # 1. Start the Standalone Edge IoT Device Simulator (Port 3000)
 echo "[1/3] Starting Edge IoT Device Simulator (Port 3000)..."

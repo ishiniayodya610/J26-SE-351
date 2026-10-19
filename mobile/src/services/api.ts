@@ -23,7 +23,7 @@ export interface TelemetryData {
     ph: { fault_detected: boolean; imputed: boolean };
     tds: { fault_detected: boolean; imputed: boolean };
   };
-  gatekeeper: { heater_lockout: boolean; ph_pump_lockout: boolean };
+  gatekeeper: { heater_lockout: boolean; ph_pump_lockout: boolean; thermal_runaway?: boolean };
   deltas?: {
     delta_temp: number;
     delta_ph: number;
@@ -34,6 +34,21 @@ export interface TelemetryData {
     target_temp: number;
     target_ph: number;
     target_tds: number;
+  };
+  thermal_runaway?: {
+    active: boolean;
+    headline: string;
+    message: string;
+    slope_per_min?: number;
+    time_to_critical_min?: number;
+    lethal_temp?: number;
+    action: string;
+  };
+  data_source?: {
+    type: 'REMOTE_ESP32' | 'SIMULATED_TESTBED' | 'PHYSICAL_EDGE';
+    label: string;
+    is_real_hardware: boolean;
+    timestamp?: string;
   };
 }
 
@@ -70,6 +85,23 @@ export interface XAIExplanationData {
   edge_gatekeeper_role: string;
   attributions: Array<{ feature_name: string; importance_weight: number; description: string }>;
   recommended_actions: string[];
+}
+
+export interface VideoAnalysisData {
+  species_id: string;
+  common_name: string;
+  scientific_name: string;
+  confidence: number;
+  video_filename: string;
+  video_size_kb: number;
+  frames_processed: number;
+  swimming_activity_pct: number;
+  lethargy_index_pct: number;
+  surface_piping: string;
+  feeding_response: string;
+  health_status: string;
+  target_parameters: { temp: number; ph: number; tds: number };
+  care_notes: string;
 }
 
 export interface BehaviorData {
@@ -128,6 +160,48 @@ export const api = {
   async getLiveBehavior(): Promise<BehaviorData> {
     const res = await fetch(`${API_BASE_URL}/api/comp2/live-behavior`);
     if (!res.ok) throw new Error('Failed to fetch behavior');
+    return res.json();
+  },
+
+  async analyzeVideo(uri: string, filename?: string): Promise<VideoAnalysisData> {
+    const formData = new FormData();
+    const name = filename || uri.split('/').pop() || 'captured_tank_video.mp4';
+
+    if (Platform.OS === 'web') {
+      try {
+        const response = await fetch(uri);
+        const blob = await response.blob();
+        formData.append('file', blob, name);
+      } catch (e) {
+        formData.append('file', { uri, name, type: 'video/mp4' } as any);
+      }
+    } else {
+      formData.append('file', {
+        uri,
+        name,
+        type: 'video/mp4',
+      } as any);
+    }
+
+    const res = await fetch(`${API_BASE_URL}/api/comp2/analyze-video`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!res.ok) throw new Error('Video behavioral analysis failed');
+    const result = await res.json();
+    return result.data;
+  },
+
+  async getAquioStatus(): Promise<any> {
+    const res = await fetch(`${API_BASE_URL}/api/aquio/status`);
+    if (!res.ok) throw new Error('Failed to fetch Aquio bridge status');
+    return res.json();
+  },
+
+  async syncAquioNow(): Promise<any> {
+    const res = await fetch(`${API_BASE_URL}/api/aquio/sync-now`, { method: 'POST' });
+    if (!res.ok) throw new Error('Failed to trigger manual Aquio sync');
     return res.json();
   },
 };
