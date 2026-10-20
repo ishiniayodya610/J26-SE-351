@@ -1,31 +1,42 @@
 """
-Fuzzy rule base for evaluating risk levels from water parameter antecedents.
+Fuzzy rule base for evaluating Ecosystem Stability Index (ESI).
+Phase 5: Biological reasoning rules.
 """
 
-from typing import List, Any
-
-try:
-    from skfuzzy import control as ctrl
-except ImportError:
-    ctrl = None
+from skfuzzy import control as ctrl
 
 
-def build_fuzzy_rules(variables: dict) -> List[Any]:
-    """
-    Construct the fuzzy associative rules.
-    """
-    if ctrl is None or not variables:
-        return []
+def get_fuzzy_rules(temperature, ph, tds, aggression, esi):
+    """Defines the rule base for evaluating ecosystem stability."""
 
-    temp = variables["temperature"]
-    ph = variables["ph"]
-    ammonia = variables["ammonia"]
-    risk = variables["risk"]
+    # Rule 1: Perfect conditions
+    rule1 = ctrl.Rule(
+        temperature['Optimal'] & ph['Neutral'] & tds['Moderate'] & aggression['Calm'],
+        esi['Stable']
+    )
 
-    rules = [
-        ctrl.Rule(temp["optimal"] & ph["neutral"] & ammonia["safe"], risk["low"]),
-        ctrl.Rule(temp["cold"] | temp["hot"] | ammonia["warning"], risk["moderate"]),
-        ctrl.Rule(ammonia["toxic"] | ph["acidic"] | ph["alkaline"], risk["high"]),
-    ]
+    # Rule 2: Extreme stress combinations
+    rule2 = ctrl.Rule(
+        temperature['Hot'] & aggression['Severe'],
+        esi['Critical']
+    )
 
-    return rules
+    # Rule 3: Water chemistry imbalance
+    rule3 = ctrl.Rule(
+        ph['Acidic'] | tds['High'],
+        esi['Suboptimal']
+    )
+
+    # Rule 4: Cold stress
+    rule4 = ctrl.Rule(
+        temperature['Cold'] & aggression['Moderate'],
+        esi['Suboptimal']
+    )
+
+    # Rule 5: Severe water chemistry issues
+    rule5 = ctrl.Rule(
+        ph['Alkaline'] & tds['High'],
+        esi['Critical']
+    )
+
+    return [rule1, rule2, rule3, rule4, rule5]

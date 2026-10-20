@@ -1,54 +1,47 @@
 """
 Fuzzy membership functions and linguistic variable definitions using scikit-fuzzy.
+Phase 5: Fuzzy Stability Engine Antecedents & Consequents.
 """
 
-from typing import Dict, Any
-
-try:
-    import numpy as np
-    import skfuzzy as fuzz
-    from skfuzzy import control as ctrl
-except ImportError:
-    np = None
-    fuzz = None
-    ctrl = None
+import numpy as np
+import skfuzzy as fuzz
+from skfuzzy import control as ctrl
 
 
-def setup_water_quality_variables() -> Dict[str, Any]:
-    """
-    Define antecedent and consequent fuzzy variables for water quality parameters.
-    """
-    if ctrl is None:
-        return {}
+def setup_fuzzy_variables():
+    """Defines antecedents, consequents, and realistic membership functions."""
+    # Antecedents (Inputs)
+    temperature = ctrl.Antecedent(np.arange(15, 36, 1), 'temperature')
+    ph = ctrl.Antecedent(np.arange(4.0, 10.1, 0.1), 'ph')
+    tds = ctrl.Antecedent(np.arange(0, 601, 1), 'tds')
+    aggression = ctrl.Antecedent(np.arange(0, 11, 1), 'aggression')
 
-    # Inputs: Antecedents
-    temperature = ctrl.Antecedent(np.arange(15, 35, 0.5), "temperature")
-    ph = ctrl.Antecedent(np.arange(5.0, 9.5, 0.1), "ph")
-    ammonia = ctrl.Antecedent(np.arange(0.0, 5.0, 0.05), "ammonia")
+    # Consequent (Output: ESI 0.00 - 1.00)
+    esi = ctrl.Consequent(np.arange(0, 1.01, 0.01), 'esi')
 
-    # Output: Consequent
-    risk = ctrl.Consequent(np.arange(0, 101, 1), "risk")
+    # Temperature Memberships (Trapezoidal/Triangular)
+    temperature['Cold'] = fuzz.trapmf(temperature.universe, [15, 15, 20, 23])
+    temperature['Optimal'] = fuzz.trimf(temperature.universe, [22, 25, 28])
+    temperature['Hot'] = fuzz.trapmf(temperature.universe, [27, 30, 35, 35])
 
-    # Membership functions
-    temperature["cold"] = fuzz.trimf(temperature.universe, [15, 15, 22])
-    temperature["optimal"] = fuzz.trimf(temperature.universe, [21, 25, 27])
-    temperature["hot"] = fuzz.trimf(temperature.universe, [26, 35, 35])
+    # pH Memberships
+    ph['Acidic'] = fuzz.trapmf(ph.universe, [4.0, 4.0, 6.0, 6.8])
+    ph['Neutral'] = fuzz.trimf(ph.universe, [6.5, 7.0, 7.5])
+    ph['Alkaline'] = fuzz.trapmf(ph.universe, [7.2, 8.0, 10.0, 10.0])
 
-    ph["acidic"] = fuzz.trimf(ph.universe, [5.0, 5.0, 6.8])
-    ph["neutral"] = fuzz.trimf(ph.universe, [6.5, 7.2, 7.8])
-    ph["alkaline"] = fuzz.trimf(ph.universe, [7.5, 9.5, 9.5])
+    # TDS Memberships
+    tds['Low'] = fuzz.trapmf(tds.universe, [0, 0, 80, 150])
+    tds['Moderate'] = fuzz.trimf(tds.universe, [100, 200, 300])
+    tds['High'] = fuzz.trapmf(tds.universe, [250, 400, 600, 600])
 
-    ammonia["safe"] = fuzz.trimf(ammonia.universe, [0.0, 0.0, 0.25])
-    ammonia["warning"] = fuzz.trimf(ammonia.universe, [0.1, 0.5, 1.0])
-    ammonia["toxic"] = fuzz.trimf(ammonia.universe, [0.8, 5.0, 5.0])
+    # Aggression Memberships
+    aggression['Calm'] = fuzz.trimf(aggression.universe, [0, 0, 3])
+    aggression['Moderate'] = fuzz.trimf(aggression.universe, [2, 5, 8])
+    aggression['Severe'] = fuzz.trapmf(aggression.universe, [6, 8, 10, 10])
 
-    risk["low"] = fuzz.trimf(risk.universe, [0, 0, 30])
-    risk["moderate"] = fuzz.trimf(risk.universe, [25, 50, 75])
-    risk["high"] = fuzz.trimf(risk.universe, [65, 100, 100])
+    # ESI Output Memberships
+    esi['Critical'] = fuzz.trimf(esi.universe, [0.0, 0.15, 0.35])
+    esi['Suboptimal'] = fuzz.trimf(esi.universe, [0.30, 0.50, 0.70])
+    esi['Stable'] = fuzz.trimf(esi.universe, [0.65, 0.85, 1.0])
 
-    return {
-        "temperature": temperature,
-        "ph": ph,
-        "ammonia": ammonia,
-        "risk": risk,
-    }
+    return temperature, ph, tds, aggression, esi
