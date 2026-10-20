@@ -1,20 +1,28 @@
 """
-Pydantic model representing IoT sensor telemetry readings.
+Pydantic model representing IoT sensor telemetry, edge diagnostics, and gatekeeper states.
+Phase 3 Data Input Layer.
 """
 
-from datetime import datetime
-from typing import Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
-class TelemetryReading(BaseModel):
-    aquarium_id: str
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+class Diagnostics(BaseModel):
+    fault_detected: bool
+    imputed: bool
+
+
+class Gatekeeper(BaseModel):
+    heater_lockout: bool
+    ph_pump_lockout: bool
+
+
+class Telemetry(BaseModel):
     temperature_c: float
     ph: float
-    dissolved_oxygen_mg_l: Optional[float] = None
-    ammonia_ppm: Optional[float] = None
-    nitrite_ppm: Optional[float] = None
-    nitrate_ppm: Optional[float] = None
-    salinity_ppt: Optional[float] = None
-    turbidity_ntu: Optional[float] = None
+    tds_ppm: float
+    diagnostics: Diagnostics
+    gatekeeper: Gatekeeper
+
+
+# Backwards compatibility alias
+TelemetryReading = Telemetry

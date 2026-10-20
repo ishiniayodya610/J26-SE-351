@@ -1,12 +1,27 @@
 """
-Pydantic model representing fish and plant species parameters.
-Phase 2 Knowledge Base Schema.
+Pydantic models representing fish species knowledge base and observed fish behavior.
+Phase 2 & Phase 3 Data Models.
 """
 
 from typing import List, Dict, Optional
 from pydantic import BaseModel, Field
 
 
+# Phase 3: Vision / Behavioral Observation Model
+class FishBehavior(BaseModel):
+    species_id: str
+    common_name: str
+    male: int
+    female: int
+    confidence: float
+    swimming_activity_pct: float
+    lethargy_index_pct: float
+    surface_piping: str
+    feeding_response: str
+    status: str
+
+
+# Phase 2: Species Biological Profile Models
 class ParameterRange(BaseModel):
     min: float
     optimal_min: float

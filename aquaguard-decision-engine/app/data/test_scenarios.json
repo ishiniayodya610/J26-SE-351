@@ -1,56 +1,64 @@
-[
-  {
-    "scenario_id": "SCEN_01_NORMAL",
-    "description": "Stable freshwater community tank with balanced parameters",
-    "telemetry": {
-      "temperature_c": 24.5,
-      "ph": 6.8,
-      "ammonia_ppm": 0.0,
-      "nitrite_ppm": 0.0,
-      "nitrate_ppm": 10.0
+{
+  "scenario_id": "mock_baseline_001",
+  "aquarium": {
+    "volume_liters": 60,
+    "dimensions_cm": {
+      "l": 60,
+      "w": 30,
+      "h": 35
     },
-    "current_species": ["neon_tetra", "corydoras_panda"],
-    "expected_risk": "low",
-    "expected_recommendations": []
+    "water_type": "freshwater",
+    "equipment": {
+      "heater": true,
+      "filter_type": "sponge",
+      "aeration": true
+    }
   },
-  {
-    "scenario_id": "SCEN_02_TEMP_SPIKE",
-    "description": "Heater malfunction causing abnormal temperature rise",
-    "telemetry": {
-      "temperature_c": 31.0,
-      "ph": 6.9,
-      "ammonia_ppm": 0.05,
-      "nitrite_ppm": 0.0,
-      "nitrate_ppm": 15.0
+  "telemetry": {
+    "temperature_c": 26.0,
+    "ph": 7.3,
+    "tds_ppm": 220,
+    "diagnostics": {
+      "fault_detected": false,
+      "imputed": false
     },
-    "current_species": ["neon_tetra", "corydoras_panda"],
-    "expected_risk": "high",
-    "expected_recommendations": [
-      {
-        "action": "adjust_temperature",
-        "target_value": 24.0,
-        "urgency": "high"
-      }
-    ]
+    "gatekeeper": {
+      "heater_lockout": false,
+      "ph_pump_lockout": false
+    }
   },
-  {
-    "scenario_id": "SCEN_03_AMMONIA_SPIKE",
-    "description": "Biological filter breakdown or overfeeding resulting in dangerous ammonia spike",
-    "telemetry": {
-      "temperature_c": 25.0,
-      "ph": 7.6,
-      "ammonia_ppm": 1.5,
-      "nitrite_ppm": 0.4,
-      "nitrate_ppm": 40.0
+  "fish": [
+    {
+      "species_id": "poecilia_reticulata",
+      "common_name": "Guppy",
+      "male": 2,
+      "female": 6,
+      "confidence": 0.95,
+      "swimming_activity_pct": 85.0,
+      "lethargy_index_pct": 5.0,
+      "surface_piping": "None",
+      "feeding_response": "Active",
+      "status": "NORMAL_HEALTH"
     },
-    "current_species": ["betta_splendens"],
-    "expected_risk": "critical",
-    "expected_recommendations": [
-      {
-        "action": "water_change",
-        "target_value": 50.0,
-        "urgency": "critical"
-      }
-    ]
+    {
+      "species_id": "xiphophorus_hellerii",
+      "common_name": "Swordtail",
+      "male": 1,
+      "female": 3,
+      "confidence": 0.88,
+      "swimming_activity_pct": 75.0,
+      "lethargy_index_pct": 10.0,
+      "surface_piping": "None",
+      "feeding_response": "Active",
+      "status": "NORMAL_HEALTH"
+    }
+  ],
+  "forecast": {
+    "ammonia_spike_risk_pct": 10.0,
+    "ammonia_status": "STABLE",
+    "whitespot_disease_risk_pct": 5.0,
+    "disease_status": "LOW RISK",
+    "temperature_trend_c": 26.2,
+    "forecast_horizon_hours": 12
   }
-]
+}
