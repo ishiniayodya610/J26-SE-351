@@ -6,7 +6,8 @@
     "environment": {
       "temperature": { "min": 22, "optimal_min": 24, "optimal_max": 28, "max": 30 },
       "ph": { "min": 6.5, "optimal_min": 7.0, "optimal_max": 8.0, "max": 8.5 },
-      "tds": { "min": 100, "optimal_min": 150, "optimal_max": 300, "max": 500 }
+      "tds": { "min": 100, "optimal_min": 150, "optimal_max": 300, "max": 500 },
+      "min_volume_liters": 2.0
     },
     "behavior": { "aggression": 1, "fin_nipping": false, "territorial": false },
     "spatial": { "zones": ["Top", "Middle"] },
@@ -20,7 +21,8 @@
     "environment": {
       "temperature": { "min": 20, "optimal_min": 22, "optimal_max": 26, "max": 28 },
       "ph": { "min": 7.0, "optimal_min": 7.5, "optimal_max": 8.3, "max": 8.5 },
-      "tds": { "min": 150, "optimal_min": 200, "optimal_max": 400, "max": 500 }
+      "tds": { "min": 150, "optimal_min": 200, "optimal_max": 400, "max": 500 },
+      "min_volume_liters": 5.0
     },
     "behavior": { "aggression": 3, "fin_nipping": false, "territorial": true },
     "spatial": { "zones": ["Top", "Middle"] },
@@ -34,7 +36,8 @@
     "environment": {
       "temperature": { "min": 24, "optimal_min": 25, "optimal_max": 27, "max": 30 },
       "ph": { "min": 6.0, "optimal_min": 6.5, "optimal_max": 7.5, "max": 8.0 },
-      "tds": { "min": 50, "optimal_min": 100, "optimal_max": 200, "max": 300 }
+      "tds": { "min": 50, "optimal_min": 100, "optimal_max": 200, "max": 300 },
+      "min_volume_liters": 10.0
     },
     "behavior": { "aggression": 9, "fin_nipping": false, "territorial": true },
     "spatial": { "zones": ["Top"] },
@@ -48,7 +51,8 @@
     "environment": {
       "temperature": { "min": 20, "optimal_min": 22, "optimal_max": 25, "max": 26 },
       "ph": { "min": 5.0, "optimal_min": 6.0, "optimal_max": 7.0, "max": 7.5 },
-      "tds": { "min": 10, "optimal_min": 50, "optimal_max": 100, "max": 150 }
+      "tds": { "min": 10, "optimal_min": 50, "optimal_max": 100, "max": 150 },
+      "min_volume_liters": 2.0
     },
     "behavior": { "aggression": 1, "fin_nipping": false, "territorial": false },
     "spatial": { "zones": ["Middle"] },
@@ -62,7 +66,8 @@
     "environment": {
       "temperature": { "min": 22, "optimal_min": 24, "optimal_max": 27, "max": 28 },
       "ph": { "min": 5.0, "optimal_min": 6.0, "optimal_max": 7.0, "max": 7.5 },
-      "tds": { "min": 20, "optimal_min": 50, "optimal_max": 120, "max": 150 }
+      "tds": { "min": 20, "optimal_min": 50, "optimal_max": 120, "max": 150 },
+      "min_volume_liters": 2.5
     },
     "behavior": { "aggression": 1, "fin_nipping": false, "territorial": false },
     "spatial": { "zones": ["Middle", "Top"] },
@@ -76,7 +81,8 @@
     "environment": {
       "temperature": { "min": 21, "optimal_min": 23, "optimal_max": 26, "max": 27 },
       "ph": { "min": 6.0, "optimal_min": 6.5, "optimal_max": 7.5, "max": 8.0 },
-      "tds": { "min": 50, "optimal_min": 100, "optimal_max": 200, "max": 250 }
+      "tds": { "min": 50, "optimal_min": 100, "optimal_max": 200, "max": 250 },
+      "min_volume_liters": 4.0
     },
     "behavior": { "aggression": 1, "fin_nipping": false, "territorial": false },
     "spatial": { "zones": ["Bottom"] },
@@ -90,7 +96,8 @@
     "environment": {
       "temperature": { "min": 20, "optimal_min": 22, "optimal_max": 25, "max": 26 },
       "ph": { "min": 7.0, "optimal_min": 7.2, "optimal_max": 8.2, "max": 8.5 },
-      "tds": { "min": 150, "optimal_min": 200, "optimal_max": 350, "max": 400 }
+      "tds": { "min": 150, "optimal_min": 200, "optimal_max": 350, "max": 400 },
+      "min_volume_liters": 3.0
     },
     "behavior": { "aggression": 1, "fin_nipping": false, "territorial": false },
     "spatial": { "zones": ["Middle", "Top"] },
@@ -104,7 +111,8 @@
     "environment": {
       "temperature": { "min": 24, "optimal_min": 25, "optimal_max": 28, "max": 30 },
       "ph": { "min": 7.5, "optimal_min": 7.8, "optimal_max": 8.5, "max": 8.8 },
-      "tds": { "min": 200, "optimal_min": 300, "optimal_max": 450, "max": 500 }
+      "tds": { "min": 200, "optimal_min": 300, "optimal_max": 450, "max": 500 },
+      "min_volume_liters": 6.0
     },
     "behavior": { "aggression": 2, "fin_nipping": false, "territorial": false },
     "spatial": { "zones": ["Top", "Middle", "Bottom"] },
@@ -118,7 +126,8 @@
     "environment": {
       "temperature": { "min": 24, "optimal_min": 26, "optimal_max": 28, "max": 30 },
       "ph": { "min": 6.0, "optimal_min": 6.5, "optimal_max": 7.4, "max": 7.5 },
-      "tds": { "min": 50, "optimal_min": 100, "optimal_max": 250, "max": 300 }
+      "tds": { "min": 50, "optimal_min": 100, "optimal_max": 250, "max": 300 },
+      "min_volume_liters": 15.0
     },
     "behavior": { "aggression": 5, "fin_nipping": false, "territorial": true },
     "spatial": { "zones": ["Middle"] },
@@ -132,7 +141,8 @@
     "environment": {
       "temperature": { "min": 18, "optimal_min": 20, "optimal_max": 24, "max": 25 },
       "ph": { "min": 6.5, "optimal_min": 7.0, "optimal_max": 7.5, "max": 8.0 },
-      "tds": { "min": 50, "optimal_min": 100, "optimal_max": 200, "max": 250 }
+      "tds": { "min": 50, "optimal_min": 100, "optimal_max": 200, "max": 250 },
+      "min_volume_liters": 2.5
     },
     "behavior": { "aggression": 1, "fin_nipping": true, "territorial": false },
     "spatial": { "zones": ["Top", "Middle"] },

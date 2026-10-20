@@ -33,6 +33,7 @@ class SpeciesEnvironment(BaseModel):
     temperature: ParameterRange
     ph: ParameterRange
     tds: ParameterRange
+    min_volume_liters: Optional[float] = 3.0
 
 
 class SpeciesBehavior(BaseModel):
