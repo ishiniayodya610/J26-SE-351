@@ -1,28 +1,49 @@
 """
 Pydantic model representing fish and plant species parameters.
+Phase 2 Knowledge Base Schema.
 """
 
-from typing import List, Optional
+from typing import List, Dict, Optional
 from pydantic import BaseModel, Field
 
 
-class WaterParameterRange(BaseModel):
+class ParameterRange(BaseModel):
     min: float
-    max: float
     optimal_min: float
     optimal_max: float
+    max: float
+
+
+class SpeciesEnvironment(BaseModel):
+    temperature: ParameterRange
+    ph: ParameterRange
+    tds: ParameterRange
+
+
+class SpeciesBehavior(BaseModel):
+    aggression: int = Field(ge=1, le=10, description="Aggression index from 1 (peaceful) to 10 (aggressive)")
+    fin_nipping: bool = False
+    territorial: bool = False
+
+
+class SpeciesSpatial(BaseModel):
+    zones: List[str] = Field(default_factory=lambda: ["Middle"], description="Swimming layers: Top, Middle, Bottom")
+
+
+class SpeciesBreeding(BaseModel):
+    type: str  # livebearer, egglayer, etc.
+    male_female_ratio: float = 1.0
 
 
 class Species(BaseModel):
-    id: str
+    species_id: str
     common_name: str
-    scientific_name: Optional[str] = None
-    water_type: str = "freshwater"  # freshwater, saltwater, brackish
-    temperature_c: WaterParameterRange
-    ph: WaterParameterRange
-    hardness_dgh: Optional[WaterParameterRange] = None
-    min_tank_volume_liters: float = 20.0
-    temperament: str = "peaceful"  # peaceful, semi-aggressive, aggressive
-    swimming_level: str = "middle"  # top, middle, bottom
-    incompatible_species_ids: List[str] = Field(default_factory=list)
-    diet_type: str = "omnivore"
+    temperament: str
+    environment: SpeciesEnvironment
+    behavior: SpeciesBehavior
+    spatial: SpeciesSpatial
+    breeding: SpeciesBreeding
+    compatibility: Dict[str, str] = Field(
+        default_factory=dict,
+        description="Map of target species_id to risk level (e.g. low_risk, moderate_risk, high_risk)"
+    )

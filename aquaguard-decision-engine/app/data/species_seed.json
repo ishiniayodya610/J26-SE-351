@@ -1,89 +1,122 @@
 [
   {
-    "id": "neon_tetra",
-    "common_name": "Neon Tetra",
-    "scientific_name": "Paracheirodon innesi",
-    "water_type": "freshwater",
-    "temperature_c": {
-      "min": 20.0,
-      "max": 26.0,
-      "optimal_min": 22.0,
-      "optimal_max": 25.0
-    },
-    "ph": {
-      "min": 6.0,
-      "max": 7.0,
-      "optimal_min": 6.5,
-      "optimal_max": 6.8
-    },
-    "hardness_dgh": {
-      "min": 1.0,
-      "max": 10.0,
-      "optimal_min": 2.0,
-      "optimal_max": 6.0
-    },
-    "min_tank_volume_liters": 40.0,
+    "species_id": "poecilia_reticulata",
+    "common_name": "Guppy",
     "temperament": "peaceful",
-    "swimming_level": "middle",
-    "incompatible_species_ids": ["cichlid_angelfish", "tiger_barb"],
-    "diet_type": "omnivore"
+    "environment": {
+      "temperature": {
+        "min": 22.0,
+        "optimal_min": 24.0,
+        "optimal_max": 28.0,
+        "max": 30.0
+      },
+      "ph": {
+        "min": 6.5,
+        "optimal_min": 7.0,
+        "optimal_max": 8.0,
+        "max": 8.5
+      },
+      "tds": {
+        "min": 100.0,
+        "optimal_min": 150.0,
+        "optimal_max": 300.0,
+        "max": 500.0
+      }
+    },
+    "behavior": {
+      "aggression": 1,
+      "fin_nipping": false,
+      "territorial": false
+    },
+    "spatial": {
+      "zones": ["Top", "Middle"]
+    },
+    "breeding": {
+      "type": "livebearer",
+      "male_female_ratio": 1.0
+    },
+    "compatibility": {
+      "betta_splendens": "high_risk"
+    }
   },
   {
-    "id": "betta_splendens",
-    "common_name": "Siamese Fighting Fish",
-    "scientific_name": "Betta splendens",
-    "water_type": "freshwater",
-    "temperature_c": {
-      "min": 24.0,
-      "max": 30.0,
-      "optimal_min": 25.0,
-      "optimal_max": 27.0
+    "species_id": "xiphophorus_hellerii",
+    "common_name": "Swordtail",
+    "temperament": "peaceful to semi-aggressive",
+    "environment": {
+      "temperature": {
+        "min": 20.0,
+        "optimal_min": 22.0,
+        "optimal_max": 26.0,
+        "max": 28.0
+      },
+      "ph": {
+        "min": 7.0,
+        "optimal_min": 7.5,
+        "optimal_max": 8.3,
+        "max": 8.5
+      },
+      "tds": {
+        "min": 150.0,
+        "optimal_min": 200.0,
+        "optimal_max": 400.0,
+        "max": 500.0
+      }
     },
-    "ph": {
-      "min": 6.5,
-      "max": 7.5,
-      "optimal_min": 6.8,
-      "optimal_max": 7.2
+    "behavior": {
+      "aggression": 3,
+      "fin_nipping": false,
+      "territorial": true
     },
-    "hardness_dgh": {
-      "min": 3.0,
-      "max": 12.0,
-      "optimal_min": 5.0,
-      "optimal_max": 8.0
+    "spatial": {
+      "zones": ["Top", "Middle"]
     },
-    "min_tank_volume_liters": 20.0,
-    "temperament": "semi-aggressive",
-    "swimming_level": "top",
-    "incompatible_species_ids": ["betta_splendens", "tiger_barb", "guppy_male"],
-    "diet_type": "carnivore"
+    "breeding": {
+      "type": "livebearer",
+      "male_female_ratio": 3.0
+    },
+    "compatibility": {
+      "betta_splendens": "moderate_risk"
+    }
   },
   {
-    "id": "corydoras_panda",
-    "common_name": "Panda Corydoras",
-    "scientific_name": "Corydoras panda",
-    "water_type": "freshwater",
-    "temperature_c": {
-      "min": 20.0,
-      "max": 25.0,
-      "optimal_min": 22.0,
-      "optimal_max": 24.0
+    "species_id": "betta_splendens",
+    "common_name": "Betta",
+    "temperament": "aggressive",
+    "environment": {
+      "temperature": {
+        "min": 24.0,
+        "optimal_min": 25.0,
+        "optimal_max": 27.0,
+        "max": 30.0
+      },
+      "ph": {
+        "min": 6.0,
+        "optimal_min": 6.5,
+        "optimal_max": 7.5,
+        "max": 8.0
+      },
+      "tds": {
+        "min": 50.0,
+        "optimal_min": 100.0,
+        "optimal_max": 200.0,
+        "max": 300.0
+      }
     },
-    "ph": {
-      "min": 6.0,
-      "max": 7.4,
-      "optimal_min": 6.5,
-      "optimal_max": 7.0
+    "behavior": {
+      "aggression": 9,
+      "fin_nipping": false,
+      "territorial": true
     },
-    "hardness_dgh": {
-      "min": 2.0,
-      "max": 12.0,
-      "optimal_min": 4.0,
-      "optimal_max": 8.0
+    "spatial": {
+      "zones": ["Top"]
     },
-    "min_tank_volume_liters": 60.0,
-    "temperament": "peaceful",
-    "swimming_level": "bottom",
-    "incompatible_species_ids": ["cichlid_african"],
-    "diet_type": "omnivore"
+    "breeding": {
+      "type": "egglayer (bubble nest)",
+      "male_female_ratio": 0.0
+    },
+    "compatibility": {
+      "poecilia_reticulata": "high_risk"
+    }
   }
 ]
