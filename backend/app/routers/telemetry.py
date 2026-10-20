@@ -178,6 +178,13 @@ async def execute_edge_inference(
                 check=True
             )
             result = json.loads(res.stdout)
+            try:
+                from simulator.server import format_tinyml_terminal_log
+                plain_log, ansi_log = format_tinyml_terminal_log(result, source)
+                result["terminal_log"] = plain_log
+                print(ansi_log)
+            except Exception:
+                pass
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"C++ Edge Runner failed: {str(e)}")
 
