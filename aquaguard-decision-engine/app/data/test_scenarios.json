@@ -1,0 +1,56 @@
+[
+  {
+    "scenario_id": "SCEN_01_NORMAL",
+    "description": "Stable freshwater community tank with balanced parameters",
+    "telemetry": {
+      "temperature_c": 24.5,
+      "ph": 6.8,
+      "ammonia_ppm": 0.0,
+      "nitrite_ppm": 0.0,
+      "nitrate_ppm": 10.0
+    },
+    "current_species": ["neon_tetra", "corydoras_panda"],
+    "expected_risk": "low",
+    "expected_recommendations": []
+  },
+  {
+    "scenario_id": "SCEN_02_TEMP_SPIKE",
+    "description": "Heater malfunction causing abnormal temperature rise",
+    "telemetry": {
+      "temperature_c": 31.0,
+      "ph": 6.9,
+      "ammonia_ppm": 0.05,
+      "nitrite_ppm": 0.0,
+      "nitrate_ppm": 15.0
+    },
+    "current_species": ["neon_tetra", "corydoras_panda"],
+    "expected_risk": "high",
+    "expected_recommendations": [
+      {
+        "action": "adjust_temperature",
+        "target_value": 24.0,
+        "urgency": "high"
+      }
+    ]
+  },
+  {
+    "scenario_id": "SCEN_03_AMMONIA_SPIKE",
+    "description": "Biological filter breakdown or overfeeding resulting in dangerous ammonia spike",
+    "telemetry": {
+      "temperature_c": 25.0,
+      "ph": 7.6,
+      "ammonia_ppm": 1.5,
+      "nitrite_ppm": 0.4,
+      "nitrate_ppm": 40.0
+    },
+    "current_species": ["betta_splendens"],
+    "expected_risk": "critical",
+    "expected_recommendations": [
+      {
+        "action": "water_change",
+        "target_value": 50.0,
+        "urgency": "critical"
+      }
+    ]
+  }
+]

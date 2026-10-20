@@ -1,0 +1,89 @@
+[
+  {
+    "id": "neon_tetra",
+    "common_name": "Neon Tetra",
+    "scientific_name": "Paracheirodon innesi",
+    "water_type": "freshwater",
+    "temperature_c": {
+      "min": 20.0,
+      "max": 26.0,
+      "optimal_min": 22.0,
+      "optimal_max": 25.0
+    },
+    "ph": {
+      "min": 6.0,
+      "max": 7.0,
+      "optimal_min": 6.5,
+      "optimal_max": 6.8
+    },
+    "hardness_dgh": {
+      "min": 1.0,
+      "max": 10.0,
+      "optimal_min": 2.0,
+      "optimal_max": 6.0
+    },
+    "min_tank_volume_liters": 40.0,
+    "temperament": "peaceful",
+    "swimming_level": "middle",
+    "incompatible_species_ids": ["cichlid_angelfish", "tiger_barb"],
+    "diet_type": "omnivore"
+  },
+  {
+    "id": "betta_splendens",
+    "common_name": "Siamese Fighting Fish",
+    "scientific_name": "Betta splendens",
+    "water_type": "freshwater",
+    "temperature_c": {
+      "min": 24.0,
+      "max": 30.0,
+      "optimal_min": 25.0,
+      "optimal_max": 27.0
+    },
+    "ph": {
+      "min": 6.5,
+      "max": 7.5,
+      "optimal_min": 6.8,
+      "optimal_max": 7.2
+    },
+    "hardness_dgh": {
+      "min": 3.0,
+      "max": 12.0,
+      "optimal_min": 5.0,
+      "optimal_max": 8.0
+    },
+    "min_tank_volume_liters": 20.0,
+    "temperament": "semi-aggressive",
+    "swimming_level": "top",
+    "incompatible_species_ids": ["betta_splendens", "tiger_barb", "guppy_male"],
+    "diet_type": "carnivore"
+  },
+  {
+    "id": "corydoras_panda",
+    "common_name": "Panda Corydoras",
+    "scientific_name": "Corydoras panda",
+    "water_type": "freshwater",
+    "temperature_c": {
+      "min": 20.0,
+      "max": 25.0,
+      "optimal_min": 22.0,
+      "optimal_max": 24.0
+    },
+    "ph": {
+      "min": 6.0,
+      "max": 7.4,
+      "optimal_min": 6.5,
+      "optimal_max": 7.0
+    },
+    "hardness_dgh": {
+      "min": 2.0,
+      "max": 12.0,
+      "optimal_min": 4.0,
+      "optimal_max": 8.0
+    },
+    "min_tank_volume_liters": 60.0,
+    "temperament": "peaceful",
+    "swimming_level": "bottom",
+    "incompatible_species_ids": ["cichlid_african"],
+    "diet_type": "omnivore"
+  }
+]
