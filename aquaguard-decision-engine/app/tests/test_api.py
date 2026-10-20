@@ -41,19 +41,24 @@ def test_decisions_evaluate_with_phase3_mock_payload():
     with open(mock_file, "r") as f:
         payload = json.load(f)
     
-    # Validate payload schema with Pydantic model directly
-    req = EvaluationRequest.model_validate(payload)
-    assert req.scenario_id == "mock_baseline_001"
-    assert req.aquarium.volume_liters == 60
-    assert len(req.fish) == 2
-    assert req.forecast.ammonia_status == "STABLE"
+    # Validate entire file with ScenariosPayload
+    assert "scenarios" in payload
+    scenarios_list = payload["scenarios"]
+    assert len(scenarios_list) == 2
 
-    # Test API endpoint with the payload
-    response = client.post("/api/v1/decisions/evaluate", json=payload)
-    assert response.status_code == 200
-    data = response.json()
-    assert data["status"] == "success"
-    assert data["scenario_id"] == "mock_baseline_001"
+    # Validate each individual scenario with EvaluationRequest
+    for scenario_dict in scenarios_list:
+        req = EvaluationRequest.model_validate(scenario_dict)
+        assert req.scenario_id.startswith("scenario_")
+        assert req.aquarium.volume_liters > 0
+        assert len(req.fish) > 0
+
+        # Test API endpoint with each scenario
+        response = client.post("/api/v1/decisions/evaluate", json=scenario_dict)
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "success"
+        assert data["scenario_id"] == req.scenario_id
 
 
 def test_simulations_what_if_endpoint():

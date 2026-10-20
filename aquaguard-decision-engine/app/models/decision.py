@@ -25,10 +25,15 @@ class Forecast(BaseModel):
 # Phase 3: Comprehensive Evaluation Request Payload
 class EvaluationRequest(BaseModel):
     scenario_id: str
+    description: Optional[str] = None
     aquarium: Aquarium
     telemetry: Telemetry
     fish: List[FishBehavior]
     forecast: Forecast
+
+
+class ScenariosPayload(BaseModel):
+    scenarios: List[EvaluationRequest]
 
 
 # Decision & Recommendation Outputs
