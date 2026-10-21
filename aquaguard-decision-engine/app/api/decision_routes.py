@@ -1,6 +1,6 @@
 """
 Decision API routes for evaluating telemetry, compatibility, and running reasoning pipeline.
-Phase 9: Main Decision Evaluation API Endpoint.
+Phase 9 & Phase 10: Decision Evaluation API Endpoint with Firebase Synchronization.
 """
 
 import os
@@ -11,6 +11,7 @@ from app.csp.csp_engine import evaluate_hard_constraints
 from app.fuzzy.fuzzy_engine import calculate_esi
 from app.optimizer.optimizer import optimize_population
 from app.xai.explanation import generate_csp_explanation
+from app.database.firebase_client import save_decision_result
 
 router = APIRouter()
 
@@ -43,12 +44,12 @@ def evaluate_aquarium(request: EvaluationRequest):
     telemetry_data = _dump(request.telemetry)
     fish_list = [_dump(f) for f in request.fish]
 
-    # 1. CSP Gatekeeper Check
+    # Evaluate Constraints & ESI
     csp_result = evaluate_hard_constraints(aquarium_data, telemetry_data, fish_list, species_db)
 
     if csp_result.get("status") == "REJECTED":
         xai_res = generate_csp_explanation(csp_result)
-        return {
+        final_decision = {
             "status": "REJECTED",
             "esi": 0.0,
             "risk_level": "HIGH",
@@ -56,18 +57,23 @@ def evaluate_aquarium(request: EvaluationRequest):
             "xai": [xai_res],
             "violations": [csp_result],
         }
+    else:
+        esi_result = calculate_esi(telemetry_data, fish_list, species_db)
+        optimized_pop = optimize_population(fish_list, aquarium_data, telemetry_data, species_db)
+        final_decision = {
+            "status": "APPROVED",
+            "esi": esi_result.get("esi_score", 0.0),
+            "risk_level": "LOW" if esi_result.get("esi_score", 0) > 0.65 else "MODERATE",
+            "population": optimized_pop,
+            "xai": [{"summary": "Configuration approved.", "reason": "All constraints met."}],
+            "violations": [],
+        }
 
-    # 2. Fuzzy ESI Calculation
-    esi_result = calculate_esi(telemetry_data, fish_list, species_db)
+    # Push the result to Firebase so React Native can listen to it
+    # Using a static aquarium_001 for now, but in production extract this from the request payload
+    try:
+        save_decision_result("aquarium_001", final_decision)
+    except Exception as e:
+        print(f"Failed to push to Firebase: {e}")
 
-    # 3. Run GA Population Optimizer
-    optimized_pop = optimize_population(fish_list, aquarium_data, telemetry_data, species_db)
-
-    return {
-        "status": "APPROVED",
-        "esi": esi_result.get("esi_score", 0.0),
-        "risk_level": "LOW" if esi_result.get("esi_score", 0) > 0.65 else "MODERATE",
-        "population": optimized_pop,
-        "xai": [{"summary": "Configuration approved.", "reason": "All constraints met."}],
-        "violations": [],
-    }
+    return final_decision

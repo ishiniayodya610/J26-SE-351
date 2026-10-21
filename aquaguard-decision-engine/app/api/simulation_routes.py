@@ -1,6 +1,6 @@
 """
 Simulation API routes for running what-if counterfactual scenarios.
-Phase 9: What-If Simulation API Endpoint.
+Phase 9 & Phase 10: What-If Simulation API Endpoint with Firebase Synchronization.
 """
 
 import os
@@ -12,6 +12,7 @@ from app.simulation.what_if_engine import simulate_population_change
 from app.models.aquarium import Aquarium
 from app.models.telemetry import Telemetry
 from app.models.species import FishBehavior
+from app.database.firebase_client import save_simulation_result
 
 router = APIRouter()
 
@@ -54,6 +55,12 @@ def simulate_change(request: SimulationRequest):
         [_dump(f) for f in request.proposed_population],
         species_db,
     )
+
+    # Sync simulation result with Firebase
+    try:
+        save_simulation_result("aquarium_001", result)
+    except Exception as e:
+        print(f"Failed to push simulation to Firebase: {e}")
 
     return {
         "before": {"esi": result.get("esi_before")},
