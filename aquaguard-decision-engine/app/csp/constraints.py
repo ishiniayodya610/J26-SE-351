@@ -70,6 +70,7 @@ def check_temperature(telemetry: Any, fish_list: List[Any], species_db: Dict[str
     Rule 3: Reject if current temperature is outside a species' strict min/max boundaries.
     """
     current_temp = _get(telemetry, "temperature_c", 25.0)
+    violating_species = []
 
     for fish in fish_list:
         species_id = _get(fish, "species_id")
@@ -79,12 +80,17 @@ def check_temperature(telemetry: Any, fish_list: List[Any], species_db: Dict[str
             max_temp = db_env.get("max", 100)
 
             if current_temp < min_temp or current_temp > max_temp:
-                return False, {
-                    "status": "REJECTED",
-                    "reason_code": "TEMPERATURE_VIOLATION",
-                    "species": [species_db[species_id]["common_name"]],
-                    "rule_id": "CSP-003",
-                }
+                name = species_db[species_id].get("common_name", species_id)
+                if name not in violating_species:
+                    violating_species.append(name)
+
+    if violating_species:
+        return False, {
+            "status": "REJECTED",
+            "reason_code": "TEMPERATURE_VIOLATION",
+            "species": violating_species,
+            "rule_id": "CSP-003",
+        }
     return True, None
 
 

@@ -1,8 +1,9 @@
 """
 Constraint validation and penalty functions for Genetic Algorithm individuals.
+Phase 6: Dynamic Population Optimizer constraints.
 """
 
-from typing import List
+from typing import List, Any
 
 
 def is_valid_individual(individual: List[float]) -> bool:
@@ -17,4 +18,16 @@ def is_valid_individual(individual: List[float]) -> bool:
         return False
     if not (5.5 <= ph <= 8.5):
         return False
+    return True
+
+
+def is_valid_population(candidate_population: List[Any]) -> bool:
+    """
+    Check if candidate fish population has valid non-negative counts.
+    """
+    for fish in candidate_population:
+        male = fish.get("male", 0) if isinstance(fish, dict) else getattr(fish, "male", 0)
+        female = fish.get("female", 0) if isinstance(fish, dict) else getattr(fish, "female", 0)
+        if male < 0 or female < 0:
+            return False
     return True
