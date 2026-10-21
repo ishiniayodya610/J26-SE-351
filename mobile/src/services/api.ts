@@ -97,6 +97,14 @@ export interface VideoAnalysisData {
   frames_processed: number;
   swimming_activity_pct: number;
   lethargy_index_pct: number;
+  average_speed_bl_s?: number;
+  maximum_speed_bl_s?: number;
+  stationary_percent?: number;
+  position?: string;
+  direction?: string;
+  posture?: string;
+  behavior_status?: string;
+  reasons?: string[];
   surface_piping: string;
   feeding_response: string;
   health_status: string;
@@ -164,18 +172,43 @@ export const api = {
   },
 
   async analyzeVideo(uri: string, filename?: string): Promise<VideoAnalysisData> {
-    const formData = new FormData();
+    const targetUrl = `${API_BASE_URL}/api/comp2/analyze-video`;
     const name = filename || uri.split('/').pop() || 'captured_tank_video.mp4';
 
-    if (Platform.OS === 'web') {
+    // 1. On iOS & Android Native: Use Expo FileSystem native multipart uploader
+    // This streams the file directly from device storage, avoiding FormDataPart crashes
+    if (Platform.OS !== 'web') {
       try {
-        const response = await fetch(uri);
-        const blob = await response.blob();
-        formData.append('file', blob, name);
-      } catch (e) {
-        formData.append('file', { uri, name, type: 'video/mp4' } as any);
+        const { uploadAsync, FileSystemUploadType } = require('expo-file-system/legacy');
+        if (uploadAsync && FileSystemUploadType) {
+          const uploadRes = await uploadAsync(targetUrl, uri, {
+            httpMethod: 'POST',
+            uploadType: FileSystemUploadType.MULTIPART,
+            fieldName: 'file',
+            mimeType: 'video/mp4',
+            parameters: {},
+          });
+
+          if (uploadRes.status >= 200 && uploadRes.status < 300) {
+            const parsed = JSON.parse(uploadRes.body);
+            return parsed.data;
+          } else {
+            throw new Error(`Upload failed (${uploadRes.status}): ${uploadRes.body}`);
+          }
+        }
+      } catch (nativeErr: any) {
+        console.warn('Native uploadAsync failed, falling back to Blob upload:', nativeErr?.message);
       }
-    } else {
+    }
+
+    // 2. On Web or Fallback: Standard fetch with real Blob
+    const formData = new FormData();
+    try {
+      const res = await fetch(uri);
+      const blob = await res.blob();
+      formData.append('file', blob, name);
+    } catch (blobErr) {
+      console.warn('Could not convert URI to blob:', blobErr);
       formData.append('file', {
         uri,
         name,
@@ -183,12 +216,15 @@ export const api = {
       } as any);
     }
 
-    const res = await fetch(`${API_BASE_URL}/api/comp2/analyze-video`, {
+    const res = await fetch(targetUrl, {
       method: 'POST',
       body: formData,
     });
 
-    if (!res.ok) throw new Error('Video behavioral analysis failed');
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`Video behavioral analysis failed: ${res.status} ${errText}`);
+    }
     const result = await res.json();
     return result.data;
   },

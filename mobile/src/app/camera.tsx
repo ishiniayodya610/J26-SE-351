@@ -535,33 +535,60 @@ export default function CameraVisionScreen() {
               </View>
 
               {/* Behavioral Metrics Grid */}
-              <Text style={styles.subSectionTitle}>Multi-Frame Kinematics Analysis</Text>
+              <Text style={styles.subSectionTitle}>Species-Aware Fish Kinematics & Posture</Text>
               <View style={styles.behaviorMiniGrid}>
                 <View style={styles.behaviorMiniCard}>
-                  <Text style={styles.miniLabel}>Swimming Activity</Text>
-                  <Text style={styles.miniValGood}>{videoResult.swimming_activity_pct.toFixed(1)}%</Text>
-                  <Text style={styles.miniSub}>Vigorous Kinematics</Text>
+                  <Text style={styles.miniLabel}>Avg Speed</Text>
+                  <Text style={styles.miniValGood}>
+                    {videoResult.average_speed_bl_s !== undefined ? `${videoResult.average_speed_bl_s.toFixed(3)} BL/s` : `${videoResult.swimming_activity_pct.toFixed(0)}%`}
+                  </Text>
+                  <Text style={styles.miniSub}>Body Lengths/sec</Text>
                 </View>
                 <View style={styles.behaviorMiniCard}>
-                  <Text style={styles.miniLabel}>Lethargy Index</Text>
-                  <Text style={styles.miniValLow}>{videoResult.lethargy_index_pct.toFixed(1)}%</Text>
-                  <Text style={styles.miniSub}>Normal Safe Range</Text>
+                  <Text style={styles.miniLabel}>Stationary</Text>
+                  <Text style={styles.miniValLow}>
+                    {videoResult.stationary_percent !== undefined ? `${videoResult.stationary_percent.toFixed(1)}%` : `${videoResult.lethargy_index_pct.toFixed(1)}%`}
+                  </Text>
+                  <Text style={styles.miniSub}>Resting Ratio</Text>
                 </View>
               </View>
 
               <View style={styles.metricDetailBox}>
                 <View style={styles.metricDetailRow}>
+                  <Text style={styles.detailLabel}>Swimming Posture:</Text>
+                  <Text style={[
+                    styles.detailVal,
+                    videoResult.posture && videoResult.posture.includes('Head') ? { color: '#FFB300', fontWeight: 'bold' } : { color: '#00E676' }
+                  ]}>
+                    {videoResult.posture || 'Horizontal (Normal)'}
+                  </Text>
+                </View>
+                <View style={styles.metricDetailRow}>
+                  <Text style={styles.detailLabel}>Tank Water Column:</Text>
+                  <Text style={styles.detailVal}>{videoResult.position || 'Middle'} Zone</Text>
+                </View>
+                <View style={styles.metricDetailRow}>
                   <Text style={styles.detailLabel}>Surface Piping (O2):</Text>
                   <Text style={styles.detailVal}>{videoResult.surface_piping}</Text>
                 </View>
                 <View style={styles.metricDetailRow}>
-                  <Text style={styles.detailLabel}>Feeding Response:</Text>
-                  <Text style={styles.detailVal}>{videoResult.feeding_response}</Text>
+                  <Text style={styles.detailLabel}>Overall Behavior Audit:</Text>
+                  <Text style={[
+                    styles.detailValHighlight,
+                    videoResult.behavior_status === 'PROTOTYPE_ABNORMAL' ? { color: '#FF1744' } : { color: '#00E676' }
+                  ]}>
+                    {videoResult.health_status}
+                  </Text>
                 </View>
-                <View style={styles.metricDetailRow}>
-                  <Text style={styles.detailLabel}>Overall Behavior Status:</Text>
-                  <Text style={styles.detailValHighlight}>{videoResult.health_status}</Text>
-                </View>
+
+                {videoResult.reasons && videoResult.reasons.length > 0 && (
+                  <View style={{ marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: 'rgba(255, 255, 255, 0.08)' }}>
+                    <Text style={{ color: '#94A3B8', fontSize: 11, fontWeight: '700', marginBottom: 4 }}>Audit Findings:</Text>
+                    {videoResult.reasons.map((r, i) => (
+                      <Text key={i} style={{ color: '#E2E8F0', fontSize: 11, lineHeight: 16 }}>• {r}</Text>
+                    ))}
+                  </View>
+                )}
               </View>
 
               {/* Auto-Synchronized Edge Gatekeeper Parameters */}
