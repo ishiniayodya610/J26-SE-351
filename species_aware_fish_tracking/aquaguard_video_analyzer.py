@@ -140,15 +140,18 @@ class AquaGuardVideoAnalyzer:
                 cx = (x1 + x2) / 2
                 cy = (y1 + y2) / 2
 
-                body_length_px = max(
-                    x2 - x1,
-                    y2 - y1
-                )
+                w = max(1.0, float(x2 - x1))
+                h = max(1.0, float(y2 - y1))
+                body_length_px = max(w, h)
+                aspect_ratio = h / w
 
                 track_records[fish_id].append({
                     "frame": original_frame,
                     "cx": cx,
                     "cy": cy,
+                    "w": w,
+                    "h": h,
+                    "aspect_ratio": aspect_ratio,
                     "body_length_px": body_length_px,
                     "class_name":
                         self.model.names[cls_id],
@@ -273,6 +276,7 @@ class AquaGuardVideoAnalyzer:
 
         speeds = []
         directions = []
+        postures = []
 
         for i in range(len(df)):
 
@@ -280,6 +284,7 @@ class AquaGuardVideoAnalyzer:
 
                 speeds.append(np.nan)
                 directions.append("Unknown")
+                postures.append("Horizontal (Normal)")
                 continue
 
 
@@ -303,6 +308,7 @@ class AquaGuardVideoAnalyzer:
 
                 speeds.append(np.nan)
                 directions.append("Unknown")
+                postures.append("Horizontal (Normal)")
                 continue
 
 
@@ -347,9 +353,22 @@ class AquaGuardVideoAnalyzer:
                 direction
             )
 
+            # Posture Tilt Analysis (Height vs Width aspect ratio & vertical displacement)
+            ar = df.iloc[i].get("aspect_ratio", 0.5)
+            if ar >= 1.20:
+                if dy < -0.3:
+                    postures.append("Head-Up (Piping)")
+                elif dy > 0.3:
+                    postures.append("Head-Down (Sinking/Foraging)")
+                else:
+                    postures.append("Vertical Posture")
+            else:
+                postures.append("Horizontal (Normal)")
+
 
         df["speed_bl_s"] = speeds
         df["direction"] = directions
+        df["posture"] = postures
 
 
         # --------------------------------
@@ -451,6 +470,22 @@ class AquaGuardVideoAnalyzer:
 
 
         # --------------------------------
+        # Posture evaluation
+        # --------------------------------
+        posture_counts = df["posture"].value_counts()
+        total_p = len(df)
+        head_down_ratio = posture_counts.get("Head-Down (Sinking/Foraging)", 0) / total_p
+        head_up_ratio = posture_counts.get("Head-Up (Piping)", 0) / total_p
+
+        if head_down_ratio >= 0.20 or (dominant_position == "Bottom" and stationary_percent > 20.0 and (df["aspect_ratio"] > 1.15).mean() > 0.3):
+            dominant_posture = "Head-Down (Head-Standing)"
+        elif head_up_ratio >= 0.20 or (dominant_position == "Top" and (df["aspect_ratio"] > 1.15).mean() > 0.3):
+            dominant_posture = "Head-Up (Surface Piping)"
+        else:
+            dominant_posture = "Horizontal (Normal)"
+
+
+        # --------------------------------
         # Behavior evaluation
         # --------------------------------
 
@@ -464,7 +499,9 @@ class AquaGuardVideoAnalyzer:
                 dominant_position=
                     dominant_position,
                 dominant_direction=
-                    dominant_direction
+                    dominant_direction,
+                posture=
+                    dominant_posture
             )
         )
 
@@ -533,6 +570,9 @@ class AquaGuardVideoAnalyzer:
 
             "direction":
                 dominant_direction,
+
+            "posture":
+                dominant_posture,
 
             "behavior_status":
                 behavior[

@@ -27,7 +27,8 @@ class AquaGuardBehaviorEngine:
         avg_speed_bl_s,
         stationary_percent,
         dominant_position,
-        dominant_direction
+        dominant_direction,
+        posture="Horizontal (Normal)"
     ):
 
         if species not in self.behavior_profiles:
@@ -113,6 +114,22 @@ class AquaGuardBehaviorEngine:
 
 
         # -----------------------------
+        # Posture Tilt (Head-Down / Head-Up)
+        # -----------------------------
+
+        if "Head-Down" in posture:
+            reasons.append(
+                f"Head-down vertical swimming posture detected ({posture}). "
+                "Clinical alert: possible Swim Bladder Disorder (SBD), internal parasite pressure, or negative buoyancy shock."
+            )
+        elif "Head-Up" in posture:
+            reasons.append(
+                f"Head-up surface piping posture detected ({posture}). "
+                "Clinical alert: possible acute hypoxia (low dissolved O2), gill flukes, or nitrite poisoning."
+            )
+
+
+        # -----------------------------
         # Final behavior status
         # -----------------------------
 
@@ -151,6 +168,9 @@ class AquaGuardBehaviorEngine:
 
             "direction":
                 dominant_direction,
+
+            "posture":
+                posture,
 
             "behavior_status":
                 behavior_status,
