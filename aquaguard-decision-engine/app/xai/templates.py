@@ -7,14 +7,16 @@ Phase 7: The XAI Engine.
 CSP_TEMPLATES = {
     "CSP-001": "{species} have a high territorial and fin-conflict risk under the configured biological rule.",
     "CSP-002": "The proposed population exceeds the biological carrying capacity (volume) of the aquarium.",
-    "CSP-003": "The current temperature is outside the strict biological boundaries for {species}."
+    "CSP-003": "The current temperature is outside the strict biological boundaries for {species}.",
+    "CSP-004": "Environmental requirements (temperature, pH, or TDS) do not overlap safely for {species}."
 }
 
 # Rule ID to Recommendation mapping for CSP hard constraints
 RECOMMENDATION_TEMPLATES = {
     "CSP-001": "Choose a compatible community species or remove the territorial species.",
     "CSP-002": "Reduce the number of fish or upgrade to a larger aquarium.",
-    "CSP-003": "Adjust the aquarium heater to match the safe parameters for all housed species."
+    "CSP-003": "Adjust the aquarium heater to match the safe parameters for all housed species.",
+    "CSP-004": "Select species with compatible water chemistry parameters (temperature, pH, and hardness)."
 }
 
 # Fuzzy ESI Stability reason mapping
