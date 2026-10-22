@@ -4,6 +4,7 @@ from typing import List, Dict, Any
 import backend.app.routers.telemetry as telemetry_router
 from backend.app.routers.fish_profile import active_profile
 from backend.app.routers.comp3_disease import calculate_disease_and_ammonia_risk
+from backend.app.services.database import db_manager
 
 router = APIRouter(prefix="/api/comp4", tags=["Comp 4: Explainable AI"])
 
@@ -24,12 +25,16 @@ class XAIExplanation(BaseModel):
 # When Teammate 4 finishes their SHAP/LIME or LLM explainability engine,
 # replace this synthesizer with their actual causality attribution pipeline.
 # ---------------------------------------------------------------------------
-def synthesize_xai_explanation() -> Dict[str, Any]:
+def synthesize_xai_explanation(tank_config: Dict[str, Any] = None) -> Dict[str, Any]:
     latest_telemetry_state = telemetry_router.latest_telemetry_state
     sys_status = latest_telemetry_state.get("system_status", "OPTIMAL")
     diagnostics = latest_telemetry_state.get("diagnostics", {})
     gatekeeper = latest_telemetry_state.get("gatekeeper", {})
     telemetry = latest_telemetry_state.get("telemetry", {})
+    vol = tank_config.get("volume_liters", 120.0) if tank_config else 120.0
+    fish_count = tank_config.get("fish_count", 8) if tank_config else 8
+    bioload_level = tank_config.get("bioload_level", "OPTIMAL") if tank_config else "OPTIMAL"
+    lpf = tank_config.get("liters_per_fish", 15.0) if tank_config else 15.0
     
     ph_fault = diagnostics.get("ph", {}).get("fault_detected", False)
     temp_fault = diagnostics.get("temperature", {}).get("fault_detected", False)
@@ -140,7 +145,8 @@ def synthesize_xai_explanation() -> Dict[str, Any]:
 
 @router.get("/explanation", response_model=XAIExplanation)
 async def get_xai_explanation():
-    data = synthesize_xai_explanation()
+    tank_cfg = await db_manager.get_tank_config(5)
+    data = synthesize_xai_explanation(tank_cfg)
     return XAIExplanation(
         tank_status_headline=data["headline"],
         primary_explanation=data["explanation"],

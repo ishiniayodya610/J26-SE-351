@@ -391,5 +391,40 @@ export const api = {
     if (!res.ok) throw new Error('Failed to trigger manual Aquio sync');
     return res.json();
   },
+
+  async getTankConfig(tankId: number = 5): Promise<TankConfig> {
+    const res = await fetch(`${API_BASE_URL}/api/tank/config?tank_id=${tankId}`);
+    if (!res.ok) throw new Error('Failed to fetch tank configuration');
+    return res.json();
+  },
+
+  async updateTankConfig(data: {
+    tank_id?: number;
+    tank_name?: string;
+    volume_liters: number;
+    fish_types: string[];
+    fish_count: number;
+  }): Promise<TankConfig> {
+    const res = await fetch(`${API_BASE_URL}/api/tank/config`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error('Failed to update tank configuration');
+    return res.json();
+  },
 };
+
+export interface TankConfig {
+  tank_id: number;
+  tank_name: string;
+  volume_liters: number;
+  fish_types: string[];
+  fish_count: number;
+  bioload_level: 'OPTIMAL' | 'MODERATE' | 'OVERSTOCKED' | string;
+  liters_per_fish: number;
+  bioload_desc?: string;
+  updated_at: string;
+  db_engine: string;
+}
 

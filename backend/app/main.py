@@ -8,9 +8,11 @@ try:
         comp3_disease,
         comp4_xai,
         predictions,
-        aquio
+        aquio,
+        tank
     )
     from backend.app.services.aquio_bridge import aquio_bridge
+    from backend.app.services.database import db_manager
 except ImportError:
     from app.routers import (
         telemetry,
@@ -19,9 +21,11 @@ except ImportError:
         comp3_disease,
         comp4_xai,
         predictions,
-        aquio
+        aquio,
+        tank
     )
     from app.services.aquio_bridge import aquio_bridge
+    from app.services.database import db_manager
 
 app = FastAPI(
     title="AquaGuard AI Central Gateway",
@@ -38,7 +42,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include All Component Routers + Prediction Router + Remote Aquio Bridge
+# Include All Component Routers + Prediction Router + Remote Aquio Bridge + Tank DB
 app.include_router(telemetry.router)
 app.include_router(fish_profile.router)
 app.include_router(comp2_vision.router)
@@ -46,9 +50,12 @@ app.include_router(comp3_disease.router)
 app.include_router(comp4_xai.router)
 app.include_router(predictions.router)
 app.include_router(aquio.router)
+app.include_router(tank.router)
 
 @app.on_event("startup")
 async def startup_event():
+    # Attempt MongoDB connection if configured (or fallback to local SQLite)
+    await db_manager.connect_mongo()
     # Start Aquio remote sensor bridge if enabled in .env
     aquio_bridge.start()
 
