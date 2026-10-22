@@ -1,0 +1,1944 @@
+{
+ "success": true,
+ "message": "fixture",
+ "data": {
+  "species_id": "swordtail",
+  "common_name": "Swordtail",
+  "scientific_name": "Xiphophorus hellerii",
+  "confidence": 0.89,
+  "video_filename": "fixture_tank.mp4",
+  "video_size_kb": 2048.0,
+  "frames_processed": 120,
+  "swimming_activity_pct": 72.0,
+  "lethargy_index_pct": 6.0,
+  "average_speed_bl_s": 0.82,
+  "maximum_speed_bl_s": 1.1,
+  "stationary_percent": 6.0,
+  "position": "Middle",
+  "direction": "Right",
+  "posture": "Horizontal (Normal)",
+  "behavior_status": "PROTOTYPE_NORMAL",
+  "reasons": [],
+  "surface_piping": "None Detected",
+  "feeding_response": "Active",
+  "health_status": "PROTOTYPE NORMAL",
+  "target_parameters": {
+   "temp": 25,
+   "ph": 7.4,
+   "tds": 250
+  },
+  "care_notes": "Fixture data for UI development \u2014 not a real analysis.",
+  "video": {
+   "width": 1280,
+   "height": 720,
+   "fps": 30,
+   "analyzed_fps": 5,
+   "duration_s": 12.0,
+   "truncated": false
+  },
+  "summary": {
+   "tracked": 2,
+   "normal": 1,
+   "abnormal": 1,
+   "insufficient": 0
+  },
+  "tracks": [
+   {
+    "track_id": 18,
+    "species": "Swordtail",
+    "species_confidence": 0.89,
+    "first_t": 0.0,
+    "last_t": 11.8,
+    "frames": 60,
+    "avg_speed_bl_s": 0.82,
+    "max_speed_bl_s": 1.1,
+    "stationary_percent": 6.0,
+    "position": "Middle",
+    "direction": "Right",
+    "behavior_status": "PROTOTYPE_NORMAL",
+    "reason": []
+   },
+   {
+    "track_id": 7,
+    "species": "Guppy",
+    "species_confidence": 0.76,
+    "first_t": 0.0,
+    "last_t": 11.8,
+    "frames": 60,
+    "avg_speed_bl_s": 2.1,
+    "max_speed_bl_s": 2.7,
+    "stationary_percent": 0.0,
+    "position": "Top",
+    "direction": "Up",
+    "behavior_status": "PROTOTYPE_ABNORMAL",
+    "reason": [
+     "Speed above prototype range",
+     "Prolonged surface position"
+    ]
+   }
+  ],
+  "timeline": [
+   {
+    "t": 0.0,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.13,
+       0.4,
+       0.27,
+       0.5
+      ],
+      "species": "Swordtail",
+      "speed": 0.8,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.65,
+       0.71,
+       0.75,
+       0.79
+      ],
+      "species": "Guppy",
+      "speed": 2.1,
+      "dir": "Up",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 0.2,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.138,
+       0.408,
+       0.278,
+       0.508
+      ],
+      "species": "Swordtail",
+      "speed": 0.83,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.6,
+       0.702,
+       0.7,
+       0.782
+      ],
+      "species": "Guppy",
+      "speed": 2.3,
+      "dir": "Up",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 0.4,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.147,
+       0.416,
+       0.287,
+       0.516
+      ],
+      "species": "Swordtail",
+      "speed": 0.86,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.551,
+       0.693,
+       0.651,
+       0.773
+      ],
+      "species": "Guppy",
+      "speed": 2.47,
+      "dir": "Up",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 0.6,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.155,
+       0.424,
+       0.295,
+       0.524
+      ],
+      "species": "Swordtail",
+      "speed": 0.88,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.503,
+       0.685,
+       0.603,
+       0.765
+      ],
+      "species": "Guppy",
+      "speed": 2.6,
+      "dir": "Up",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 0.8,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.164,
+       0.431,
+       0.304,
+       0.531
+      ],
+      "species": "Swordtail",
+      "speed": 0.91,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.458,
+       0.676,
+       0.558,
+       0.756
+      ],
+      "species": "Guppy",
+      "speed": 2.68,
+      "dir": "Up",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 1.0,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.172,
+       0.437,
+       0.312,
+       0.537
+      ],
+      "species": "Swordtail",
+      "speed": 0.93,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.416,
+       0.668,
+       0.516,
+       0.748
+      ],
+      "species": "Guppy",
+      "speed": 2.7,
+      "dir": "Up",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 1.2,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.181,
+       0.442,
+       0.321,
+       0.542
+      ],
+      "species": "Swordtail",
+      "speed": 0.94,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.377,
+       0.659,
+       0.477,
+       0.739
+      ],
+      "species": "Guppy",
+      "speed": 2.65,
+      "dir": "Up",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 1.4,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.189,
+       0.446,
+       0.329,
+       0.546
+      ],
+      "species": "Swordtail",
+      "speed": 0.95,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.343,
+       0.651,
+       0.443,
+       0.731
+      ],
+      "species": "Guppy",
+      "speed": 2.53,
+      "dir": "Up",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 1.6,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.198,
+       0.449,
+       0.338,
+       0.549
+      ],
+      "species": "Swordtail",
+      "speed": 0.95,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.313,
+       0.642,
+       0.413,
+       0.722
+      ],
+      "species": "Guppy",
+      "speed": 2.37,
+      "dir": "Up",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 1.8,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.206,
+       0.45,
+       0.346,
+       0.55
+      ],
+      "species": "Swordtail",
+      "speed": 0.95,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.289,
+       0.634,
+       0.389,
+       0.714
+      ],
+      "species": "Guppy",
+      "speed": 2.18,
+      "dir": "Up",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 2.0,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.215,
+       0.45,
+       0.355,
+       0.55
+      ],
+      "species": "Swordtail",
+      "speed": 0.94,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.27,
+       0.625,
+       0.37,
+       0.705
+      ],
+      "species": "Guppy",
+      "speed": 1.99,
+      "dir": "Up",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 2.2,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.223,
+       0.448,
+       0.363,
+       0.548
+      ],
+      "species": "Swordtail",
+      "speed": 0.92,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.258,
+       0.617,
+       0.358,
+       0.697
+      ],
+      "species": "Guppy",
+      "speed": 1.8,
+      "dir": "Up",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 2.4,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.232,
+       0.445,
+       0.372,
+       0.545
+      ],
+      "species": "Swordtail",
+      "speed": 0.9,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.251,
+       0.608,
+       0.351,
+       0.688
+      ],
+      "species": "Guppy",
+      "speed": 1.65,
+      "dir": "Up",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 2.6,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.24,
+       0.441,
+       0.38,
+       0.541
+      ],
+      "species": "Swordtail",
+      "speed": 0.88,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.251,
+       0.6,
+       0.351,
+       0.68
+      ],
+      "species": "Guppy",
+      "speed": 1.54,
+      "dir": "Up",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 2.8,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.249,
+       0.436,
+       0.389,
+       0.536
+      ],
+      "species": "Swordtail",
+      "speed": 0.85,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.256,
+       0.591,
+       0.356,
+       0.671
+      ],
+      "species": "Guppy",
+      "speed": 1.5,
+      "dir": "Left",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 3.0,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.257,
+       0.43,
+       0.397,
+       0.53
+      ],
+      "species": "Swordtail",
+      "speed": 0.82,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.268,
+       0.583,
+       0.368,
+       0.663
+      ],
+      "species": "Guppy",
+      "speed": 1.52,
+      "dir": "Left",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 3.2,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.266,
+       0.423,
+       0.406,
+       0.523
+      ],
+      "species": "Swordtail",
+      "speed": 0.79,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.286,
+       0.574,
+       0.386,
+       0.654
+      ],
+      "species": "Guppy",
+      "speed": 1.61,
+      "dir": "Left",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 3.4,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.274,
+       0.415,
+       0.414,
+       0.515
+      ],
+      "species": "Swordtail",
+      "speed": 0.76,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.31,
+       0.566,
+       0.41,
+       0.646
+      ],
+      "species": "Guppy",
+      "speed": 1.75,
+      "dir": "Left",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 3.6,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.283,
+       0.407,
+       0.423,
+       0.507
+      ],
+      "species": "Swordtail",
+      "speed": 0.73,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.339,
+       0.557,
+       0.439,
+       0.637
+      ],
+      "species": "Guppy",
+      "speed": 1.93,
+      "dir": "Left",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 3.8,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.291,
+       0.399,
+       0.431,
+       0.499
+      ],
+      "species": "Swordtail",
+      "speed": 0.71,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.373,
+       0.549,
+       0.473,
+       0.629
+      ],
+      "species": "Guppy",
+      "speed": 2.13,
+      "dir": "Left",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 4.0,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.299,
+       0.39,
+       0.439,
+       0.49
+      ],
+      "species": "Swordtail",
+      "speed": 0.69,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.411,
+       0.541,
+       0.511,
+       0.621
+      ],
+      "species": "Guppy",
+      "speed": 2.32,
+      "dir": "Up",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 4.2,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.308,
+       0.382,
+       0.448,
+       0.482
+      ],
+      "species": "Swordtail",
+      "speed": 0.67,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.452,
+       0.532,
+       0.552,
+       0.612
+      ],
+      "species": "Guppy",
+      "speed": 2.49,
+      "dir": "Up",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 4.4,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.316,
+       0.375,
+       0.456,
+       0.475
+      ],
+      "species": "Swordtail",
+      "speed": 0.66,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.497,
+       0.524,
+       0.597,
+       0.604
+      ],
+      "species": "Guppy",
+      "speed": 2.62,
+      "dir": "Up",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 4.6,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.325,
+       0.368,
+       0.465,
+       0.468
+      ],
+      "species": "Swordtail",
+      "speed": 0.65,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.545,
+       0.515,
+       0.645,
+       0.595
+      ],
+      "species": "Guppy",
+      "speed": 2.69,
+      "dir": "Up",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 4.8,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.333,
+       0.362,
+       0.473,
+       0.462
+      ],
+      "species": "Swordtail",
+      "speed": 0.65,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.594,
+       0.507,
+       0.694,
+       0.587
+      ],
+      "species": "Guppy",
+      "speed": 2.69,
+      "dir": "Up",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 5.0,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.342,
+       0.357,
+       0.482,
+       0.457
+      ],
+      "species": "Swordtail",
+      "speed": 0.66,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.643,
+       0.498,
+       0.743,
+       0.578
+      ],
+      "species": "Guppy",
+      "speed": 2.63,
+      "dir": "Up",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 5.2,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.35,
+       0.354,
+       0.49,
+       0.454
+      ],
+      "species": "Swordtail",
+      "speed": 0.67,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.607,
+       0.49,
+       0.707,
+       0.57
+      ],
+      "species": "Guppy",
+      "speed": 2.51,
+      "dir": "Up",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 5.4,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.359,
+       0.351,
+       0.499,
+       0.451
+      ],
+      "species": "Swordtail",
+      "speed": 0.68,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.557,
+       0.481,
+       0.657,
+       0.561
+      ],
+      "species": "Guppy",
+      "speed": 2.35,
+      "dir": "Up",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 5.6,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.367,
+       0.35,
+       0.507,
+       0.45
+      ],
+      "species": "Swordtail",
+      "speed": 0.71,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.51,
+       0.473,
+       0.61,
+       0.553
+      ],
+      "species": "Guppy",
+      "speed": 2.15,
+      "dir": "Up",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 5.8,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.376,
+       0.35,
+       0.516,
+       0.45
+      ],
+      "species": "Swordtail",
+      "speed": 0.73,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.464,
+       0.464,
+       0.564,
+       0.544
+      ],
+      "species": "Guppy",
+      "speed": 1.96,
+      "dir": "Up",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 6.0,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.384,
+       0.352,
+       0.524,
+       0.452
+      ],
+      "species": "Swordtail",
+      "speed": 0.76,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.421,
+       0.456,
+       0.521,
+       0.536
+      ],
+      "species": "Guppy",
+      "speed": 1.77,
+      "dir": "Up",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 6.2,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.393,
+       0.355,
+       0.533,
+       0.455
+      ],
+      "species": "Swordtail",
+      "speed": 0.79,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.382,
+       0.447,
+       0.482,
+       0.527
+      ],
+      "species": "Guppy",
+      "speed": 1.63,
+      "dir": "Up",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 6.4,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.401,
+       0.359,
+       0.541,
+       0.459
+      ],
+      "species": "Swordtail",
+      "speed": 0.82,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.347,
+       0.439,
+       0.447,
+       0.519
+      ],
+      "species": "Guppy",
+      "speed": 1.53,
+      "dir": "Up",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 6.6,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.41,
+       0.365,
+       0.55,
+       0.465
+      ],
+      "species": "Swordtail",
+      "speed": 0.85,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.317,
+       0.43,
+       0.417,
+       0.51
+      ],
+      "species": "Guppy",
+      "speed": 1.5,
+      "dir": "Up",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 6.8,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.418,
+       0.371,
+       0.558,
+       0.471
+      ],
+      "species": "Swordtail",
+      "speed": 0.87,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.292,
+       0.422,
+       0.392,
+       0.502
+      ],
+      "species": "Guppy",
+      "speed": 1.53,
+      "dir": "Left",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 7.0,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.427,
+       0.378,
+       0.567,
+       0.478
+      ],
+      "species": "Swordtail",
+      "speed": 0.9,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.273,
+       0.413,
+       0.373,
+       0.493
+      ],
+      "species": "Guppy",
+      "speed": 1.63,
+      "dir": "Left",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 7.2,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.435,
+       0.386,
+       0.575,
+       0.486
+      ],
+      "species": "Swordtail",
+      "speed": 0.92,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.259,
+       0.405,
+       0.359,
+       0.485
+      ],
+      "species": "Guppy",
+      "speed": 1.78,
+      "dir": "Left",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 7.4,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.444,
+       0.394,
+       0.584,
+       0.494
+      ],
+      "species": "Swordtail",
+      "speed": 0.93,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.252,
+       0.396,
+       0.352,
+       0.476
+      ],
+      "species": "Guppy",
+      "speed": 1.96,
+      "dir": "Left",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 7.6,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.452,
+       0.403,
+       0.592,
+       0.503
+      ],
+      "species": "Swordtail",
+      "speed": 0.95,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.25,
+       0.388,
+       0.35,
+       0.468
+      ],
+      "species": "Guppy",
+      "speed": 2.16,
+      "dir": "Left",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 7.8,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.461,
+       0.411,
+       0.601,
+       0.511
+      ],
+      "species": "Swordtail",
+      "speed": 0.95,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.255,
+       0.379,
+       0.355,
+       0.459
+      ],
+      "species": "Guppy",
+      "speed": 2.35,
+      "dir": "Left",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 8.0,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.469,
+       0.419,
+       0.609,
+       0.519
+      ],
+      "species": "Swordtail",
+      "speed": 0.95,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.266,
+       0.371,
+       0.366,
+       0.451
+      ],
+      "species": "Guppy",
+      "speed": 2.52,
+      "dir": "Up",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 8.2,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.477,
+       0.426,
+       0.617,
+       0.526
+      ],
+      "species": "Swordtail",
+      "speed": 0.94,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.284,
+       0.363,
+       0.384,
+       0.443
+      ],
+      "species": "Guppy",
+      "speed": 2.63,
+      "dir": "Up",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 8.4,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.486,
+       0.433,
+       0.626,
+       0.533
+      ],
+      "species": "Swordtail",
+      "speed": 0.93,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.306,
+       0.354,
+       0.406,
+       0.434
+      ],
+      "species": "Guppy",
+      "speed": 2.69,
+      "dir": "Up",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 8.6,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.494,
+       0.439,
+       0.634,
+       0.539
+      ],
+      "species": "Swordtail",
+      "speed": 0.91,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.335,
+       0.346,
+       0.435,
+       0.426
+      ],
+      "species": "Guppy",
+      "speed": 2.69,
+      "dir": "Up",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 8.8,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.503,
+       0.443,
+       0.643,
+       0.543
+      ],
+      "species": "Swordtail",
+      "speed": 0.89,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.368,
+       0.337,
+       0.468,
+       0.417
+      ],
+      "species": "Guppy",
+      "speed": 2.62,
+      "dir": "Up",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 9.0,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.511,
+       0.447,
+       0.651,
+       0.547
+      ],
+      "species": "Swordtail",
+      "speed": 0.86,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.405,
+       0.329,
+       0.505,
+       0.409
+      ],
+      "species": "Guppy",
+      "speed": 2.49,
+      "dir": "Up",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 9.2,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.52,
+       0.449,
+       0.66,
+       0.549
+      ],
+      "species": "Swordtail",
+      "speed": 0.83,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.447,
+       0.32,
+       0.547,
+       0.4
+      ],
+      "species": "Guppy",
+      "speed": 2.32,
+      "dir": "Up",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 9.4,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.528,
+       0.45,
+       0.668,
+       0.55
+      ],
+      "species": "Swordtail",
+      "speed": 0.8,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.491,
+       0.312,
+       0.591,
+       0.392
+      ],
+      "species": "Guppy",
+      "speed": 2.12,
+      "dir": "Up",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 9.6,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.537,
+       0.449,
+       0.677,
+       0.549
+      ],
+      "species": "Swordtail",
+      "speed": 0.77,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.538,
+       0.303,
+       0.638,
+       0.383
+      ],
+      "species": "Guppy",
+      "speed": 1.93,
+      "dir": "Up",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 9.8,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.545,
+       0.448,
+       0.685,
+       0.548
+      ],
+      "species": "Swordtail",
+      "speed": 0.75,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.587,
+       0.295,
+       0.687,
+       0.375
+      ],
+      "species": "Guppy",
+      "speed": 1.75,
+      "dir": "Up",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 10.0,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.554,
+       0.444,
+       0.694,
+       0.544
+      ],
+      "species": "Swordtail",
+      "speed": 0.72,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.637,
+       0.286,
+       0.737,
+       0.366
+      ],
+      "species": "Guppy",
+      "speed": 1.61,
+      "dir": "Up",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 10.2,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.562,
+       0.44,
+       0.702,
+       0.54
+      ],
+      "species": "Swordtail",
+      "speed": 0.7,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.613,
+       0.278,
+       0.713,
+       0.358
+      ],
+      "species": "Guppy",
+      "speed": 1.52,
+      "dir": "Up",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 10.4,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.571,
+       0.434,
+       0.711,
+       0.534
+      ],
+      "species": "Swordtail",
+      "speed": 0.68,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.564,
+       0.269,
+       0.664,
+       0.349
+      ],
+      "species": "Guppy",
+      "speed": 1.5,
+      "dir": "Up",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 10.6,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.579,
+       0.428,
+       0.719,
+       0.528
+      ],
+      "species": "Swordtail",
+      "speed": 0.66,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.516,
+       0.261,
+       0.616,
+       0.341
+      ],
+      "species": "Guppy",
+      "speed": 1.54,
+      "dir": "Up",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 10.8,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.588,
+       0.421,
+       0.728,
+       0.521
+      ],
+      "species": "Swordtail",
+      "speed": 0.65,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.47,
+       0.252,
+       0.57,
+       0.332
+      ],
+      "species": "Guppy",
+      "speed": 1.65,
+      "dir": "Left",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 11.0,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.596,
+       0.413,
+       0.736,
+       0.513
+      ],
+      "species": "Swordtail",
+      "speed": 0.65,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.427,
+       0.244,
+       0.527,
+       0.324
+      ],
+      "species": "Guppy",
+      "speed": 1.8,
+      "dir": "Left",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 11.2,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.605,
+       0.405,
+       0.745,
+       0.505
+      ],
+      "species": "Swordtail",
+      "speed": 0.65,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.387,
+       0.235,
+       0.487,
+       0.315
+      ],
+      "species": "Guppy",
+      "speed": 1.99,
+      "dir": "Left",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 11.4,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.613,
+       0.396,
+       0.753,
+       0.496
+      ],
+      "species": "Swordtail",
+      "speed": 0.66,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.352,
+       0.227,
+       0.452,
+       0.307
+      ],
+      "species": "Guppy",
+      "speed": 2.19,
+      "dir": "Left",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 11.6,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.622,
+       0.388,
+       0.762,
+       0.488
+      ],
+      "species": "Swordtail",
+      "speed": 0.68,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.321,
+       0.218,
+       0.421,
+       0.298
+      ],
+      "species": "Guppy",
+      "speed": 2.38,
+      "dir": "Left",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   },
+   {
+    "t": 11.8,
+    "boxes": [
+     {
+      "id": 18,
+      "xyxy": [
+       0.63,
+       0.38,
+       0.77,
+       0.48
+      ],
+      "species": "Swordtail",
+      "speed": 0.7,
+      "dir": "Right",
+      "status": "PROTOTYPE_NORMAL"
+     },
+     {
+      "id": 7,
+      "xyxy": [
+       0.295,
+       0.21,
+       0.395,
+       0.29
+      ],
+      "species": "Guppy",
+      "speed": 2.54,
+      "dir": "Left",
+      "status": "PROTOTYPE_ABNORMAL"
+     }
+    ]
+   }
+  ],
+  "annotated_video_url": null
+ }
+}
