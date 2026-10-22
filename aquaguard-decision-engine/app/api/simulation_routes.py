@@ -38,8 +38,10 @@ def load_species_db():
     target_path = os.path.join(base_dir, "data", "species_seed.json")
     if not os.path.exists(target_path):
         target_path = os.path.join(base_dir, "app", "data", "species_seed.json")
-    with open(target_path, "r") as f:
-        return {s["species_id"]: s for s in json.load(f)}
+    with open(target_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+        species_list = data["species"] if isinstance(data, dict) and "species" in data else data
+        return {s["species_id"]: s for s in species_list}
 
 
 @router.post("/simulate")

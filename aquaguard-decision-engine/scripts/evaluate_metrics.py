@@ -26,7 +26,9 @@ def load_data():
         benchmark_path = os.path.join(BASE_DIR, "app", "data", "benchmark_100.json")
 
     with open(species_path, "r", encoding="utf-8") as f:
-        species_db = {s["species_id"]: s for s in json.load(f)}
+        data = json.load(f)
+        species_list = data["species"] if isinstance(data, dict) and "species" in data else data
+        species_db = {s["species_id"]: s for s in species_list}
 
     with open(benchmark_path, "r", encoding="utf-8") as f:
         benchmarks = json.load(f)["benchmarks"]

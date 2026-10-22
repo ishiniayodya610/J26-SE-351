@@ -25,7 +25,9 @@ def load_test_data():
         species_path = os.path.join(BASE_DIR, "app", "data", "species_seed.json")
 
     with open(species_path, "r", encoding="utf-8") as f:
-        species_db = {s["species_id"]: s for s in json.load(f)}
+        data = json.load(f)
+        species_list = data["species"] if isinstance(data, dict) and "species" in data else data
+        species_db = {s["species_id"]: s for s in species_list}
 
     aquarium = {"volume_liters": 200}
     telemetry = {"temperature_c": 25.0, "ph": 7.0, "tds_ppm": 150}

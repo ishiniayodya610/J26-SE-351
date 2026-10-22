@@ -28,7 +28,8 @@ def check_compatibility(fish_list: List[Any], species_db: Dict[str, Any]) -> Tup
             compat_a = species_db[species_a].get("compatibility", {})
             compat_b = species_db[species_b].get("compatibility", {})
 
-            if compat_a.get(species_b) == "high_risk" or compat_b.get(species_a) == "high_risk":
+            high_risks = {"high_risk", "caution_high_provisional", "size_dependent_predation_caution"}
+            if compat_a.get(species_b) in high_risks or compat_b.get(species_a) in high_risks:
                 return False, {
                     "status": "REJECTED",
                     "reason_code": "AGGRESSION_CONFLICT",
@@ -46,8 +47,13 @@ def check_volume(aquarium: Any, fish_list: List[Any], species_db: Dict[str, Any]
     for fish in fish_list:
         species_id = _get(fish, "species_id")
         if species_id in species_db:
+            species_info = species_db[species_id]
             # Fetch the specific minimum volume required for this species (defaulting to 3L if missing)
-            species_min_vol = species_db[species_id].get("environment", {}).get("min_volume_liters", 3.0)
+            species_min_vol = (
+                species_info.get("environment", {}).get("min_volume_liters")
+                or species_info.get("aquarium_requirements", {}).get("min_volume_liters")
+                or 3.0
+            )
             fish_count = _get(fish, "male", 0) + _get(fish, "female", 0)
             required_volume += (species_min_vol * fish_count)
 
@@ -75,9 +81,10 @@ def check_temperature(telemetry: Any, fish_list: List[Any], species_db: Dict[str
     for fish in fish_list:
         species_id = _get(fish, "species_id")
         if species_id in species_db:
-            db_env = species_db[species_id].get("environment", {}).get("temperature", {})
-            min_temp = db_env.get("min", 0)
-            max_temp = db_env.get("max", 100)
+            db_env = species_db[species_id].get("environment", {})
+            temp_range = db_env.get("temperature") or db_env.get("temperature_c") or {}
+            min_temp = temp_range.get("min", 0)
+            max_temp = temp_range.get("max", 100)
 
             if current_temp < min_temp or current_temp > max_temp:
                 name = species_db[species_id].get("common_name", species_id)

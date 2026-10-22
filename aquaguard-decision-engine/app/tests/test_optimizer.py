@@ -19,8 +19,9 @@ from app.fuzzy.fuzzy_engine import calculate_esi
 def mock_optimizer_data():
     base_dir = os.path.dirname(os.path.dirname(__file__))
 
-    with open(os.path.join(base_dir, "data", "species_seed.json"), "r") as f:
-        species_list = json.load(f)
+    with open(os.path.join(base_dir, "data", "species_seed.json"), "r", encoding="utf-8") as f:
+        data = json.load(f)
+        species_list = data["species"] if isinstance(data, dict) and "species" in data else data
         species_db = {s["species_id"]: s for s in species_list}
 
     with open(os.path.join(base_dir, "data", "test_scenarios.json"), "r") as f:

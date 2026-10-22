@@ -1,152 +1,1600 @@
-[
-  {
-    "species_id": "poecilia_reticulata",
-    "common_name": "Guppy",
-    "temperament": "peaceful",
-    "environment": {
-      "temperature": { "min": 22, "optimal_min": 24, "optimal_max": 28, "max": 30 },
-      "ph": { "min": 6.5, "optimal_min": 7.0, "optimal_max": 8.0, "max": 8.5 },
-      "tds": { "min": 100, "optimal_min": 150, "optimal_max": 300, "max": 500 },
-      "min_volume_liters": 2.0
-    },
-    "behavior": { "aggression": 1, "fin_nipping": false, "territorial": false },
-    "spatial": { "zones": ["Top", "Middle"] },
-    "breeding": { "type": "livebearer", "male_female_ratio": 1.0 },
-    "compatibility": { "betta_splendens": "high_risk", "pterophyllum_scalare": "moderate_risk" }
+{
+  "dataset_name": "AquaGuard AI ornamental-fish knowledge base (source-reviewed draft)",
+  "schema_version": "2.0.0",
+  "created_on": "2026-10-22",
+  "status": "SOURCE_REVIEWED_DRAFT_NOT_EXPERT_VALIDATED",
+  "purpose": "Seed data for research prototype; not a substitute for species-specific expert advice or fish-welfare decisions.",
+  "interpretation_policy": {
+    "temperature_and_ph": "Published general aquarium-maintenance range, not lethal boundary and not necessarily the optimum for every strain or life stage.",
+    "optimal_ranges": "Null unless directly supported by a source. Do not infer an optimum from the full maintenance range.",
+    "tds": "Null because the selected species profiles report hardness (dGH), not validated species-specific TDS limits. TDS must not be inferred directly from dGH.",
+    "hardness": "Stored separately as general hardness in degrees dGH; it is not the same as TDS.",
+    "tank_size": "Use the profile's recommended aquarium base dimensions and group/social needs. Reference volumes are example tank volumes, not per-fish litres and not a capacity algorithm.",
+    "missing_compatibility": "An absent pair rule means UNKNOWN/NOT ASSESSED, not compatible.",
+    "hard_constraints": "Published care ranges can be adopted as conservative planning boundaries only if this policy is documented. They should not be described as lethal thresholds without evidence.",
+    "heuristics": "Spatial zones and proposed livebearer sex ratios are project starting heuristics and require domain-expert review.",
+    "numeric_aggression": "Not populated as validated numeric labels because profiles do not supply a consistent calibrated 1-10 aggression scale. Build a scoring rubric and get independent review before use."
   },
-  {
-    "species_id": "xiphophorus_hellerii",
-    "common_name": "Swordtail",
-    "temperament": "semi-aggressive",
-    "environment": {
-      "temperature": { "min": 20, "optimal_min": 22, "optimal_max": 26, "max": 28 },
-      "ph": { "min": 7.0, "optimal_min": 7.5, "optimal_max": 8.3, "max": 8.5 },
-      "tds": { "min": 150, "optimal_min": 200, "optimal_max": 400, "max": 500 },
-      "min_volume_liters": 5.0
+  "sources": [
+    {
+      "source_id": "SF-GUPPY",
+      "title": "Seriously Fish \u2014 Poecilia reticulata (Guppy)",
+      "url": "https://www.seriouslyfish.com/species/poecilia-reticulata",
+      "accessed": "2026-10-22",
+      "supports": [
+        "temperature",
+        "pH",
+        "hardness_dGH",
+        "adult_size",
+        "aquarium_base",
+        "temperament",
+        "social_requirement",
+        "compatibility_notes"
+      ],
+      "limitations": "Does not provide species-specific TDS limits or numeric optimal temperature/pH subranges."
     },
-    "behavior": { "aggression": 3, "fin_nipping": false, "territorial": true },
-    "spatial": { "zones": ["Top", "Middle"] },
-    "breeding": { "type": "livebearer", "male_female_ratio": 3.0 },
-    "compatibility": { "betta_splendens": "moderate_risk" }
-  },
-  {
-    "species_id": "betta_splendens",
-    "common_name": "Betta",
-    "temperament": "aggressive",
-    "environment": {
-      "temperature": { "min": 24, "optimal_min": 25, "optimal_max": 27, "max": 30 },
-      "ph": { "min": 6.0, "optimal_min": 6.5, "optimal_max": 7.5, "max": 8.0 },
-      "tds": { "min": 50, "optimal_min": 100, "optimal_max": 200, "max": 300 },
-      "min_volume_liters": 10.0
+    {
+      "source_id": "SF-SWORDTAIL",
+      "title": "Seriously Fish \u2014 Xiphophorus hellerii (Green Swordtail)",
+      "url": "https://seriouslyfish.com/species/xiphophorus-hellerii",
+      "accessed": "2026-10-22",
+      "supports": [
+        "temperature",
+        "pH",
+        "hardness_dGH",
+        "adult_size",
+        "aquarium_base",
+        "social_requirement"
+      ],
+      "limitations": "Does not provide species-specific TDS limits or numeric optimal temperature/pH subranges."
     },
-    "behavior": { "aggression": 9, "fin_nipping": false, "territorial": true },
-    "spatial": { "zones": ["Top"] },
-    "breeding": { "type": "egglayer", "male_female_ratio": 0.0 },
-    "compatibility": { "poecilia_reticulata": "high_risk" }
-  },
-  {
-    "species_id": "paracheirodon_innesi",
-    "common_name": "Neon Tetra",
-    "temperament": "peaceful",
-    "environment": {
-      "temperature": { "min": 20, "optimal_min": 22, "optimal_max": 25, "max": 26 },
-      "ph": { "min": 5.0, "optimal_min": 6.0, "optimal_max": 7.0, "max": 7.5 },
-      "tds": { "min": 10, "optimal_min": 50, "optimal_max": 100, "max": 150 },
-      "min_volume_liters": 2.0
+    {
+      "source_id": "SF-BETTA",
+      "title": "Seriously Fish \u2014 Betta splendens (Siamese Fighting Fish)",
+      "url": "https://www.seriouslyfish.com/species/betta-splendens",
+      "accessed": "2026-10-22",
+      "supports": [
+        "temperature",
+        "pH",
+        "hardness_dGH",
+        "adult_size",
+        "aquarium_base",
+        "temperament",
+        "social_requirement",
+        "compatibility_notes"
+      ],
+      "limitations": "Tankmate compatibility is conditional; it does not validate every Betta-tankmate combination."
     },
-    "behavior": { "aggression": 1, "fin_nipping": false, "territorial": false },
-    "spatial": { "zones": ["Middle"] },
-    "breeding": { "type": "egglayer", "male_female_ratio": 1.0 },
-    "compatibility": { "pterophyllum_scalare": "high_risk" }
-  },
-  {
-    "species_id": "trigonostigma_heteromorpha",
-    "common_name": "Harlequin Rasbora",
-    "temperament": "peaceful",
-    "environment": {
-      "temperature": { "min": 22, "optimal_min": 24, "optimal_max": 27, "max": 28 },
-      "ph": { "min": 5.0, "optimal_min": 6.0, "optimal_max": 7.0, "max": 7.5 },
-      "tds": { "min": 20, "optimal_min": 50, "optimal_max": 120, "max": 150 },
-      "min_volume_liters": 2.5
+    {
+      "source_id": "SF-NEON",
+      "title": "Seriously Fish \u2014 Paracheirodon innesi (Neon Tetra)",
+      "url": "https://www.seriouslyfish.com/species/paracheirodon-innesi",
+      "accessed": "2026-10-22",
+      "supports": [
+        "temperature",
+        "pH",
+        "hardness_dGH",
+        "adult_size",
+        "aquarium_base",
+        "temperament",
+        "social_requirement"
+      ],
+      "limitations": "Does not provide species-specific TDS limits or numeric optimal temperature/pH subranges."
     },
-    "behavior": { "aggression": 1, "fin_nipping": false, "territorial": false },
-    "spatial": { "zones": ["Middle", "Top"] },
-    "breeding": { "type": "egglayer", "male_female_ratio": 1.0 },
-    "compatibility": {}
-  },
-  {
-    "species_id": "corydoras_aeneus",
-    "common_name": "Corydoras",
-    "temperament": "peaceful",
-    "environment": {
-      "temperature": { "min": 21, "optimal_min": 23, "optimal_max": 26, "max": 27 },
-      "ph": { "min": 6.0, "optimal_min": 6.5, "optimal_max": 7.5, "max": 8.0 },
-      "tds": { "min": 50, "optimal_min": 100, "optimal_max": 200, "max": 250 },
-      "min_volume_liters": 4.0
+    {
+      "source_id": "SF-HARLEQUIN",
+      "title": "Seriously Fish \u2014 Trigonostigma heteromorpha (Harlequin)",
+      "url": "https://www.seriouslyfish.com/species/trigonostigma-heteromorpha",
+      "accessed": "2026-10-22",
+      "supports": [
+        "temperature",
+        "pH",
+        "hardness_dGH",
+        "adult_size",
+        "aquarium_base",
+        "temperament",
+        "social_requirement"
+      ],
+      "limitations": "Does not provide species-specific TDS limits or numeric optimal temperature/pH subranges."
     },
-    "behavior": { "aggression": 1, "fin_nipping": false, "territorial": false },
-    "spatial": { "zones": ["Bottom"] },
-    "breeding": { "type": "egglayer", "male_female_ratio": 2.0 },
-    "compatibility": {}
-  },
-  {
-    "species_id": "xiphophorus_maculatus",
-    "common_name": "Platy",
-    "temperament": "peaceful",
-    "environment": {
-      "temperature": { "min": 20, "optimal_min": 22, "optimal_max": 25, "max": 26 },
-      "ph": { "min": 7.0, "optimal_min": 7.2, "optimal_max": 8.2, "max": 8.5 },
-      "tds": { "min": 150, "optimal_min": 200, "optimal_max": 350, "max": 400 },
-      "min_volume_liters": 3.0
+    {
+      "source_id": "SF-CORY",
+      "title": "Seriously Fish \u2014 Osteogaster aenea (Bronze Cory; historically Corydoras aeneus)",
+      "url": "https://www.seriouslyfish.com/species/osteogaster-aenea",
+      "accessed": "2026-10-22",
+      "supports": [
+        "temperature",
+        "pH",
+        "hardness_dGH",
+        "adult_size",
+        "aquarium_base",
+        "temperament",
+        "social_requirement"
+      ],
+      "limitations": "Profile notes uncertainty about the identity/origins of some commercially produced fish sold as C. aeneus. No TDS limit given."
     },
-    "behavior": { "aggression": 1, "fin_nipping": false, "territorial": false },
-    "spatial": { "zones": ["Middle", "Top"] },
-    "breeding": { "type": "livebearer", "male_female_ratio": 2.0 },
-    "compatibility": {}
-  },
-  {
-    "species_id": "poecilia_sphenops",
-    "common_name": "Molly",
-    "temperament": "peaceful",
-    "environment": {
-      "temperature": { "min": 24, "optimal_min": 25, "optimal_max": 28, "max": 30 },
-      "ph": { "min": 7.5, "optimal_min": 7.8, "optimal_max": 8.5, "max": 8.8 },
-      "tds": { "min": 200, "optimal_min": 300, "optimal_max": 450, "max": 500 },
-      "min_volume_liters": 6.0
+    {
+      "source_id": "SF-PLATY",
+      "title": "Seriously Fish \u2014 Xiphophorus maculatus (Platy)",
+      "url": "https://www.seriouslyfish.com/species/xiphophorus-maculatus",
+      "accessed": "2026-10-22",
+      "supports": [
+        "temperature",
+        "pH",
+        "hardness_dGH",
+        "adult_size",
+        "aquarium_base",
+        "temperament",
+        "compatibility_notes"
+      ],
+      "limitations": "Does not provide species-specific TDS limits or numeric optimal temperature/pH subranges."
     },
-    "behavior": { "aggression": 2, "fin_nipping": false, "territorial": false },
-    "spatial": { "zones": ["Top", "Middle", "Bottom"] },
-    "breeding": { "type": "livebearer", "male_female_ratio": 3.0 },
-    "compatibility": {}
-  },
-  {
-    "species_id": "pterophyllum_scalare",
-    "common_name": "Angelfish",
-    "temperament": "semi-aggressive",
-    "environment": {
-      "temperature": { "min": 24, "optimal_min": 26, "optimal_max": 28, "max": 30 },
-      "ph": { "min": 6.0, "optimal_min": 6.5, "optimal_max": 7.4, "max": 7.5 },
-      "tds": { "min": 50, "optimal_min": 100, "optimal_max": 250, "max": 300 },
-      "min_volume_liters": 15.0
+    {
+      "source_id": "SF-MOLLY",
+      "title": "Seriously Fish \u2014 Poecilia sphenops (Short-finned Molly/Black Molly)",
+      "url": "https://www.seriouslyfish.com/species/poecilia-sphenops",
+      "accessed": "2026-10-22",
+      "supports": [
+        "temperature",
+        "pH",
+        "hardness_dGH",
+        "adult_size",
+        "aquarium_base",
+        "temperament",
+        "maintenance_notes"
+      ],
+      "limitations": "Does not provide species-specific TDS limits or numeric optimal temperature/pH subranges."
     },
-    "behavior": { "aggression": 5, "fin_nipping": false, "territorial": true },
-    "spatial": { "zones": ["Middle"] },
-    "breeding": { "type": "egglayer", "male_female_ratio": 1.0 },
-    "compatibility": { "paracheirodon_innesi": "high_risk", "poecilia_reticulata": "moderate_risk" }
-  },
-  {
-    "species_id": "danio_rerio",
-    "common_name": "Zebra Danio",
-    "temperament": "peaceful",
-    "environment": {
-      "temperature": { "min": 18, "optimal_min": 20, "optimal_max": 24, "max": 25 },
-      "ph": { "min": 6.5, "optimal_min": 7.0, "optimal_max": 7.5, "max": 8.0 },
-      "tds": { "min": 50, "optimal_min": 100, "optimal_max": 200, "max": 250 },
-      "min_volume_liters": 2.5
+    {
+      "source_id": "SF-ANGEL",
+      "title": "Seriously Fish \u2014 Pterophyllum \"scalare\" (Angelfish)",
+      "url": "https://www.seriouslyfish.com/species/pterophyllum-scalare",
+      "accessed": "2026-10-22",
+      "supports": [
+        "temperature",
+        "pH",
+        "hardness_dGH",
+        "adult_size",
+        "aquarium_base",
+        "tank_height",
+        "predation_notes"
+      ],
+      "limitations": "The source uses Pterophyllum \"scalare\" and says authority is not recorded; taxonomic identity should be verified for the exact stock."
     },
-    "behavior": { "aggression": 1, "fin_nipping": true, "territorial": false },
-    "spatial": { "zones": ["Top", "Middle"] },
-    "breeding": { "type": "egglayer", "male_female_ratio": 1.0 },
-    "compatibility": { "betta_splendens": "moderate_risk" }
-  }
-]
+    {
+      "source_id": "SF-DANIO",
+      "title": "Seriously Fish \u2014 Danio rerio (Zebra Danio)",
+      "url": "https://www.seriouslyfish.com/species/danio-rerio",
+      "accessed": "2026-10-22",
+      "supports": [
+        "temperature",
+        "pH",
+        "hardness_dGH",
+        "adult_size",
+        "aquarium_base",
+        "temperament",
+        "social_requirement",
+        "compatibility_notes"
+      ],
+      "limitations": "Does not provide species-specific TDS limits or numeric optimal temperature/pH subranges."
+    }
+  ],
+  "species": [
+    {
+      "species_id": "poecilia_reticulata",
+      "common_name": "Guppy",
+      "scientific_name": "Poecilia reticulata",
+      "taxonomy_note": null,
+      "adult_standard_length_mm": 60,
+      "environment": {
+        "temperature_c": {
+          "min": 17,
+          "optimal_min": null,
+          "optimal_max": null,
+          "max": 28,
+          "range_type": "published_general_maintenance_range_not_lethal_limit",
+          "source_ids": [
+            "SF-GUPPY"
+          ],
+          "status": "source_reviewed"
+        },
+        "ph": {
+          "min": 7.0,
+          "optimal_min": null,
+          "optimal_max": null,
+          "max": 8.5,
+          "range_type": "published_general_maintenance_range_not_lethal_limit",
+          "source_ids": [
+            "SF-GUPPY"
+          ],
+          "status": "source_reviewed"
+        },
+        "hardness_dgh": {
+          "min": 8,
+          "max": 30,
+          "status": "source_reviewed",
+          "source_ids": [
+            "SF-GUPPY"
+          ]
+        },
+        "tds_ppm": {
+          "min": null,
+          "optimal_min": null,
+          "optimal_max": null,
+          "max": null,
+          "status": "not_reported_by_selected_species_source_needs_expert_or_empirical_validation",
+          "note": "Do not infer TDS directly from dGH; they measure different properties."
+        },
+        "temperature": {
+          "min": 17,
+          "optimal_min": 24,
+          "optimal_max": 28,
+          "max": 28
+        },
+        "min_volume_liters": 2.0,
+        "tds": {
+          "min": 100,
+          "optimal_min": 150,
+          "optimal_max": 300,
+          "max": 500
+        }
+      },
+      "aquarium_requirements": {
+        "recommended_minimum_base_dimensions_cm": {
+          "length": 45,
+          "width": 30,
+          "status": "source_reviewed",
+          "source_ids": [
+            "SF-GUPPY"
+          ]
+        },
+        "reference_example_volume_liters": 41,
+        "volume_note": "Reference profile's example volume where supplied; not a per-fish allowance and not a universal carrying-capacity formula.",
+        "minimum_height_cm": null,
+        "min_volume_liters": 2.0,
+        "min_volume_field_note": "Deprecated: use minimum base dimensions, group needs, adult size, filtration and aquascape rather than a per-fish litre value."
+      },
+      "behavior": {
+        "temperament": "peaceful",
+        "social_requirement": "group_needed",
+        "minimum_group_size": null,
+        "aggression_score_1_to_10": null,
+        "fin_nipping": false,
+        "territorial": false,
+        "behavior_status": "qualitative_notes_source_reviewed_numeric_scores_and_unreported_traits_not_inferred",
+        "source_ids": [
+          "SF-GUPPY"
+        ],
+        "aggression": 1
+      },
+      "spatial": {
+        "zones": [
+          "top",
+          "middle"
+        ],
+        "status": "project_initial_heuristic_requires_expert_review",
+        "note": "Zones are approximate ecological labels, not strict constraints; fish may use multiple levels."
+      },
+      "breeding": {
+        "reproductive_mode": "livebearer",
+        "target_male_to_female_ratio": {
+          "male": 1,
+          "female": 3
+        },
+        "ratio_status": "project_heuristic_pending_expert_validation",
+        "notes": "Do not treat a default sex ratio as a universally validated biological requirement. Ratios may depend on breeding objective, age, strain and setup.",
+        "type": "livebearer",
+        "male_female_ratio": 1.0
+      },
+      "compatibility_rules": [],
+      "validation": {
+        "record_status": "source_reviewed_partial_not_expert_validated",
+        "verified_fields": [
+          "temperature_c_maintenance_range",
+          "ph_maintenance_range",
+          "hardness_dgh",
+          "adult_standard_length_mm",
+          "recommended_minimum_base_dimensions_cm"
+        ],
+        "requires_followup": [
+          "tds_ppm",
+          "optimal_temperature_subrange",
+          "optimal_ph_subrange",
+          "numeric_aggression_score",
+          "fin_nipping_if_unreported",
+          "territoriality_if_unreported",
+          "breeding_ratio",
+          "species_pair_compatibility",
+          "stocking_density_and_bioload"
+        ],
+        "source_ids": [
+          "SF-GUPPY"
+        ]
+      },
+      "notes": [
+        "Profile says peaceful and group-living; avoid known fin-nipping tankmates.",
+        "The 41 L figure is the source profile's example aquarium, not litres per fish."
+      ],
+      "temperament": "peaceful",
+      "compatibility": {
+        "betta_splendens": "high_risk",
+        "pterophyllum_scalare": "moderate_risk"
+      }
+    },
+    {
+      "species_id": "xiphophorus_hellerii",
+      "common_name": "Swordtail",
+      "scientific_name": "Xiphophorus hellerii",
+      "taxonomy_note": null,
+      "adult_standard_length_mm": 140,
+      "environment": {
+        "temperature_c": {
+          "min": 16,
+          "optimal_min": null,
+          "optimal_max": null,
+          "max": 28,
+          "range_type": "published_general_maintenance_range_not_lethal_limit",
+          "source_ids": [
+            "SF-SWORDTAIL"
+          ],
+          "status": "source_reviewed"
+        },
+        "ph": {
+          "min": 7.0,
+          "optimal_min": null,
+          "optimal_max": null,
+          "max": 8.0,
+          "range_type": "published_general_maintenance_range_not_lethal_limit",
+          "source_ids": [
+            "SF-SWORDTAIL"
+          ],
+          "status": "source_reviewed"
+        },
+        "hardness_dgh": {
+          "min": 10,
+          "max": 25,
+          "status": "source_reviewed",
+          "source_ids": [
+            "SF-SWORDTAIL"
+          ]
+        },
+        "tds_ppm": {
+          "min": null,
+          "optimal_min": null,
+          "optimal_max": null,
+          "max": null,
+          "status": "not_reported_by_selected_species_source_needs_expert_or_empirical_validation",
+          "note": "Do not infer TDS directly from dGH; they measure different properties."
+        },
+        "temperature": {
+          "min": 16,
+          "optimal_min": 22,
+          "optimal_max": 26,
+          "max": 28
+        },
+        "min_volume_liters": 5.0,
+        "tds": {
+          "min": 150,
+          "optimal_min": 200,
+          "optimal_max": 400,
+          "max": 500
+        }
+      },
+      "aquarium_requirements": {
+        "recommended_minimum_base_dimensions_cm": {
+          "length": 120,
+          "width": 30,
+          "status": "source_reviewed",
+          "source_ids": [
+            "SF-SWORDTAIL"
+          ]
+        },
+        "reference_example_volume_liters": 108,
+        "volume_note": "Reference profile's example volume where supplied; not a per-fish allowance and not a universal carrying-capacity formula.",
+        "minimum_height_cm": null,
+        "min_volume_liters": 5.0,
+        "min_volume_field_note": "Deprecated: use minimum base dimensions, group needs, adult size, filtration and aquascape rather than a per-fish litre value."
+      },
+      "behavior": {
+        "temperament": "not_specified_by_profile",
+        "social_requirement": "shoal_or_group",
+        "minimum_group_size": null,
+        "aggression_score_1_to_10": null,
+        "fin_nipping": false,
+        "territorial": true,
+        "behavior_status": "qualitative_notes_source_reviewed_numeric_scores_and_unreported_traits_not_inferred",
+        "source_ids": [
+          "SF-SWORDTAIL"
+        ],
+        "aggression": 3
+      },
+      "spatial": {
+        "zones": [
+          "top",
+          "middle"
+        ],
+        "status": "project_initial_heuristic_requires_expert_review",
+        "note": "Zones are approximate ecological labels, not strict constraints; fish may use multiple levels."
+      },
+      "breeding": {
+        "reproductive_mode": "livebearer",
+        "target_male_to_female_ratio": {
+          "male": 1,
+          "female": 3
+        },
+        "ratio_status": "project_heuristic_pending_expert_validation",
+        "notes": "Do not treat a default sex ratio as a universally validated biological requirement. Ratios may depend on breeding objective, age, strain and setup.",
+        "type": "livebearer",
+        "male_female_ratio": 3.0
+      },
+      "compatibility_rules": [],
+      "validation": {
+        "record_status": "source_reviewed_partial_not_expert_validated",
+        "verified_fields": [
+          "temperature_c_maintenance_range",
+          "ph_maintenance_range",
+          "hardness_dgh",
+          "adult_standard_length_mm",
+          "recommended_minimum_base_dimensions_cm"
+        ],
+        "requires_followup": [
+          "tds_ppm",
+          "optimal_temperature_subrange",
+          "optimal_ph_subrange",
+          "numeric_aggression_score",
+          "fin_nipping_if_unreported",
+          "territoriality_if_unreported",
+          "breeding_ratio",
+          "species_pair_compatibility",
+          "stocking_density_and_bioload"
+        ],
+        "source_ids": [
+          "SF-SWORDTAIL"
+        ]
+      },
+      "notes": [
+        "Published profile calls for a large aquarium base; do not use original 5 L value as a species minimum.",
+        "Source notes many trade swordtails are hybrids; stock identification may be uncertain."
+      ],
+      "temperament": "semi-aggressive",
+      "compatibility": {
+        "betta_splendens": "moderate_risk"
+      }
+    },
+    {
+      "species_id": "betta_splendens",
+      "common_name": "Betta",
+      "scientific_name": "Betta splendens",
+      "taxonomy_note": null,
+      "adult_standard_length_mm": 70,
+      "environment": {
+        "temperature_c": {
+          "min": 22,
+          "optimal_min": null,
+          "optimal_max": null,
+          "max": 30,
+          "range_type": "published_general_maintenance_range_not_lethal_limit",
+          "source_ids": [
+            "SF-BETTA"
+          ],
+          "status": "source_reviewed"
+        },
+        "ph": {
+          "min": 6.0,
+          "optimal_min": null,
+          "optimal_max": null,
+          "max": 8.0,
+          "range_type": "published_general_maintenance_range_not_lethal_limit",
+          "source_ids": [
+            "SF-BETTA"
+          ],
+          "status": "source_reviewed"
+        },
+        "hardness_dgh": {
+          "min": 1,
+          "max": 15,
+          "status": "source_reviewed",
+          "source_ids": [
+            "SF-BETTA"
+          ]
+        },
+        "tds_ppm": {
+          "min": null,
+          "optimal_min": null,
+          "optimal_max": null,
+          "max": null,
+          "status": "not_reported_by_selected_species_source_needs_expert_or_empirical_validation",
+          "note": "Do not infer TDS directly from dGH; they measure different properties."
+        },
+        "temperature": {
+          "min": 22,
+          "optimal_min": 25,
+          "optimal_max": 27,
+          "max": 30
+        },
+        "min_volume_liters": 10.0,
+        "tds": {
+          "min": 50,
+          "optimal_min": 100,
+          "optimal_max": 200,
+          "max": 300
+        }
+      },
+      "aquarium_requirements": {
+        "recommended_minimum_base_dimensions_cm": {
+          "length": 45,
+          "width": 30,
+          "status": "source_reviewed",
+          "source_ids": [
+            "SF-BETTA"
+          ]
+        },
+        "reference_example_volume_liters": 41,
+        "volume_note": "Reference profile's example volume where supplied; not a per-fish allowance and not a universal carrying-capacity formula.",
+        "minimum_height_cm": null,
+        "min_volume_liters": 10.0,
+        "min_volume_field_note": "Deprecated: use minimum base dimensions, group needs, adult size, filtration and aquascape rather than a per-fish litre value."
+      },
+      "behavior": {
+        "temperament": "tank_of_its_own_tankmates_carefully",
+        "social_requirement": "can_be_kept_alone",
+        "minimum_group_size": null,
+        "aggression_score_1_to_10": null,
+        "fin_nipping": false,
+        "territorial": true,
+        "behavior_status": "qualitative_notes_source_reviewed_numeric_scores_and_unreported_traits_not_inferred",
+        "source_ids": [
+          "SF-BETTA"
+        ],
+        "aggression": 9
+      },
+      "spatial": {
+        "zones": [
+          "top"
+        ],
+        "status": "project_initial_heuristic_requires_expert_review",
+        "note": "Zones are approximate ecological labels, not strict constraints; fish may use multiple levels."
+      },
+      "breeding": {
+        "reproductive_mode": "egg_layer",
+        "target_male_to_female_ratio": null,
+        "ratio_status": "not_set_species_specific_breeding_source_required",
+        "notes": "Do not treat a default sex ratio as a universally validated biological requirement. Ratios may depend on breeding objective, age, strain and setup.",
+        "type": "egglayer",
+        "male_female_ratio": 0.0
+      },
+      "compatibility_rules": [],
+      "validation": {
+        "record_status": "source_reviewed_partial_not_expert_validated",
+        "verified_fields": [
+          "temperature_c_maintenance_range",
+          "ph_maintenance_range",
+          "hardness_dgh",
+          "adult_standard_length_mm",
+          "recommended_minimum_base_dimensions_cm"
+        ],
+        "requires_followup": [
+          "tds_ppm",
+          "optimal_temperature_subrange",
+          "optimal_ph_subrange",
+          "numeric_aggression_score",
+          "fin_nipping_if_unreported",
+          "territoriality_if_unreported",
+          "breeding_ratio",
+          "species_pair_compatibility",
+          "stocking_density_and_bioload"
+        ],
+        "source_ids": [
+          "SF-BETTA"
+        ]
+      },
+      "notes": [
+        "The reference says 45 x 30 cm is adequate for a single male or pair and rejects tiny jars; use setup-specific husbandry guidance.",
+        "Avoid a blanket claim that every pair with guppies must be rejected without a documented risk policy and expert review."
+      ],
+      "temperament": "aggressive",
+      "compatibility": {
+        "poecilia_reticulata": "high_risk"
+      }
+    },
+    {
+      "species_id": "paracheirodon_innesi",
+      "common_name": "Neon Tetra",
+      "scientific_name": "Paracheirodon innesi",
+      "taxonomy_note": null,
+      "adult_standard_length_mm": 30,
+      "environment": {
+        "temperature_c": {
+          "min": 21,
+          "optimal_min": null,
+          "optimal_max": null,
+          "max": 25,
+          "range_type": "published_general_maintenance_range_not_lethal_limit",
+          "source_ids": [
+            "SF-NEON"
+          ],
+          "status": "source_reviewed"
+        },
+        "ph": {
+          "min": 4.0,
+          "optimal_min": null,
+          "optimal_max": null,
+          "max": 7.5,
+          "range_type": "published_general_maintenance_range_not_lethal_limit",
+          "source_ids": [
+            "SF-NEON"
+          ],
+          "status": "source_reviewed"
+        },
+        "hardness_dgh": {
+          "min": 1,
+          "max": 12,
+          "status": "source_reviewed",
+          "source_ids": [
+            "SF-NEON"
+          ]
+        },
+        "tds_ppm": {
+          "min": null,
+          "optimal_min": null,
+          "optimal_max": null,
+          "max": null,
+          "status": "not_reported_by_selected_species_source_needs_expert_or_empirical_validation",
+          "note": "Do not infer TDS directly from dGH; they measure different properties."
+        },
+        "temperature": {
+          "min": 21,
+          "optimal_min": 22,
+          "optimal_max": 25,
+          "max": 25
+        },
+        "min_volume_liters": 2.0,
+        "tds": {
+          "min": 10,
+          "optimal_min": 50,
+          "optimal_max": 100,
+          "max": 150
+        }
+      },
+      "aquarium_requirements": {
+        "recommended_minimum_base_dimensions_cm": {
+          "length": 60,
+          "width": 30,
+          "status": "source_reviewed",
+          "source_ids": [
+            "SF-NEON"
+          ]
+        },
+        "reference_example_volume_liters": 54,
+        "volume_note": "Reference profile's example volume where supplied; not a per-fish allowance and not a universal carrying-capacity formula.",
+        "minimum_height_cm": null,
+        "min_volume_liters": 2.0,
+        "min_volume_field_note": "Deprecated: use minimum base dimensions, group needs, adult size, filtration and aquascape rather than a per-fish litre value."
+      },
+      "behavior": {
+        "temperament": "peaceful",
+        "social_requirement": "group_needed",
+        "minimum_group_size": null,
+        "aggression_score_1_to_10": null,
+        "fin_nipping": false,
+        "territorial": false,
+        "behavior_status": "qualitative_notes_source_reviewed_numeric_scores_and_unreported_traits_not_inferred",
+        "source_ids": [
+          "SF-NEON"
+        ],
+        "aggression": 1
+      },
+      "spatial": {
+        "zones": [
+          "middle"
+        ],
+        "status": "project_initial_heuristic_requires_expert_review",
+        "note": "Zones are approximate ecological labels, not strict constraints; fish may use multiple levels."
+      },
+      "breeding": {
+        "reproductive_mode": "egg_layer",
+        "target_male_to_female_ratio": null,
+        "ratio_status": "not_set_species_specific_breeding_source_required",
+        "notes": "Do not treat a default sex ratio as a universally validated biological requirement. Ratios may depend on breeding objective, age, strain and setup.",
+        "type": "egglayer",
+        "male_female_ratio": 1.0
+      },
+      "compatibility_rules": [],
+      "validation": {
+        "record_status": "source_reviewed_partial_not_expert_validated",
+        "verified_fields": [
+          "temperature_c_maintenance_range",
+          "ph_maintenance_range",
+          "hardness_dgh",
+          "adult_standard_length_mm",
+          "recommended_minimum_base_dimensions_cm"
+        ],
+        "requires_followup": [
+          "tds_ppm",
+          "optimal_temperature_subrange",
+          "optimal_ph_subrange",
+          "numeric_aggression_score",
+          "fin_nipping_if_unreported",
+          "territoriality_if_unreported",
+          "breeding_ratio",
+          "species_pair_compatibility",
+          "stocking_density_and_bioload"
+        ],
+        "source_ids": [
+          "SF-NEON"
+        ]
+      },
+      "notes": [
+        "Small adult size makes predation by larger fish a size-dependent risk."
+      ],
+      "temperament": "peaceful",
+      "compatibility": {
+        "pterophyllum_scalare": "high_risk"
+      }
+    },
+    {
+      "species_id": "trigonostigma_heteromorpha",
+      "common_name": "Harlequin Rasbora",
+      "scientific_name": "Trigonostigma heteromorpha",
+      "taxonomy_note": null,
+      "adult_standard_length_mm": 45,
+      "environment": {
+        "temperature_c": {
+          "min": 21,
+          "optimal_min": null,
+          "optimal_max": null,
+          "max": 28,
+          "range_type": "published_general_maintenance_range_not_lethal_limit",
+          "source_ids": [
+            "SF-HARLEQUIN"
+          ],
+          "status": "source_reviewed"
+        },
+        "ph": {
+          "min": 5.0,
+          "optimal_min": null,
+          "optimal_max": null,
+          "max": 7.5,
+          "range_type": "published_general_maintenance_range_not_lethal_limit",
+          "source_ids": [
+            "SF-HARLEQUIN"
+          ],
+          "status": "source_reviewed"
+        },
+        "hardness_dgh": {
+          "min": 1,
+          "max": 12,
+          "status": "source_reviewed",
+          "source_ids": [
+            "SF-HARLEQUIN"
+          ]
+        },
+        "tds_ppm": {
+          "min": null,
+          "optimal_min": null,
+          "optimal_max": null,
+          "max": null,
+          "status": "not_reported_by_selected_species_source_needs_expert_or_empirical_validation",
+          "note": "Do not infer TDS directly from dGH; they measure different properties."
+        },
+        "temperature": {
+          "min": 21,
+          "optimal_min": 24,
+          "optimal_max": 27,
+          "max": 28
+        },
+        "min_volume_liters": 2.5,
+        "tds": {
+          "min": 20,
+          "optimal_min": 50,
+          "optimal_max": 120,
+          "max": 150
+        }
+      },
+      "aquarium_requirements": {
+        "recommended_minimum_base_dimensions_cm": {
+          "length": 60,
+          "width": 30,
+          "status": "source_reviewed",
+          "source_ids": [
+            "SF-HARLEQUIN"
+          ]
+        },
+        "reference_example_volume_liters": 54,
+        "volume_note": "Reference profile's example volume where supplied; not a per-fish allowance and not a universal carrying-capacity formula.",
+        "minimum_height_cm": null,
+        "min_volume_liters": 2.5,
+        "min_volume_field_note": "Deprecated: use minimum base dimensions, group needs, adult size, filtration and aquascape rather than a per-fish litre value."
+      },
+      "behavior": {
+        "temperament": "peaceful",
+        "social_requirement": "group_needed",
+        "minimum_group_size": null,
+        "aggression_score_1_to_10": null,
+        "fin_nipping": false,
+        "territorial": false,
+        "behavior_status": "qualitative_notes_source_reviewed_numeric_scores_and_unreported_traits_not_inferred",
+        "source_ids": [
+          "SF-HARLEQUIN"
+        ],
+        "aggression": 1
+      },
+      "spatial": {
+        "zones": [
+          "middle",
+          "top"
+        ],
+        "status": "project_initial_heuristic_requires_expert_review",
+        "note": "Zones are approximate ecological labels, not strict constraints; fish may use multiple levels."
+      },
+      "breeding": {
+        "reproductive_mode": "egg_layer",
+        "target_male_to_female_ratio": null,
+        "ratio_status": "not_set_species_specific_breeding_source_required",
+        "notes": "Do not treat a default sex ratio as a universally validated biological requirement. Ratios may depend on breeding objective, age, strain and setup.",
+        "type": "egglayer",
+        "male_female_ratio": 1.0
+      },
+      "compatibility_rules": [],
+      "validation": {
+        "record_status": "source_reviewed_partial_not_expert_validated",
+        "verified_fields": [
+          "temperature_c_maintenance_range",
+          "ph_maintenance_range",
+          "hardness_dgh",
+          "adult_standard_length_mm",
+          "recommended_minimum_base_dimensions_cm"
+        ],
+        "requires_followup": [
+          "tds_ppm",
+          "optimal_temperature_subrange",
+          "optimal_ph_subrange",
+          "numeric_aggression_score",
+          "fin_nipping_if_unreported",
+          "territoriality_if_unreported",
+          "breeding_ratio",
+          "species_pair_compatibility",
+          "stocking_density_and_bioload"
+        ],
+        "source_ids": [
+          "SF-HARLEQUIN"
+        ]
+      },
+      "notes": [
+        "Profile recommends a group and the specified base footprint; sex ratio not supplied in the summary."
+      ],
+      "temperament": "peaceful",
+      "compatibility": {}
+    },
+    {
+      "species_id": "corydoras_aeneus",
+      "common_name": "Corydoras (Bronze Cory)",
+      "scientific_name": "Osteogaster aenea",
+      "taxonomy_note": "Legacy ID corydoras_aeneus; reference profile uses accepted-name treatment Osteogaster aenea and notes possible trade-stock identification uncertainty.",
+      "adult_standard_length_mm": 75,
+      "environment": {
+        "temperature_c": {
+          "min": 21,
+          "optimal_min": null,
+          "optimal_max": null,
+          "max": 27,
+          "range_type": "published_general_maintenance_range_not_lethal_limit",
+          "source_ids": [
+            "SF-CORY"
+          ],
+          "status": "source_reviewed"
+        },
+        "ph": {
+          "min": 6.0,
+          "optimal_min": null,
+          "optimal_max": null,
+          "max": 8.0,
+          "range_type": "published_general_maintenance_range_not_lethal_limit",
+          "source_ids": [
+            "SF-CORY"
+          ],
+          "status": "source_reviewed"
+        },
+        "hardness_dgh": {
+          "min": 2,
+          "max": 15,
+          "status": "source_reviewed",
+          "source_ids": [
+            "SF-CORY"
+          ]
+        },
+        "tds_ppm": {
+          "min": null,
+          "optimal_min": null,
+          "optimal_max": null,
+          "max": null,
+          "status": "not_reported_by_selected_species_source_needs_expert_or_empirical_validation",
+          "note": "Do not infer TDS directly from dGH; they measure different properties."
+        },
+        "temperature": {
+          "min": 21,
+          "optimal_min": 23,
+          "optimal_max": 26,
+          "max": 27
+        },
+        "min_volume_liters": 4.0,
+        "tds": {
+          "min": 50,
+          "optimal_min": 100,
+          "optimal_max": 200,
+          "max": 250
+        }
+      },
+      "aquarium_requirements": {
+        "recommended_minimum_base_dimensions_cm": {
+          "length": 80,
+          "width": 30,
+          "status": "source_reviewed",
+          "source_ids": [
+            "SF-CORY"
+          ]
+        },
+        "reference_example_volume_liters": null,
+        "volume_note": "The source gives a base footprint but no reference example volume in the captured summary; do not estimate from base area alone.",
+        "minimum_height_cm": null,
+        "min_volume_liters": 4.0,
+        "min_volume_field_note": "Deprecated: use minimum base dimensions, group needs, adult size, filtration and aquascape rather than a per-fish litre value."
+      },
+      "behavior": {
+        "temperament": "peaceful",
+        "social_requirement": "group_needed",
+        "minimum_group_size": null,
+        "aggression_score_1_to_10": null,
+        "fin_nipping": false,
+        "territorial": false,
+        "behavior_status": "qualitative_notes_source_reviewed_numeric_scores_and_unreported_traits_not_inferred",
+        "source_ids": [
+          "SF-CORY"
+        ],
+        "aggression": 1
+      },
+      "spatial": {
+        "zones": [
+          "bottom"
+        ],
+        "status": "project_initial_heuristic_requires_expert_review",
+        "note": "Zones are approximate ecological labels, not strict constraints; fish may use multiple levels."
+      },
+      "breeding": {
+        "reproductive_mode": "egg_layer",
+        "target_male_to_female_ratio": null,
+        "ratio_status": "not_set_species_specific_breeding_source_required",
+        "notes": "Do not treat a default sex ratio as a universally validated biological requirement. Ratios may depend on breeding objective, age, strain and setup.",
+        "type": "egglayer",
+        "male_female_ratio": 2.0
+      },
+      "compatibility_rules": [],
+      "validation": {
+        "record_status": "source_reviewed_partial_not_expert_validated",
+        "verified_fields": [
+          "temperature_c_maintenance_range",
+          "ph_maintenance_range",
+          "hardness_dgh",
+          "adult_standard_length_mm",
+          "recommended_minimum_base_dimensions_cm"
+        ],
+        "requires_followup": [
+          "tds_ppm",
+          "optimal_temperature_subrange",
+          "optimal_ph_subrange",
+          "numeric_aggression_score",
+          "fin_nipping_if_unreported",
+          "territoriality_if_unreported",
+          "breeding_ratio",
+          "species_pair_compatibility",
+          "stocking_density_and_bioload"
+        ],
+        "source_ids": [
+          "SF-CORY"
+        ]
+      },
+      "notes": [
+        "Retained legacy species_id for compatibility with the project. The reviewed profile uses Osteogaster aenea and notes uncertainty about some commercially sold C. aeneus identity.",
+        "The source summary gives an 80 x 30 cm base; no exact volume is filled here."
+      ],
+      "temperament": "peaceful",
+      "compatibility": {}
+    },
+    {
+      "species_id": "xiphophorus_maculatus",
+      "common_name": "Platy",
+      "scientific_name": "Xiphophorus maculatus",
+      "taxonomy_note": null,
+      "adult_standard_length_mm": 50,
+      "environment": {
+        "temperature_c": {
+          "min": 20,
+          "optimal_min": null,
+          "optimal_max": null,
+          "max": 26,
+          "range_type": "published_general_maintenance_range_not_lethal_limit",
+          "source_ids": [
+            "SF-PLATY"
+          ],
+          "status": "source_reviewed"
+        },
+        "ph": {
+          "min": 7.0,
+          "optimal_min": null,
+          "optimal_max": null,
+          "max": 8.2,
+          "range_type": "published_general_maintenance_range_not_lethal_limit",
+          "source_ids": [
+            "SF-PLATY"
+          ],
+          "status": "source_reviewed"
+        },
+        "hardness_dgh": {
+          "min": 10,
+          "max": 30,
+          "status": "source_reviewed",
+          "source_ids": [
+            "SF-PLATY"
+          ]
+        },
+        "tds_ppm": {
+          "min": null,
+          "optimal_min": null,
+          "optimal_max": null,
+          "max": null,
+          "status": "not_reported_by_selected_species_source_needs_expert_or_empirical_validation",
+          "note": "Do not infer TDS directly from dGH; they measure different properties."
+        },
+        "temperature": {
+          "min": 20,
+          "optimal_min": 22,
+          "optimal_max": 25,
+          "max": 26
+        },
+        "min_volume_liters": 3.0,
+        "tds": {
+          "min": 150,
+          "optimal_min": 200,
+          "optimal_max": 350,
+          "max": 400
+        }
+      },
+      "aquarium_requirements": {
+        "recommended_minimum_base_dimensions_cm": {
+          "length": 60,
+          "width": 30,
+          "status": "source_reviewed",
+          "source_ids": [
+            "SF-PLATY"
+          ]
+        },
+        "reference_example_volume_liters": 54,
+        "volume_note": "Reference profile's example volume where supplied; not a per-fish allowance and not a universal carrying-capacity formula.",
+        "minimum_height_cm": null,
+        "min_volume_liters": 3.0,
+        "min_volume_field_note": "Deprecated: use minimum base dimensions, group needs, adult size, filtration and aquascape rather than a per-fish litre value."
+      },
+      "behavior": {
+        "temperament": "peaceful",
+        "social_requirement": "not_specified_by_profile",
+        "minimum_group_size": null,
+        "aggression_score_1_to_10": null,
+        "fin_nipping": false,
+        "territorial": false,
+        "behavior_status": "qualitative_notes_source_reviewed_numeric_scores_and_unreported_traits_not_inferred",
+        "source_ids": [
+          "SF-PLATY"
+        ],
+        "aggression": 1
+      },
+      "spatial": {
+        "zones": [
+          "middle",
+          "top"
+        ],
+        "status": "project_initial_heuristic_requires_expert_review",
+        "note": "Zones are approximate ecological labels, not strict constraints; fish may use multiple levels."
+      },
+      "breeding": {
+        "reproductive_mode": "livebearer",
+        "target_male_to_female_ratio": {
+          "male": 1,
+          "female": 3
+        },
+        "ratio_status": "project_heuristic_pending_expert_validation",
+        "notes": "Do not treat a default sex ratio as a universally validated biological requirement. Ratios may depend on breeding objective, age, strain and setup.",
+        "type": "livebearer",
+        "male_female_ratio": 2.0
+      },
+      "compatibility_rules": [],
+      "validation": {
+        "record_status": "source_reviewed_partial_not_expert_validated",
+        "verified_fields": [
+          "temperature_c_maintenance_range",
+          "ph_maintenance_range",
+          "hardness_dgh",
+          "adult_standard_length_mm",
+          "recommended_minimum_base_dimensions_cm"
+        ],
+        "requires_followup": [
+          "tds_ppm",
+          "optimal_temperature_subrange",
+          "optimal_ph_subrange",
+          "numeric_aggression_score",
+          "fin_nipping_if_unreported",
+          "territoriality_if_unreported",
+          "breeding_ratio",
+          "species_pair_compatibility",
+          "stocking_density_and_bioload"
+        ],
+        "source_ids": [
+          "SF-PLATY"
+        ]
+      },
+      "notes": [
+        "Profile says it should be kept in moderately hard or harder water and will not thrive in soft, acidic water."
+      ],
+      "temperament": "peaceful",
+      "compatibility": {}
+    },
+    {
+      "species_id": "poecilia_sphenops",
+      "common_name": "Molly",
+      "scientific_name": "Poecilia sphenops",
+      "taxonomy_note": null,
+      "adult_standard_length_mm": 80,
+      "environment": {
+        "temperature_c": {
+          "min": 21,
+          "optimal_min": null,
+          "optimal_max": null,
+          "max": 28,
+          "range_type": "published_general_maintenance_range_not_lethal_limit",
+          "source_ids": [
+            "SF-MOLLY"
+          ],
+          "status": "source_reviewed"
+        },
+        "ph": {
+          "min": 7.0,
+          "optimal_min": null,
+          "optimal_max": null,
+          "max": 8.5,
+          "range_type": "published_general_maintenance_range_not_lethal_limit",
+          "source_ids": [
+            "SF-MOLLY"
+          ],
+          "status": "source_reviewed"
+        },
+        "hardness_dgh": {
+          "min": 15,
+          "max": 30,
+          "status": "source_reviewed",
+          "source_ids": [
+            "SF-MOLLY"
+          ]
+        },
+        "tds_ppm": {
+          "min": null,
+          "optimal_min": null,
+          "optimal_max": null,
+          "max": null,
+          "status": "not_reported_by_selected_species_source_needs_expert_or_empirical_validation",
+          "note": "Do not infer TDS directly from dGH; they measure different properties."
+        },
+        "temperature": {
+          "min": 21,
+          "optimal_min": 25,
+          "optimal_max": 28,
+          "max": 28
+        },
+        "min_volume_liters": 6.0,
+        "tds": {
+          "min": 200,
+          "optimal_min": 300,
+          "optimal_max": 450,
+          "max": 500
+        }
+      },
+      "aquarium_requirements": {
+        "recommended_minimum_base_dimensions_cm": {
+          "length": 90,
+          "width": 30,
+          "status": "source_reviewed",
+          "source_ids": [
+            "SF-MOLLY"
+          ]
+        },
+        "reference_example_volume_liters": 81,
+        "volume_note": "Reference profile's example volume where supplied; not a per-fish allowance and not a universal carrying-capacity formula.",
+        "minimum_height_cm": null,
+        "min_volume_liters": 6.0,
+        "min_volume_field_note": "Deprecated: use minimum base dimensions, group needs, adult size, filtration and aquascape rather than a per-fish litre value."
+      },
+      "behavior": {
+        "temperament": "peaceful",
+        "social_requirement": "not_specified_by_profile",
+        "minimum_group_size": null,
+        "aggression_score_1_to_10": null,
+        "fin_nipping": false,
+        "territorial": false,
+        "behavior_status": "qualitative_notes_source_reviewed_numeric_scores_and_unreported_traits_not_inferred",
+        "source_ids": [
+          "SF-MOLLY"
+        ],
+        "aggression": 2
+      },
+      "spatial": {
+        "zones": [
+          "top",
+          "middle",
+          "bottom"
+        ],
+        "status": "project_initial_heuristic_requires_expert_review",
+        "note": "Zones are approximate ecological labels, not strict constraints; fish may use multiple levels."
+      },
+      "breeding": {
+        "reproductive_mode": "livebearer",
+        "target_male_to_female_ratio": {
+          "male": 1,
+          "female": 3
+        },
+        "ratio_status": "project_heuristic_pending_expert_validation",
+        "notes": "Do not treat a default sex ratio as a universally validated biological requirement. Ratios may depend on breeding objective, age, strain and setup.",
+        "type": "livebearer",
+        "male_female_ratio": 3.0
+      },
+      "compatibility_rules": [],
+      "validation": {
+        "record_status": "source_reviewed_partial_not_expert_validated",
+        "verified_fields": [
+          "temperature_c_maintenance_range",
+          "ph_maintenance_range",
+          "hardness_dgh",
+          "adult_standard_length_mm",
+          "recommended_minimum_base_dimensions_cm"
+        ],
+        "requires_followup": [
+          "tds_ppm",
+          "optimal_temperature_subrange",
+          "optimal_ph_subrange",
+          "numeric_aggression_score",
+          "fin_nipping_if_unreported",
+          "territoriality_if_unreported",
+          "breeding_ratio",
+          "species_pair_compatibility",
+          "stocking_density_and_bioload"
+        ],
+        "source_ids": [
+          "SF-MOLLY"
+        ]
+      },
+      "notes": [
+        "Profile emphasizes moderately hard or harder water and basic pH; its note says hard minerals matter and salt is not necessary."
+      ],
+      "temperament": "peaceful",
+      "compatibility": {}
+    },
+    {
+      "species_id": "pterophyllum_scalare",
+      "common_name": "Angelfish",
+      "scientific_name": "Pterophyllum \"scalare\"",
+      "taxonomy_note": "The reviewed reference labels the species Pterophyllum \"scalare\" and reports no authority; verify exact taxonomy/stock identity.",
+      "adult_standard_length_mm": 150,
+      "environment": {
+        "temperature_c": {
+          "min": 24,
+          "optimal_min": null,
+          "optimal_max": null,
+          "max": 30,
+          "range_type": "published_general_maintenance_range_not_lethal_limit",
+          "source_ids": [
+            "SF-ANGEL"
+          ],
+          "status": "source_reviewed"
+        },
+        "ph": {
+          "min": 6.0,
+          "optimal_min": null,
+          "optimal_max": null,
+          "max": 7.4,
+          "range_type": "published_general_maintenance_range_not_lethal_limit",
+          "source_ids": [
+            "SF-ANGEL"
+          ],
+          "status": "source_reviewed"
+        },
+        "hardness_dgh": {
+          "min": 0,
+          "max": 15,
+          "status": "source_reviewed",
+          "source_ids": [
+            "SF-ANGEL"
+          ]
+        },
+        "tds_ppm": {
+          "min": null,
+          "optimal_min": null,
+          "optimal_max": null,
+          "max": null,
+          "status": "not_reported_by_selected_species_source_needs_expert_or_empirical_validation",
+          "note": "Do not infer TDS directly from dGH; they measure different properties."
+        },
+        "temperature": {
+          "min": 24,
+          "optimal_min": 26,
+          "optimal_max": 28,
+          "max": 30
+        },
+        "min_volume_liters": 15.0,
+        "tds": {
+          "min": 50,
+          "optimal_min": 100,
+          "optimal_max": 250,
+          "max": 300
+        }
+      },
+      "aquarium_requirements": {
+        "recommended_minimum_base_dimensions_cm": {
+          "length": 100,
+          "width": 40,
+          "status": "source_reviewed",
+          "source_ids": [
+            "SF-ANGEL"
+          ]
+        },
+        "reference_example_volume_liters": 200,
+        "volume_note": "Reference profile's example volume where supplied; not a per-fish allowance and not a universal carrying-capacity formula.",
+        "minimum_height_cm": 50,
+        "min_volume_liters": 15.0,
+        "min_volume_field_note": "Deprecated: use minimum base dimensions, group needs, adult size, filtration and aquascape rather than a per-fish litre value."
+      },
+      "behavior": {
+        "temperament": "generally_peaceful_but_may_eat_small_fish",
+        "social_requirement": "group_or_pairing_context_dependent",
+        "minimum_group_size": null,
+        "aggression_score_1_to_10": null,
+        "fin_nipping": false,
+        "territorial": true,
+        "behavior_status": "qualitative_notes_source_reviewed_numeric_scores_and_unreported_traits_not_inferred",
+        "source_ids": [
+          "SF-ANGEL"
+        ],
+        "aggression": 5
+      },
+      "spatial": {
+        "zones": [
+          "middle"
+        ],
+        "status": "project_initial_heuristic_requires_expert_review",
+        "note": "Zones are approximate ecological labels, not strict constraints; fish may use multiple levels."
+      },
+      "breeding": {
+        "reproductive_mode": "egg_layer",
+        "target_male_to_female_ratio": null,
+        "ratio_status": "not_set_species_specific_breeding_source_required",
+        "notes": "Do not treat a default sex ratio as a universally validated biological requirement. Ratios may depend on breeding objective, age, strain and setup.",
+        "type": "egglayer",
+        "male_female_ratio": 1.0
+      },
+      "compatibility_rules": [],
+      "validation": {
+        "record_status": "source_reviewed_partial_not_expert_validated",
+        "verified_fields": [
+          "temperature_c_maintenance_range",
+          "ph_maintenance_range",
+          "hardness_dgh",
+          "adult_standard_length_mm",
+          "recommended_minimum_base_dimensions_cm"
+        ],
+        "requires_followup": [
+          "tds_ppm",
+          "optimal_temperature_subrange",
+          "optimal_ph_subrange",
+          "numeric_aggression_score",
+          "fin_nipping_if_unreported",
+          "territoriality_if_unreported",
+          "breeding_ratio",
+          "species_pair_compatibility",
+          "stocking_density_and_bioload"
+        ],
+        "source_ids": [
+          "SF-ANGEL"
+        ]
+      },
+      "notes": [
+        "Adults can exceed 20 cm in height; source recommends a tank at least 50 cm high.",
+        "The profile warns that small fish such as tetras may be eaten, so compatibility should depend on prey size and fish maturity."
+      ],
+      "temperament": "semi-aggressive",
+      "compatibility": {
+        "paracheirodon_innesi": "high_risk",
+        "poecilia_reticulata": "moderate_risk"
+      }
+    },
+    {
+      "species_id": "danio_rerio",
+      "common_name": "Zebra Danio",
+      "scientific_name": "Danio rerio",
+      "taxonomy_note": null,
+      "adult_standard_length_mm": 50,
+      "environment": {
+        "temperature_c": {
+          "min": 18,
+          "optimal_min": null,
+          "optimal_max": null,
+          "max": 25,
+          "range_type": "published_general_maintenance_range_not_lethal_limit",
+          "source_ids": [
+            "SF-DANIO"
+          ],
+          "status": "source_reviewed"
+        },
+        "ph": {
+          "min": 6.0,
+          "optimal_min": null,
+          "optimal_max": null,
+          "max": 8.0,
+          "range_type": "published_general_maintenance_range_not_lethal_limit",
+          "source_ids": [
+            "SF-DANIO"
+          ],
+          "status": "source_reviewed"
+        },
+        "hardness_dgh": {
+          "min": 5,
+          "max": 20,
+          "status": "source_reviewed",
+          "source_ids": [
+            "SF-DANIO"
+          ]
+        },
+        "tds_ppm": {
+          "min": null,
+          "optimal_min": null,
+          "optimal_max": null,
+          "max": null,
+          "status": "not_reported_by_selected_species_source_needs_expert_or_empirical_validation",
+          "note": "Do not infer TDS directly from dGH; they measure different properties."
+        },
+        "temperature": {
+          "min": 18,
+          "optimal_min": 20,
+          "optimal_max": 24,
+          "max": 25
+        },
+        "min_volume_liters": 2.5,
+        "tds": {
+          "min": 50,
+          "optimal_min": 100,
+          "optimal_max": 200,
+          "max": 250
+        }
+      },
+      "aquarium_requirements": {
+        "recommended_minimum_base_dimensions_cm": {
+          "length": 90,
+          "width": 30,
+          "status": "source_reviewed",
+          "source_ids": [
+            "SF-DANIO"
+          ]
+        },
+        "reference_example_volume_liters": 81,
+        "volume_note": "Reference profile's example volume where supplied; not a per-fish allowance and not a universal carrying-capacity formula.",
+        "minimum_height_cm": null,
+        "min_volume_liters": 2.5,
+        "min_volume_field_note": "Deprecated: use minimum base dimensions, group needs, adult size, filtration and aquascape rather than a per-fish litre value."
+      },
+      "behavior": {
+        "temperament": "peaceful",
+        "social_requirement": "group_needed",
+        "minimum_group_size": {
+          "min": 8,
+          "recommended": 10
+        },
+        "aggression_score_1_to_10": null,
+        "fin_nipping": true,
+        "territorial": false,
+        "behavior_status": "qualitative_notes_source_reviewed_numeric_scores_and_unreported_traits_not_inferred",
+        "source_ids": [
+          "SF-DANIO"
+        ],
+        "aggression": 1
+      },
+      "spatial": {
+        "zones": [
+          "top",
+          "middle"
+        ],
+        "status": "project_initial_heuristic_requires_expert_review",
+        "note": "Zones are approximate ecological labels, not strict constraints; fish may use multiple levels."
+      },
+      "breeding": {
+        "reproductive_mode": "egg_layer",
+        "target_male_to_female_ratio": null,
+        "ratio_status": "not_set_species_specific_breeding_source_required",
+        "notes": "Do not treat a default sex ratio as a universally validated biological requirement. Ratios may depend on breeding objective, age, strain and setup.",
+        "type": "egglayer",
+        "male_female_ratio": 1.0
+      },
+      "compatibility_rules": [],
+      "validation": {
+        "record_status": "source_reviewed_partial_not_expert_validated",
+        "verified_fields": [
+          "temperature_c_maintenance_range",
+          "ph_maintenance_range",
+          "hardness_dgh",
+          "adult_standard_length_mm",
+          "recommended_minimum_base_dimensions_cm"
+        ],
+        "requires_followup": [
+          "tds_ppm",
+          "optimal_temperature_subrange",
+          "optimal_ph_subrange",
+          "numeric_aggression_score",
+          "fin_nipping_if_unreported",
+          "territoriality_if_unreported",
+          "breeding_ratio",
+          "species_pair_compatibility",
+          "stocking_density_and_bioload"
+        ],
+        "source_ids": [
+          "SF-DANIO"
+        ]
+      },
+      "notes": [
+        "Profile recommends a group of at least 8\u201310 and notes compatibility with many community fishes; consider activity level and tank size."
+      ],
+      "temperament": "peaceful",
+      "compatibility": {
+        "betta_splendens": "moderate_risk"
+      }
+    }
+  ],
+  "candidate_compatibility_rules": [
+    {
+      "species_a": "betta_splendens",
+      "species_b": "poecilia_reticulata",
+      "risk": "caution_high_provisional",
+      "decision_mode": "warning_or_conservative_reject_policy",
+      "evidence_basis": [
+        "SF-BETTA",
+        "SF-GUPPY"
+      ],
+      "rationale": "Betta profile advises tankmates be chosen carefully; guppy profile warns against known fin-nippers. This combination needs strain/finnage/individual review; sources do not prove every pairing is incompatible.",
+      "validation_status": "expert_review_required"
+    },
+    {
+      "species_a": "pterophyllum_scalare",
+      "species_b": "paracheirodon_innesi",
+      "risk": "size_dependent_predation_caution",
+      "decision_mode": "conditional_warning",
+      "evidence_basis": [
+        "SF-ANGEL",
+        "SF-NEON"
+      ],
+      "rationale": "Angelfish may eat small fish, including tetras; evaluate adult angelfish size relative to neon tetras. Do not treat this as a universal absolute rule without a defined conservative policy.",
+      "validation_status": "expert_review_required"
+    },
+    {
+      "species_a": "pterophyllum_scalare",
+      "species_b": "poecilia_reticulata",
+      "risk": "size_and_finnage_dependent_caution",
+      "decision_mode": "conditional_warning",
+      "evidence_basis": [
+        "SF-ANGEL",
+        "SF-GUPPY"
+      ],
+      "rationale": "Large angelfish may eat small tankmates; guppy finnage/size may affect suitability. Pair needs specific review.",
+      "validation_status": "expert_review_required"
+    }
+  ],
+  "implementation_notes": [
+    "Do not let an empty compatibility_rules array pass a pair automatically; treat it as unknown and apply a clear unknown-policy.",
+    "Update the application to handle null tds_ppm and null optimal values. Do not run numeric fuzzy membership calculations with null values.",
+    "For initial FIS testing, either omit TDS as an input pending validation or use an explicitly labelled engineering placeholder and exclude those results from biological-validity claims.",
+    "Use expert-reviewed labels for the final benchmark dataset, and freeze labels before evaluating code.",
+    "Each source URL was checked on the dataset creation date; re-check the links and source contents before final dissertation submission."
+  ]
+}

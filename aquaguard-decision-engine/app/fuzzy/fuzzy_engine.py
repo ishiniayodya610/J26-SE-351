@@ -29,7 +29,12 @@ def calculate_esi(telemetry: Any, fish_list: List[Any], species_db: Dict[str, An
     for fish in fish_list:
         species_id = _get(fish, "species_id")
         if species_id in species_db:
-            base_aggression = species_db[species_id].get("behavior", {}).get("aggression", 1)
+            behavior = species_db[species_id].get("behavior", {})
+            base_aggression = behavior.get("aggression")
+            if base_aggression is None:
+                base_aggression = behavior.get("aggression_score_1_to_10")
+            if base_aggression is None:
+                base_aggression = 1
             # Increase aggression score slightly if vision API detects stress/lethargy
             stress_modifier = _get(fish, "lethargy_index_pct", 0) / 20.0
             calculated = min(10.0, float(base_aggression + stress_modifier))

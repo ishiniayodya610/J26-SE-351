@@ -23,7 +23,14 @@ def calculate_breeding_suitability(candidate_population: List[Any], species_db: 
         if species_id in species_db:
             species_info = species_db[species_id]
             breeding_info = _get(species_info, "breeding", {})
-            ideal_ratio = _get(breeding_info, "male_female_ratio", 0)
+            ideal_ratio = _get(breeding_info, "male_female_ratio", None)
+            if ideal_ratio is None:
+                target_ratio = _get(breeding_info, "target_male_to_female_ratio")
+                if isinstance(target_ratio, dict) and target_ratio.get("male", 0) > 0:
+                    ideal_ratio = float(target_ratio.get("female", 0) / target_ratio["male"])
+                else:
+                    ideal_ratio = 0.0
+
             males = _get(fish, "male", 0)
             females = _get(fish, "female", 0)
 
@@ -77,7 +84,7 @@ def evaluate_fitness(
         f_species_id = _get(f, "species_id")
         f_species = species_db.get(f_species_id, {}) if isinstance(species_db, dict) else {}
         env = _get(f_species, "environment", {})
-        min_vol = _get(env, "min_volume_liters", 3.0)
+        min_vol = _get(env, "min_volume_liters") or _get(_get(f_species, "aquarium_requirements", {}), "min_volume_liters", 3.0)
         fish_count = _get(f, "male", 0) + _get(f, "female", 0)
         required_volume += fish_count * min_vol
 
