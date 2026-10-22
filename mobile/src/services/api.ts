@@ -202,6 +202,12 @@ export const api = {
     return res.json();
   },
 
+  async getActiveProfile(): Promise<FishProfile> {
+    const res = await fetch(`${API_BASE_URL}/api/fish/active`);
+    if (!res.ok) throw new Error('Failed to fetch active profile');
+    return res.json();
+  },
+
   async getDiseaseRisk(): Promise<DiseaseRiskData> {
     const res = await fetch(`${API_BASE_URL}/api/comp3/risk-assessment`);
     if (!res.ok) throw new Error('Failed to fetch disease risk');
