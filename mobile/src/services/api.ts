@@ -17,7 +17,7 @@ export function setCustomApiHost(host: string) {
 }
 
 // ---------------------------------------------------------------------------
-// Prediction API Interfaces (Random Forest ML Models)
+// Prediction API Interfaces (Hybrid RF + Behavioural Rules)
 // ---------------------------------------------------------------------------
 export interface AmmoniaPredictionInput {
   temperature: number;
@@ -26,6 +26,14 @@ export interface AmmoniaPredictionInput {
   turbidity: number;
   nitrate: number;
   ammonia?: number;
+  // Optional behavioural & population features (Layer 2 - Rule-Based)
+  tds?: number;
+  swimming_speed?: number;
+  position?: string;
+  posture?: string;
+  species?: string;
+  fish_count?: number;
+  auto_enrich?: boolean;
 }
 
 export interface WhiteSpotPredictionInput {
@@ -35,12 +43,24 @@ export interface WhiteSpotPredictionInput {
   turbidity: number;
   ammonia?: number;
   nitrate?: number;
+  // Optional behavioural & population features (Layer 2 - Rule-Based)
+  tds?: number;
+  swimming_speed?: number;
+  position?: string;
+  posture?: string;
+  species?: string;
+  fish_count?: number;
+  auto_enrich?: boolean;
 }
 
 export interface PredictionResponse {
   risk_probability: number;
   prediction: 'high_risk' | 'low_risk' | string;
   model: string;
+  base_rf_score?: number;
+  behaviour_adjustment?: number;
+  active_features?: string[];
+  adjustment_details?: string[];
 }
 
 // ---------------------------------------------------------------------------
@@ -48,8 +68,8 @@ export interface PredictionResponse {
 // ---------------------------------------------------------------------------
 
 /**
- * Calls backend POST /predict/ammonia with water-quality parameters.
- * Uses the Random Forest ammonia spike model.
+ * Calls backend POST /predict/ammonia with water-quality + behavioural parameters.
+ * Uses the hybrid Random Forest + Rule-Based Behavioural Adjustment model.
  */
 export async function predictAmmonia(data: AmmoniaPredictionInput): Promise<PredictionResponse> {
   try {
@@ -74,8 +94,8 @@ export async function predictAmmonia(data: AmmoniaPredictionInput): Promise<Pred
 }
 
 /**
- * Calls backend POST /predict/whitespot with water-quality parameters.
- * Uses the Random Forest white spot disease risk model.
+ * Calls backend POST /predict/whitespot with water-quality + behavioural parameters.
+ * Uses the hybrid Random Forest + Rule-Based Behavioural Adjustment model.
  */
 export async function predictWhiteSpot(data: WhiteSpotPredictionInput): Promise<PredictionResponse> {
   try {

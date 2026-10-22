@@ -3,6 +3,7 @@ import sys
 import time
 import base64
 import random
+import logging
 import tempfile
 import cv2
 import numpy as np
@@ -14,6 +15,7 @@ from typing import Optional, Dict, Any
 from backend.app.routers.fish_profile import SPECIES_DATABASE, active_profile, set_active_profile
 
 router = APIRouter(prefix="/api/comp2", tags=["Comp 2: Fish ID & Behavior"])
+logger = logging.getLogger("aquaguard.comp2_vision")
 
 # Add species_aware_fish_tracking directory to sys.path
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
@@ -33,6 +35,14 @@ try:
     print("✅ [Component 2] AquaGuard YOLO11n Video Analyzer initialized successfully.")
 except Exception as e:
     print(f"⚠️ [Component 2] Failed to initialize AquaGuardVideoAnalyzer: {e}")
+
+# ---------------------------------------------------------------------------
+# Global Latest CV Behavioural Result (Persisted for Prediction Pipeline)
+# Updated every time a video is analyzed via /analyze-video endpoint.
+# The prediction router reads this to enrich ML predictions with real
+# computer vision behavioural features (swimming speed, posture, position).
+# ---------------------------------------------------------------------------
+latest_cv_behavior: Dict[str, Any] = {}
 
 class BehaviorMetrics(BaseModel):
     species: str
@@ -447,6 +457,12 @@ async def analyze_captured_video(file: UploadFile = File(...)):
         ansi_log = format_vision_terminal_log(result)
         sys.stdout.write(ansi_log)
         sys.stdout.flush()
+
+        # Persist latest CV behavioural features for the prediction pipeline
+        global latest_cv_behavior
+        latest_cv_behavior.clear()
+        latest_cv_behavior.update(result)
+        logger.info("[Comp2] Updated latest_cv_behavior for prediction pipeline")
 
         # Automatically update active profile in backend
         if result["species_id"] in SPECIES_DATABASE:

@@ -153,7 +153,7 @@ export default function DiseasePredictionScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Machine Learning (Random Forest) live prediction states
+  // Machine Learning (Hybrid RF + Behavioural Rules) live prediction states
   const [ammoniaPrediction, setAmmoniaPrediction] = useState<PredictionResponse | null>(null);
   const [whitespotPrediction, setWhitespotPrediction] = useState<PredictionResponse | null>(null);
   const [predictLoading, setPredictLoading] = useState(false);
@@ -164,7 +164,7 @@ export default function DiseasePredictionScreen() {
   const whitespotHistory = useRef<number[]>([]);
   const [chartKey, setChartKey] = useState(0); // force re-render
 
-  // Current sensor values used for prediction (pulled from telemetry)
+  // Current sensor values used for prediction (pulled from real ESP32 telemetry)
   const sensorValues = {
     temperature: telemetry?.telemetry?.temperature_c ?? 27.5,
     ph: telemetry?.telemetry?.ph ?? 7.8,
@@ -179,7 +179,9 @@ export default function DiseasePredictionScreen() {
     setPredictLoading(true);
     setPredictError(null);
     try {
-      // Call both backend Random Forest endpoints simultaneously
+      // Call both backend hybrid prediction endpoints simultaneously
+      // Behavioural features (swimming_speed, position, posture, fish_count)
+      // are auto-enriched by the backend from the latest CV analysis.
       const [ammoniaRes, whitespotRes] = await Promise.all([
         predictAmmonia({
           temperature: sensorValues.temperature,
@@ -187,12 +189,18 @@ export default function DiseasePredictionScreen() {
           ph: sensorValues.ph,
           turbidity: sensorValues.turbidity,
           nitrate: sensorValues.nitrate,
+          tds: sensorValues.tds,
+          species: activeSpecies?.species_id,
+          auto_enrich: true,
         }),
         predictWhiteSpot({
           temperature: sensorValues.temperature,
           dissolved_oxygen: sensorValues.dissolved_oxygen,
           ph: sensorValues.ph,
           turbidity: sensorValues.turbidity,
+          tds: sensorValues.tds,
+          species: activeSpecies?.species_id,
+          auto_enrich: true,
         }),
       ]);
 
@@ -210,12 +218,12 @@ export default function DiseasePredictionScreen() {
       ];
       setChartKey(k => k + 1);
     } catch (err: any) {
-      console.error('Random Forest Prediction error:', err);
+      console.error('Hybrid Prediction error:', err);
       setPredictError(err.message || 'Failed to connect to prediction endpoints');
     } finally {
       setPredictLoading(false);
     }
-  }, [sensorValues.temperature, sensorValues.ph]);
+  }, [sensorValues.temperature, sensorValues.ph, sensorValues.tds, activeSpecies?.species_id]);
 
   const loadData = useCallback(async () => {
     try {
@@ -315,11 +323,11 @@ export default function DiseasePredictionScreen() {
         />
       </View>
 
-      {/* ── ML Prediction Endpoints Section (Random Forest Models) ── */}
+      {/* ── ML Prediction Endpoints Section (Hybrid RF + Behavioural Rules) ── */}
       <View style={styles.sectionHeaderRow}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
           <Cpu size={18} color="#00E5FF" />
-          <Text style={styles.sectionTitle}>Random Forest ML Predictions</Text>
+          <Text style={styles.sectionTitle}>Hybrid ML Predictions</Text>
         </View>
         <TouchableOpacity 
           style={styles.refreshBtn} 
@@ -343,7 +351,7 @@ export default function DiseasePredictionScreen() {
       )}
 
       <View style={styles.riskGrid}>
-        {/* Ammonia ML Model Card */}
+        {/* Ammonia Hybrid Model Card */}
         <View style={[
           styles.riskCard, 
           ammoniaPrediction?.prediction === 'high_risk' ? styles.cardAlert : styles.cardOk
@@ -364,15 +372,33 @@ export default function DiseasePredictionScreen() {
             {ammoniaPrediction ? `${(ammoniaPrediction.risk_probability * 100).toFixed(0)}%` : '--'}
           </Text>
           <Text style={styles.riskName}>Ammonia Spike</Text>
-          <Text style={styles.modelTag}>Model: {ammoniaPrediction?.model || 'random_forest'}</Text>
+          <Text style={styles.modelTag}>
+            {ammoniaPrediction?.model === 'random_forest+rules'
+              ? '🧠 RF + Behavioural Rules'
+              : `Model: ${ammoniaPrediction?.model || 'random_forest'}`}
+          </Text>
+          {ammoniaPrediction?.base_rf_score !== undefined && (
+            <Text style={styles.riskBreakdown}>
+              RF Base: {(ammoniaPrediction.base_rf_score * 100).toFixed(0)}%
+              {ammoniaPrediction.behaviour_adjustment !== 0 &&
+                ` | Rules: ${ammoniaPrediction.behaviour_adjustment! > 0 ? '+' : ''}${(ammoniaPrediction.behaviour_adjustment! * 100).toFixed(0)}%`}
+            </Text>
+          )}
+          {ammoniaPrediction?.active_features && ammoniaPrediction.active_features.length > 0 && (
+            <Text style={styles.activeFeatures}>
+              Active: {ammoniaPrediction.active_features.join(', ')}
+            </Text>
+          )}
           <Text style={styles.riskDetail}>
             {ammoniaPrediction
-              ? `Based on current water params (T: ${sensorValues.temperature.toFixed(1)}°C, pH: ${sensorValues.ph.toFixed(1)})`
+              ? ammoniaPrediction.adjustment_details && ammoniaPrediction.adjustment_details.length > 0
+                ? ammoniaPrediction.adjustment_details[0]
+                : `Water params: T=${sensorValues.temperature.toFixed(1)}°C, pH=${sensorValues.ph.toFixed(1)}`
               : 'Waiting for prediction...'}
           </Text>
         </View>
 
-        {/* White Spot ML Model Card */}
+        {/* White Spot Hybrid Model Card */}
         <View style={[
           styles.riskCard, 
           whitespotPrediction?.prediction === 'high_risk' ? styles.cardAlert : styles.cardOk
@@ -393,10 +419,28 @@ export default function DiseasePredictionScreen() {
             {whitespotPrediction ? `${(whitespotPrediction.risk_probability * 100).toFixed(0)}%` : '--'}
           </Text>
           <Text style={styles.riskName}>White Spot (Ich)</Text>
-          <Text style={styles.modelTag}>Model: {whitespotPrediction?.model || 'random_forest'}</Text>
+          <Text style={styles.modelTag}>
+            {whitespotPrediction?.model === 'random_forest+rules'
+              ? '🧠 RF + Behavioural Rules'
+              : `Model: ${whitespotPrediction?.model || 'random_forest'}`}
+          </Text>
+          {whitespotPrediction?.base_rf_score !== undefined && (
+            <Text style={styles.riskBreakdown}>
+              RF Base: {(whitespotPrediction.base_rf_score * 100).toFixed(0)}%
+              {whitespotPrediction.behaviour_adjustment !== 0 &&
+                ` | Rules: ${whitespotPrediction.behaviour_adjustment! > 0 ? '+' : ''}${(whitespotPrediction.behaviour_adjustment! * 100).toFixed(0)}%`}
+            </Text>
+          )}
+          {whitespotPrediction?.active_features && whitespotPrediction.active_features.length > 0 && (
+            <Text style={styles.activeFeatures}>
+              Active: {whitespotPrediction.active_features.join(', ')}
+            </Text>
+          )}
           <Text style={styles.riskDetail}>
             {whitespotPrediction
-              ? `Thermal sensitivity analysis (DO: ${sensorValues.dissolved_oxygen.toFixed(1)} mg/L)`
+              ? whitespotPrediction.adjustment_details && whitespotPrediction.adjustment_details.length > 0
+                ? whitespotPrediction.adjustment_details[0]
+                : `Water params: T=${sensorValues.temperature.toFixed(1)}°C, DO=${sensorValues.dissolved_oxygen.toFixed(1)} mg/L`
               : 'Waiting for prediction...'}
           </Text>
         </View>
@@ -613,6 +657,8 @@ const styles = StyleSheet.create({
   riskVal: { color: '#F8FAFC', fontSize: 26, fontWeight: 'bold' },
   riskName: { color: '#E2E8F0', fontSize: 13, fontWeight: '600', marginTop: 4 },
   modelTag: { color: '#38BDF8', fontSize: 10, fontWeight: '600', marginTop: 4 },
+  riskBreakdown: { color: '#A78BFA', fontSize: 9, fontWeight: '600', marginTop: 3 },
+  activeFeatures: { color: '#64748B', fontSize: 8, fontWeight: '500', marginTop: 2, fontStyle: 'italic' },
   riskDetail: { color: '#64748B', fontSize: 10, marginTop: 4, lineHeight: 14 },
   textOk: { color: '#00E676' },
   textAlert: { color: '#FF1744' },
