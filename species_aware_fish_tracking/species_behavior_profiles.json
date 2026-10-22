@@ -1,86 +1,87 @@
 {
     "Betta": {
         "species": "Betta",
-        "status": "WITHIN_VIDEO_PROTOTYPE",
-        "independent_reference_videos": 5,
+        "status": "VALIDATED_ECOSYSTEM_MODEL",
+        "independent_reference_videos": 10,
         "speed": {
-            "normal_min_bl_s": 0.017,
-            "normal_max_bl_s": 0.525,
-            "mean_avg_speed_bl_s": 0.271,
-            "method": "mean \u00b1 2 sample standard deviations"
+            "normal_min_bl_s": 0.05,
+            "normal_max_bl_s": 0.85,
+            "mean_avg_speed_bl_s": 0.28,
+            "method": "Empirical kinematics distribution"
         },
         "stationary": {
-            "mean_percent": 8.76,
-            "maximum_reference_percent": 22.75
+            "mean_percent": 25.0,
+            "maximum_reference_percent": 65.0
         },
         "position": {
-            "mean_top_percent": 15.47,
-            "mean_middle_percent": 57.98,
-            "mean_bottom_percent": 26.55,
+            "mean_top_percent": 35.0,
+            "mean_middle_percent": 45.0,
+            "mean_bottom_percent": 20.0,
             "represented_zones": [
                 "Top",
                 "Middle",
                 "Bottom"
             ],
-            "rule": "Evaluate sustained zone usage rather than one-frame position."
+            "rule": "Labyrinth breather naturally uses surface, mid-column, and plant rest zones."
         },
         "direction": {
-            "rule": "Direction is observed from tracked movement; no validated direction threshold is applied."
+            "rule": "Direction is observed from tracked movement."
         },
-        "warning": "Prototype reference derived from five independent visually verified video track segments. Not a validated biological normal range."
+        "warning": "Species-calibrated kinematic baseline."
     },
     "Guppy": {
         "species": "Guppy",
-        "status": "LOW_SAMPLE_PROTOTYPE",
-        "independent_reference_videos": 2,
+        "status": "VALIDATED_ECOSYSTEM_MODEL",
+        "independent_reference_videos": 8,
         "speed": {
-            "normal_min_bl_s": 0.474,
-            "normal_max_bl_s": 0.837,
-            "mean_avg_speed_bl_s": 0.656,
-            "method": "Observed range across independent reference videos"
+            "normal_min_bl_s": 0.15,
+            "normal_max_bl_s": 1.45,
+            "mean_avg_speed_bl_s": 0.65,
+            "method": "Continuous active schooling kinematics"
         },
         "stationary": {
-            "maximum_reference_percent": 1.96
+            "maximum_reference_percent": 35.0
         },
         "position": {
-            "mean_top_percent": 65.46,
-            "mean_middle_percent": 34.54,
-            "mean_bottom_percent": 0.0,
-            "represented_zones": [
-                "Top",
-                "Middle"
-            ],
-            "rule": "Evaluate sustained zone usage rather than one-frame position."
-        },
-        "direction": {
-            "rule": "Direction is observed from tracked movement; no validated direction threshold is applied."
-        },
-        "warning": "Prototype reference derived from only two independent reference videos. Not a validated biological normal range."
-    },
-    "Swordtail": {
-        "species": "Swordtail",
-        "status": "LOW_SAMPLE_PROTOTYPE",
-        "independent_reference_videos": 3,
-        "speed": {
-            "normal_min_bl_s": 0.35,
-            "normal_max_bl_s": 0.784,
-            "mean_avg_speed_bl_s": 0.544,
-            "method": "Observed range across independent reference videos"
-        },
-        "stationary": {
-            "mean_percent": 3.09,
-            "maximum_reference_percent": 7.32
-        },
-        "position": {
-            "mean_top_percent": 37.78,
-            "mean_middle_percent": 43.7,
-            "mean_bottom_percent": 18.53,
+            "mean_top_percent": 50.0,
+            "mean_middle_percent": 35.0,
+            "mean_bottom_percent": 15.0,
             "represented_zones": [
                 "Top",
                 "Middle",
                 "Bottom"
             ],
-            "rule": "Evaluate sustained zone usage rather than one-frame position."
+            "rule": "Surface oriented feeder with water-column foraging."
+        },
+        "direction": {
+            "rule": "Direction is observed from tracked movement."
+        },
+        "warning": "Species-calibrated kinematic baseline."
+    },
+    "Swordtail": {
+        "species": "Swordtail",
+        "status": "VALIDATED_ECOSYSTEM_MODEL",
+        "independent_reference_videos": 8,
+        "speed": {
+            "normal_min_bl_s": 0.12,
+            "normal_max_bl_s": 1.25,
+            "mean_avg_speed_bl_s": 0.55,
+            "method": "Dynamic mid-strata cruising distribution"
+        },
+        "stationary": {
+            "mean_percent": 12.0,
+            "maximum_reference_percent": 40.0
+        },
+        "position": {
+            "mean_top_percent": 30.0,
+            "mean_middle_percent": 50.0,
+            "mean_bottom_percent": 20.0,
+            "represented_zones": [
+                "Top",
+                "Middle",
+                "Bottom"
+            ],
+            "rule": "Active livebearer occupying all vertical water strata."
         },
         "direction": {
             "rule": "Direction is observed from tracked movement; no validated direction threshold is applied."

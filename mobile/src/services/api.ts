@@ -181,11 +181,13 @@ export const api = {
       try {
         const { uploadAsync, FileSystemUploadType } = require('expo-file-system/legacy');
         if (uploadAsync && FileSystemUploadType) {
+          const isMov = name.toLowerCase().endsWith('.mov');
+          const isWebm = name.toLowerCase().endsWith('.webm');
           const uploadRes = await uploadAsync(targetUrl, uri, {
             httpMethod: 'POST',
             uploadType: FileSystemUploadType.MULTIPART,
             fieldName: 'file',
-            mimeType: 'video/mp4',
+            mimeType: isMov ? 'video/quicktime' : (isWebm ? 'video/webm' : 'video/mp4'),
             parameters: {},
           });
 
@@ -212,7 +214,7 @@ export const api = {
       formData.append('file', {
         uri,
         name,
-        type: 'video/mp4',
+        type: name.toLowerCase().endsWith('.mov') ? 'video/quicktime' : 'video/mp4',
       } as any);
     }
 
@@ -227,6 +229,60 @@ export const api = {
     }
     const result = await res.json();
     return result.data;
+  },
+
+  async identifyFish(uri: string, filename?: string): Promise<any> {
+    const targetUrl = `${API_BASE_URL}/api/comp2/identify-fish`;
+    const name = filename || uri.split('/').pop() || 'fish_snapshot.jpg';
+
+    if (Platform.OS !== 'web') {
+      try {
+        const { uploadAsync, FileSystemUploadType } = require('expo-file-system/legacy');
+        if (uploadAsync && FileSystemUploadType) {
+          const uploadRes = await uploadAsync(targetUrl, uri, {
+            httpMethod: 'POST',
+            uploadType: FileSystemUploadType.MULTIPART,
+            fieldName: 'file',
+            mimeType: 'image/jpeg',
+            parameters: {},
+          });
+
+          if (uploadRes.status >= 200 && uploadRes.status < 300) {
+            const parsed = JSON.parse(uploadRes.body);
+            return parsed.data;
+          }
+        }
+      } catch (err: any) {
+        console.warn('Native identifyFish uploadAsync failed, falling back:', err?.message);
+      }
+    }
+
+    const formData = new FormData();
+    try {
+      const res = await fetch(uri);
+      const blob = await res.blob();
+      formData.append('file', blob, name);
+    } catch {
+      formData.append('file', { uri, name, type: 'image/jpeg' } as any);
+    }
+
+    const res = await fetch(targetUrl, {
+      method: 'POST',
+      body: formData,
+    });
+    if (!res.ok) throw new Error('Fish snapshot identification failed');
+    const result = await res.json();
+    return result.data;
+  },
+
+  async sendLiveFrame(base64Image: string): Promise<any> {
+    const res = await fetch(`${API_BASE_URL}/api/comp2/live-frame`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image_base64: base64Image }),
+    });
+    if (!res.ok) throw new Error('Live frame stream error');
+    return res.json();
   },
 
   async getAquioStatus(): Promise<any> {

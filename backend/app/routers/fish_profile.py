@@ -84,7 +84,7 @@ SPECIES_DATABASE: Dict[str, FishProfile] = {
     ),
     "betta": FishProfile(
         species_id="betta",
-        common_name="Siamese Fighting Fish (Betta)",
+        common_name="Betta",
         scientific_name="Betta splendens",
         water_requirements=TargetWaterParameters(
             temperature_c=26.5,
@@ -99,7 +99,7 @@ SPECIES_DATABASE: Dict[str, FishProfile] = {
     ),
     "guppy": FishProfile(
         species_id="guppy",
-        common_name="Fancy Guppy",
+        common_name="Guppy",
         scientific_name="Poecilia reticulata",
         water_requirements=TargetWaterParameters(
             temperature_c=25.0,
@@ -114,7 +114,7 @@ SPECIES_DATABASE: Dict[str, FishProfile] = {
     ),
     "swordtail": FishProfile(
         species_id="swordtail",
-        common_name="Green Swordtail",
+        common_name="Swordtail",
         scientific_name="Xiphophorus helleri",
         water_requirements=TargetWaterParameters(
             temperature_c=24.5,
