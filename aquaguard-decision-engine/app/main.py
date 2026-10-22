@@ -4,8 +4,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from app.api import decision_routes, simulation_routes, species_routes, benchmark_routes
+from app.database.firebase_client import start_tank_listener
 
-app = FastAPI(title="AquaGuard Decision Engine API", version="1.0.0")
+app = FastAPI(title="AquaGuard Decision Engine API", version="1.1.0")
 
 # Cross-Origin Resource Sharing (CORS) setup
 app.add_middleware(
@@ -21,6 +22,12 @@ app.include_router(decision_routes.router, prefix="/api/v1")
 app.include_router(simulation_routes.router, prefix="/api/v1")
 app.include_router(species_routes.router, prefix="/api/v1/species", tags=["Species"])
 app.include_router(benchmark_routes.router, prefix="/api/v1/benchmarks", tags=["Benchmarks"])
+
+
+@app.on_event("startup")
+async def startup_event():
+    # Initialize the Firebase realtime background listener
+    start_tank_listener()
 
 # Static Files & Demo Dashboard
 static_dir = os.path.join(os.path.dirname(__file__), "static")
@@ -44,7 +51,7 @@ def root():
     return {
         "service": "AquaGuard Decision Engine API",
         "status": "operational",
-        "version": "1.0.0",
+        "version": "1.1.0",
         "demo_url": "/demo",
     }
 

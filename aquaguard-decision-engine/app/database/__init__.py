@@ -8,6 +8,7 @@ from app.database.firebase_client import (
     get_live_telemetry,
     save_decision_result,
     save_simulation_result,
+    start_tank_listener,
 )
 
 __all__ = [
@@ -16,4 +17,5 @@ __all__ = [
     "get_live_telemetry",
     "save_decision_result",
     "save_simulation_result",
+    "start_tank_listener",
 ]

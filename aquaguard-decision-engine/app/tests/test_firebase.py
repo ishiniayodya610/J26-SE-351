@@ -84,3 +84,32 @@ def test_evaluate_endpoint_calls_firebase_save():
         assert args[0] == "aquarium_001"
         assert args[1]["status"] == "APPROVED"
         assert "esi" in args[1]
+
+
+def test_firebase_multi_tenant_paths():
+    """Verify multi-tenant user/tank paths for save and telemetry."""
+    mock_app = MagicMock()
+    mock_ref = MagicMock()
+
+    with patch.object(firebase_client.firebase_admin, "_apps", {"[DEFAULT]": mock_app}):
+        with patch.object(firebase_client.db, "reference", return_value=mock_ref) as mock_db_ref:
+            # Multi-tenant decision save
+            save_decision_result("user_999", "tank_777", {"status": "APPROVED"})
+            mock_db_ref.assert_called_with("users/user_999/tanks/tank_777/decisions")
+
+            # Multi-tenant telemetry fetch
+            get_live_telemetry("user_999", "tank_777")
+            mock_db_ref.assert_called_with("users/user_999/tanks/tank_777/telemetry")
+
+
+def test_start_tank_listener():
+    """Verify start_tank_listener attaches real-time snapshot listener on users node."""
+    mock_app = MagicMock()
+    mock_users_ref = MagicMock()
+
+    with patch.object(firebase_client.firebase_admin, "_apps", {"[DEFAULT]": mock_app}):
+        with patch.object(firebase_client.db, "reference", return_value=mock_users_ref) as mock_db_ref:
+            firebase_client.start_tank_listener()
+            mock_db_ref.assert_called_once_with("users")
+            mock_users_ref.listen.assert_called_once()
+
