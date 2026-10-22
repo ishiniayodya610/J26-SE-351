@@ -83,6 +83,48 @@
         .dot-green { background-color: var(--accent-green); box-shadow: 0 0 8px var(--accent-green); }
         .dot-cyan { background-color: var(--accent-cyan); box-shadow: 0 0 8px var(--accent-cyan); }
 
+        .pulse-toggle-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 229, 255, 0.1);
+            border: 1px solid rgba(0, 229, 255, 0.4);
+            color: var(--accent-cyan);
+            padding: 7px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+        .pulse-toggle-btn:hover {
+            background: rgba(0, 229, 255, 0.22);
+            border-color: var(--accent-cyan);
+            transform: translateY(-1px);
+        }
+        .pulse-toggle-btn.active {
+            background: rgba(0, 230, 118, 0.15);
+            border-color: var(--accent-green);
+            color: var(--accent-green);
+            box-shadow: 0 0 14px rgba(0, 230, 118, 0.35);
+        }
+        .pulse-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--accent-cyan);
+        }
+        .pulse-toggle-btn.active .pulse-indicator {
+            background-color: var(--accent-green);
+            box-shadow: 0 0 8px var(--accent-green);
+            animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.7); }
+            70% { transform: scale(1.15); box-shadow: 0 0 0 8px rgba(0, 230, 118, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 230, 118, 0); }
+        }
+
         /* Main Grid */
         .grid {
             display: grid;
@@ -287,6 +329,147 @@
         .fill-normal { background-color: var(--accent-cyan); }
         .fill-fault { background-color: var(--accent-red); }
 
+        /* Tabs & Terminal Monitor */
+        .tab-bar {
+            display: flex;
+            gap: 6px;
+            background: var(--bg-surface);
+            padding: 4px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            margin-bottom: 8px;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 6px 10px;
+            background: transparent;
+            border: none;
+            border-radius: 6px;
+            color: var(--text-muted);
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .tab-btn:hover {
+            color: var(--text-main);
+        }
+        .tab-btn.active {
+            background: var(--bg-card);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(0, 229, 255, 0.35);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .terminal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #090D1A;
+            padding: 7px 12px;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            border: 1px solid var(--border);
+            border-bottom: none;
+            font-size: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-muted);
+        }
+        .term-ctrl-btn {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .term-ctrl-btn:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: var(--text-main);
+        }
+
+        .terminal-box {
+            background-color: #040711;
+            border: 1px solid var(--border);
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+            padding: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: #E2E8F0;
+            overflow-y: auto;
+            height: 480px;
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .term-entry {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding: 6px 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.02);
+            border-left: 3px solid #334155;
+            animation: fadeIn 0.15s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(2px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .term-entry.term-optimal {
+            border-left-color: var(--accent-green);
+        }
+        .term-entry.term-fault {
+            border-left-color: var(--accent-red);
+            background: rgba(255, 23, 68, 0.05);
+        }
+        .term-top-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 10px;
+        }
+        .term-ts {
+            color: #64748B;
+        }
+        .term-badge {
+            font-weight: 700;
+            padding: 1px 6px;
+            border-radius: 3px;
+            font-size: 9px;
+            letter-spacing: 0.5px;
+        }
+        .badge-optimal { background: rgba(0, 230, 118, 0.15); color: #00E676; }
+        .badge-fault { background: rgba(255, 23, 68, 0.2); color: #FF1744; }
+        .term-metrics {
+            color: #94A3B8;
+            font-size: 10.5px;
+        }
+        .term-action {
+            color: var(--accent-cyan);
+            font-size: 10.5px;
+        }
+        .term-cursor {
+            display: inline-block;
+            width: 7px;
+            height: 13px;
+            background: #00E676;
+            margin-left: 4px;
+            animation: blink 1s step-start infinite;
+            vertical-align: middle;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+
         /* JSON Output */
         pre {
             background-color: var(--bg-surface);
@@ -297,7 +480,7 @@
             font-size: 11px;
             color: #38BDF8;
             overflow: auto;
-            max-height: 480px;
+            height: 480px;
             line-height: 1.5;
         }
 
@@ -328,6 +511,10 @@
             </div>
         </div>
         <div class="status-cluster">
+            <button id="pulse-btn" class="pulse-toggle-btn" onclick="toggleAutoPulse()" title="Stream autonomous 2-second telemetry packets matching physical ESP32">
+                <div class="pulse-indicator"></div>
+                <span id="pulse-btn-text">▶ Start 2-Second Live Pulse</span>
+            </button>
             <div class="node-pill">
                 <div class="dot dot-green"></div>
                 <span>Edge C++ Engine: Port 3000</span>
@@ -381,6 +568,10 @@
                     <button class="btn-scenario btn-danger" onclick="triggerScenario('tds_spike')">
                         <span>4. TDS Spike (880 ppm | ΔTDS = +730)</span>
                         <span class="badge-tag tag-fault">DATA IMPUTED</span>
+                    </button>
+                    <button class="btn-scenario btn-danger" onclick="triggerScenario('runaway_heater')" style="border-color: #FF1744; background: rgba(255, 23, 68, 0.15);">
+                        <span>5. 🔥 Stuck Heater Runaway (Welded Relay Creep)</span>
+                        <span class="badge-tag tag-fault" style="background: #FF1744; color: #FFF;">WELDED RUNAWAY</span>
                     </button>
                 </div>
             </div>
@@ -480,6 +671,10 @@
                         <div class="actuator-label">Chemical Dosing Pump</div>
                         <div id="pump-status" class="actuator-status status-green">ENABLED</div>
                     </div>
+                    <div id="runaway-card" class="actuator-card" style="display:none; grid-column: span 2; border-color: #FF1744; background: rgba(255, 23, 68, 0.18);">
+                        <div class="actuator-label" style="color: #FF8A80;">🚨 Physical Relay Status (Thermodynamic Divergence)</div>
+                        <div id="runaway-status" class="actuator-status status-red">WELDED SHUT • UNPLUG MAINS</div>
+                    </div>
                 </div>
             </div>
 
@@ -506,13 +701,46 @@
             </div>
         </div>
 
-        <!-- Right Column: Raw JSON Telemetry -->
+        <!-- Right Column: Dual-Tab Inspector (Serial Monitor + JSON) -->
         <div class="panel">
-            <div class="panel-header">
-                <span class="panel-title">Real-Time C++ Telemetry Payload</span>
-                <span style="font-size: 11px; color: var(--text-muted);">stdout stream</span>
+            <div class="panel-header" style="border-bottom: none; padding-bottom: 0;">
+                <div class="tab-bar" style="width: 100%; margin-bottom: 0;">
+                    <button id="tab-term-btn" class="tab-btn active" onclick="switchInspectorTab('term')">
+                        <span>🖥️ C++ Serial Monitor</span>
+                        <span id="term-count-badge" style="background: rgba(0, 229, 255, 0.2); color: var(--accent-cyan); font-size: 9px; padding: 1px 5px; border-radius: 10px;">LIVE</span>
+                    </button>
+                    <button id="tab-json-btn" class="tab-btn" onclick="switchInspectorTab('json')">
+                        <span>📦 Raw JSON Payload</span>
+                    </button>
+                </div>
             </div>
-            <pre id="json-output">Executing C++ Edge Impulse runner...</pre>
+
+            <!-- TAB 1: On-Device C++ Serial Terminal Monitor -->
+            <div id="tab-term-view" style="display: flex; flex-direction: column;">
+                <div class="terminal-header">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="dot dot-green" style="width: 6px; height: 6px;"></span>
+                        <span style="color: #F8FAFC; font-weight: 700;">/dev/ttyUSB0 (ESP32)</span>
+                        <span>• 115200 BAUD • TFLM INT8</span>
+                    </div>
+                    <div style="display: flex; gap: 6px;">
+                        <button class="term-ctrl-btn" onclick="toggleAutoScroll()" id="autoscroll-btn">Auto-Scroll: ON</button>
+                        <button class="term-ctrl-btn" onclick="clearTerminalLog()">Clear</button>
+                    </div>
+                </div>
+                <div id="terminal-box" class="terminal-box">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+            <!-- TAB 2: Raw JSON Payload -->
+            <div id="tab-json-view" style="display: none; flex-direction: column;">
+                <div class="terminal-header">
+                    <span>C++ stdout JSON Packet</span>
+                    <button class="term-ctrl-btn" onclick="copyJsonPayload()">Copy JSON</button>
+                </div>
+                <pre id="json-output">Executing C++ Edge Impulse runner...</pre>
+            </div>
         </div>
 
     </div>
@@ -594,7 +822,32 @@
                 phSlider.value = base.ph;
                 tdsSlider.value = 880;
                 updateDisplay(true);
+            } else if (type === 'runaway_heater') {
+                // Ensure nominal baseline first
+                await resetBaseline(base);
+                simulateSlowThermalCreep(base);
             }
+        }
+
+        let runawayInterval = null;
+        function simulateSlowThermalCreep(base) {
+            if (runawayInterval) clearInterval(runawayInterval);
+            let currentT = base.temp;
+            let step = 0;
+            // Send initial nominal
+            runSimulation(currentT, base.ph, base.tds, 'REMOTE_ESP32');
+            runawayInterval = setInterval(() => {
+                step++;
+                // Creep up by +0.25°C per 2-second pulse (water heat accumulation from stuck heater)
+                currentT = Math.round((currentT + 0.25) * 100) / 100;
+                tempSlider.value = currentT;
+                document.getElementById('temp-val').innerText = currentT.toFixed(2) + ' °C';
+                runSimulation(currentT, base.ph, base.tds, 'REMOTE_ESP32');
+                if (step >= 12 || currentT >= 32.5) {
+                    clearInterval(runawayInterval);
+                    runawayInterval = null;
+                }
+            }, 2000);
         }
 
         async function handleSpeciesChange() {
@@ -614,11 +867,57 @@
             await resetBaseline(base);
         }
 
-        async function runSimulation() {
+        let autoPulseInterval = null;
+
+        function toggleAutoPulse() {
+            const btn = document.getElementById('pulse-btn');
+            const text = document.getElementById('pulse-btn-text');
+            if (autoPulseInterval) {
+                clearInterval(autoPulseInterval);
+                autoPulseInterval = null;
+                btn.classList.remove('active');
+                text.innerText = "▶ Start 2-Second Live Pulse";
+            } else {
+                btn.classList.add('active');
+                text.innerText = "🟢 Streaming Live Pulse (2.0s)";
+                runPulseCycle();
+                autoPulseInterval = setInterval(runPulseCycle, 2000);
+            }
+        }
+
+        function runPulseCycle() {
+            const baseTemp = parseFloat(tempSlider.value);
+            const basePh = parseFloat(phSlider.value);
+            const baseTds = parseFloat(tdsSlider.value);
+
+            // Realistic probe jitter around current slider setting
+            const jitterTemp = (Math.random() - 0.5) * 0.08;
+            const jitterPh = (Math.random() - 0.5) * 0.03;
+            const jitterTds = (Math.random() - 0.5) * 2.5;
+
+            const pTemp = Math.round((baseTemp + jitterTemp) * 100) / 100;
+            const pPh = Math.round((basePh + jitterPh) * 100) / 100;
+            const pTds = Math.round(baseTds + jitterTds);
+
+            runSimulation(pTemp, pPh, pTds, 'REMOTE_ESP32');
+        }
+
+        async function runSimulation(customTemp = null, customPh = null, customTds = null, customSource = 'SIMULATED_TESTBED') {
+            const tempVal = customTemp !== null ? customTemp : parseFloat(tempSlider.value);
+            const phVal = customPh !== null ? customPh : parseFloat(phSlider.value);
+            const tdsVal = customTds !== null ? customTds : parseFloat(tdsSlider.value);
+
+            if (customTemp !== null) {
+                document.getElementById('temp-val').innerText = tempVal.toFixed(2) + ' °C';
+                document.getElementById('ph-val').innerText = phVal.toFixed(2);
+                document.getElementById('tds-val').innerText = Math.round(tdsVal) + ' ppm';
+            }
+
             const payload = {
-                temp: parseFloat(tempSlider.value),
-                ph: parseFloat(phSlider.value),
-                tds: parseFloat(tdsSlider.value)
+                temp: tempVal,
+                ph: phVal,
+                tds: tdsVal,
+                source: customSource
             };
 
             try {
@@ -689,6 +988,21 @@
                     pumpStatus.className = 'actuator-status status-green';
                 }
 
+                // Update Welded Relay Runaway Card
+                const runawayCard = document.getElementById('runaway-card');
+                const runawayStatus = document.getElementById('runaway-status');
+                const isRunaway = (result.thermal_runaway && result.thermal_runaway.active) || 
+                                  (result.gatekeeper && result.gatekeeper.thermal_runaway);
+                if (isRunaway) {
+                    runawayCard.style.display = 'block';
+                    const ttc = (result.thermal_runaway && result.thermal_runaway.time_to_critical_min) 
+                                ? `(~${result.thermal_runaway.time_to_critical_min}m to lethal limit)` 
+                                : '';
+                    runawayStatus.innerText = `🚨 WELDED CLOSED ${ttc} • UNPLUG MAINS!`;
+                } else {
+                    runawayCard.style.display = 'none';
+                }
+
                 // Update Imputed Values
                 document.getElementById('clean-temp').innerText = result.telemetry.temperature_c.toFixed(1) + '°C';
                 document.getElementById('clean-ph').innerText = result.telemetry.ph.toFixed(2);
@@ -719,10 +1033,144 @@
                 }
                 document.getElementById('ml-scores').innerHTML = html;
 
+                // 🟢 Append to On-Device C++ Serial Terminal Monitor
+                appendTerminalLog(result);
+
             } catch (err) {
                 console.error("Simulation communication failed:", err);
             }
         }
+
+        // --- Serial Terminal Monitor Logic ---
+        let autoScroll = true;
+        let logCounter = 0;
+
+        function switchInspectorTab(tab) {
+            const termBtn = document.getElementById('tab-term-btn');
+            const jsonBtn = document.getElementById('tab-json-btn');
+            const termView = document.getElementById('tab-term-view');
+            const jsonView = document.getElementById('tab-json-view');
+
+            if (tab === 'term') {
+                termBtn.classList.add('active');
+                jsonBtn.classList.remove('active');
+                termView.style.display = 'flex';
+                jsonView.style.display = 'none';
+            } else {
+                jsonBtn.classList.add('active');
+                termBtn.classList.remove('active');
+                jsonView.style.display = 'flex';
+                termView.style.display = 'none';
+            }
+        }
+
+        function toggleAutoScroll() {
+            autoScroll = !autoScroll;
+            const btn = document.getElementById('autoscroll-btn');
+            btn.innerText = `Auto-Scroll: ${autoScroll ? 'ON' : 'OFF'}`;
+            btn.style.color = autoScroll ? 'var(--accent-cyan)' : 'var(--text-muted)';
+        }
+
+        function clearTerminalLog() {
+            const box = document.getElementById('terminal-box');
+            box.innerHTML = `
+                <div style="color: #64748B; font-size: 10px; margin-bottom: 6px;">
+                    [CONSOLE CLEARED] Listening to /dev/ttyUSB0 (ESP32 DevKit V1) @ 115200 baud...<br>
+                    Edge Impulse C++ SDK v23 • Quantization: INT8 TFLM<br>
+                    --------------------------------------------------------------------
+                </div>
+            `;
+            logCounter = 0;
+            document.getElementById('term-count-badge').innerText = '0 EVTS';
+        }
+
+        function copyJsonPayload() {
+            const text = document.getElementById('json-output').innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                alert("Copied JSON payload to clipboard!");
+            });
+        }
+
+        function appendTerminalLog(result) {
+            const box = document.getElementById('terminal-box');
+            if (!box) return;
+
+            logCounter++;
+            document.getElementById('term-count-badge').innerText = `${logCounter} EVTS`;
+
+            const now = new Date();
+            const timeStr = now.toTimeString().split(' ')[0] + '.' + String(now.getMilliseconds()).padStart(3, '0');
+
+            const isOptimal = result.system_status === 'OPTIMAL';
+            const isRunaway = (result.thermal_runaway && result.thermal_runaway.active) || 
+                              (result.gatekeeper && result.gatekeeper.thermal_runaway);
+            
+            const entryClass = (!isOptimal || isRunaway) ? 'term-entry term-fault' : 'term-entry term-optimal';
+            const badgeClass = (!isOptimal || isRunaway) ? 'term-badge badge-fault' : 'term-badge badge-optimal';
+
+            const dt = result.deltas ? result.deltas.delta_temp.toFixed(2) : '0.00';
+            const dp = result.deltas ? result.deltas.delta_ph.toFixed(2) : '0.00';
+            const dd = result.deltas ? Math.round(result.deltas.delta_tds) : '0';
+
+            const dspMs = result.timing_ms ? result.timing_ms.dsp : 0;
+            const inferMs = result.timing_ms ? result.timing_ms.classification : 1;
+
+            const heaterLock = result.gatekeeper && result.gatekeeper.heater_lockout;
+            const pumpLock = result.gatekeeper && result.gatekeeper.ph_pump_lockout;
+
+            const rawT = result.telemetry ? result.telemetry.raw_temp.toFixed(2) : '--';
+            const cleanT = result.telemetry ? result.telemetry.temperature_c.toFixed(2) : '--';
+
+            // Find winning label and score
+            let topLabel = 'normal';
+            let topScore = 0;
+            if (result.ml_confidence) {
+                for (const [k, v] of Object.entries(result.ml_confidence)) {
+                    if (v > topScore) {
+                        topScore = v;
+                        topLabel = k;
+                    }
+                }
+            }
+            const topPct = (topScore * 100).toFixed(1);
+
+            const entryHtml = `
+                <div class="${entryClass}">
+                    <div class="term-top-line">
+                        <span class="term-ts">[${timeStr}] #TFLM-${logCounter}</span>
+                        <span class="${badgeClass}">${result.system_status}${isRunaway ? ' | RUNAWAY' : ''}</span>
+                    </div>
+                    <div class="term-metrics">
+                        <span>Δ[${dt >= 0 ? '+' : ''}${dt}°C, ${dp >= 0 ? '+' : ''}${dp}, ${dd >= 0 ? '+' : ''}${dd}ppm]</span>
+                        <span style="color: #64748B;">•</span>
+                        <span>DSP:${dspMs}ms Infer:${inferMs}ms</span>
+                        <span style="color: #64748B;">•</span>
+                        <span style="color: ${topLabel !== 'normal' ? 'var(--accent-red)' : 'var(--accent-green)'}; font-weight:700;">
+                            ${topLabel} (${topPct}%)
+                        </span>
+                    </div>
+                    <div class="term-action">
+                        ► GPIO18 Heater: <strong style="color: ${heaterLock ? 'var(--accent-red)' : 'var(--accent-green)'}">${heaterLock ? 'LOCKED (OPEN)' : 'ENABLED'}</strong> | 
+                        GPIO19 Pump: <strong style="color: ${pumpLock ? 'var(--accent-red)' : 'var(--accent-green)'}">${pumpLock ? 'LOCKED (OPEN)' : 'ENABLED'}</strong>
+                        ${rawT !== cleanT ? ` | <span style="color: var(--accent-amber);">Imputed: ${rawT}°C ➔ ${cleanT}°C</span>` : ''}
+                    </div>
+                </div>
+            `;
+
+            box.insertAdjacentHTML('beforeend', entryHtml);
+
+            // Limit box entries to last 60 items
+            while (box.children.length > 65) {
+                box.removeChild(box.children[1]); // keep boot banner at index 0
+            }
+
+            if (autoScroll) {
+                box.scrollTop = box.scrollHeight;
+            }
+        }
+
+        // Initialize Terminal Boot Banner
+        clearTerminalLog();
 
         // Initialize on load
         updateDisplay(true);

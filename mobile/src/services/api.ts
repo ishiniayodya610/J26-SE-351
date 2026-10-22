@@ -109,7 +109,7 @@ export interface TelemetryData {
     ph: { fault_detected: boolean; imputed: boolean };
     tds: { fault_detected: boolean; imputed: boolean };
   };
-  gatekeeper: { heater_lockout: boolean; ph_pump_lockout: boolean };
+  gatekeeper: { heater_lockout: boolean; ph_pump_lockout: boolean; thermal_runaway?: boolean };
   deltas?: {
     delta_temp: number;
     delta_ph: number;
@@ -120,6 +120,21 @@ export interface TelemetryData {
     target_temp: number;
     target_ph: number;
     target_tds: number;
+  };
+  thermal_runaway?: {
+    active: boolean;
+    headline: string;
+    message: string;
+    slope_per_min?: number;
+    time_to_critical_min?: number;
+    lethal_temp?: number;
+    action: string;
+  };
+  data_source?: {
+    type: 'REMOTE_ESP32' | 'SIMULATED_TESTBED' | 'PHYSICAL_EDGE';
+    label: string;
+    is_real_hardware: boolean;
+    timestamp?: string;
   };
 }
 
@@ -156,6 +171,31 @@ export interface XAIExplanationData {
   edge_gatekeeper_role: string;
   attributions: Array<{ feature_name: string; importance_weight: number; description: string }>;
   recommended_actions: string[];
+}
+
+export interface VideoAnalysisData {
+  species_id: string;
+  common_name: string;
+  scientific_name: string;
+  confidence: number;
+  video_filename: string;
+  video_size_kb: number;
+  frames_processed: number;
+  swimming_activity_pct: number;
+  lethargy_index_pct: number;
+  average_speed_bl_s?: number;
+  maximum_speed_bl_s?: number;
+  stationary_percent?: number;
+  position?: string;
+  direction?: string;
+  posture?: string;
+  behavior_status?: string;
+  reasons?: string[];
+  surface_piping: string;
+  feeding_response: string;
+  health_status: string;
+  target_parameters: { temp: number; ph: number; tds: number };
+  care_notes: string;
 }
 
 export interface BehaviorData {
@@ -223,6 +263,132 @@ export const api = {
   async getLiveBehavior(): Promise<BehaviorData> {
     const res = await fetch(`${API_BASE_URL}/api/comp2/live-behavior`);
     if (!res.ok) throw new Error('Failed to fetch behavior');
+    return res.json();
+  },
+
+  async analyzeVideo(uri: string, filename?: string): Promise<VideoAnalysisData> {
+    const targetUrl = `${API_BASE_URL}/api/comp2/analyze-video`;
+    const name = filename || uri.split('/').pop() || 'captured_tank_video.mp4';
+
+    // 1. On iOS & Android Native: Use Expo FileSystem native multipart uploader
+    // This streams the file directly from device storage, avoiding FormDataPart crashes
+    if (Platform.OS !== 'web') {
+      try {
+        const { uploadAsync, FileSystemUploadType } = require('expo-file-system/legacy');
+        if (uploadAsync && FileSystemUploadType) {
+          const isMov = name.toLowerCase().endsWith('.mov');
+          const isWebm = name.toLowerCase().endsWith('.webm');
+          const uploadRes = await uploadAsync(targetUrl, uri, {
+            httpMethod: 'POST',
+            uploadType: FileSystemUploadType.MULTIPART,
+            fieldName: 'file',
+            mimeType: isMov ? 'video/quicktime' : (isWebm ? 'video/webm' : 'video/mp4'),
+            parameters: {},
+          });
+
+          if (uploadRes.status >= 200 && uploadRes.status < 300) {
+            const parsed = JSON.parse(uploadRes.body);
+            return parsed.data;
+          } else {
+            throw new Error(`Upload failed (${uploadRes.status}): ${uploadRes.body}`);
+          }
+        }
+      } catch (nativeErr: any) {
+        console.warn('Native uploadAsync failed, falling back to Blob upload:', nativeErr?.message);
+      }
+    }
+
+    // 2. On Web or Fallback: Standard fetch with real Blob
+    const formData = new FormData();
+    try {
+      const res = await fetch(uri);
+      const blob = await res.blob();
+      formData.append('file', blob, name);
+    } catch (blobErr) {
+      console.warn('Could not convert URI to blob:', blobErr);
+      formData.append('file', {
+        uri,
+        name,
+        type: name.toLowerCase().endsWith('.mov') ? 'video/quicktime' : 'video/mp4',
+      } as any);
+    }
+
+    const res = await fetch(targetUrl, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`Video behavioral analysis failed: ${res.status} ${errText}`);
+    }
+    const result = await res.json();
+    return result.data;
+  },
+
+  async identifyFish(uri: string, filename?: string): Promise<any> {
+    const targetUrl = `${API_BASE_URL}/api/comp2/identify-fish`;
+    const name = filename || uri.split('/').pop() || 'fish_snapshot.jpg';
+
+    if (Platform.OS !== 'web') {
+      try {
+        const { uploadAsync, FileSystemUploadType } = require('expo-file-system/legacy');
+        if (uploadAsync && FileSystemUploadType) {
+          const uploadRes = await uploadAsync(targetUrl, uri, {
+            httpMethod: 'POST',
+            uploadType: FileSystemUploadType.MULTIPART,
+            fieldName: 'file',
+            mimeType: 'image/jpeg',
+            parameters: {},
+          });
+
+          if (uploadRes.status >= 200 && uploadRes.status < 300) {
+            const parsed = JSON.parse(uploadRes.body);
+            return parsed.data;
+          }
+        }
+      } catch (err: any) {
+        console.warn('Native identifyFish uploadAsync failed, falling back:', err?.message);
+      }
+    }
+
+    const formData = new FormData();
+    try {
+      const res = await fetch(uri);
+      const blob = await res.blob();
+      formData.append('file', blob, name);
+    } catch {
+      formData.append('file', { uri, name, type: 'image/jpeg' } as any);
+    }
+
+    const res = await fetch(targetUrl, {
+      method: 'POST',
+      body: formData,
+    });
+    if (!res.ok) throw new Error('Fish snapshot identification failed');
+    const result = await res.json();
+    return result.data;
+  },
+
+  async sendLiveFrame(base64Image: string): Promise<any> {
+    const res = await fetch(`${API_BASE_URL}/api/comp2/live-frame`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image_base64: base64Image }),
+    });
+    if (!res.ok) throw new Error('Live frame stream error');
+    return res.json();
+  },
+
+  async getAquioStatus(): Promise<any> {
+    const res = await fetch(`${API_BASE_URL}/api/aquio/status`);
+    if (!res.ok) throw new Error('Failed to fetch Aquio bridge status');
+    return res.json();
+  },
+
+  async syncAquioNow(): Promise<any> {
+    const res = await fetch(`${API_BASE_URL}/api/aquio/sync-now`, { method: 'POST' });
+    if (!res.ok) throw new Error('Failed to trigger manual Aquio sync');
     return res.json();
   },
 };
