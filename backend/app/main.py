@@ -88,4 +88,3 @@ async def root():
             "aquio_sync_now": "/api/aquio/sync-now"
         }
     }
-

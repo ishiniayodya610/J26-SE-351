@@ -118,10 +118,10 @@ export default function TankHealthScreen() {
           <View style={[styles.statusPill, isOptimal ? styles.statusPillOk : styles.statusPillAlert]}>
             {isOptimal ? <ShieldCheck size={13} color="#00E676" /> : <ShieldAlert size={13} color="#FF1744" />}
             <Text style={[styles.statusPillText, isOptimal ? styles.textOk : styles.textAlert]} numberOfLines={1}>
-              {isThermalRunaway 
-                ? "WELDED RUNAWAY" 
-                : (telemetry?.system_status === 'DEGRADED_FAULT_MITIGATED' 
-                    ? 'FAULT MITIGATED' 
+              {isThermalRunaway
+                ? "WELDED RUNAWAY"
+                : (telemetry?.system_status === 'DEGRADED_FAULT_MITIGATED'
+                    ? 'FAULT MITIGATED'
                     : (telemetry?.system_status || 'OPTIMAL'))}
             </Text>
           </View>
@@ -332,9 +332,9 @@ const styles = StyleSheet.create({
     borderColor: '#1E293B',
     marginBottom: 20,
   },
-  speciesRow: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
+  speciesRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
     gap: 8,
   },
@@ -352,9 +352,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 10,
   },
-  speciesTitle: { 
-    color: '#F8FAFC', 
-    fontSize: 16, 
+  speciesTitle: {
+    color: '#F8FAFC',
+    fontSize: 16,
     fontWeight: 'bold',
     flexShrink: 0,
   },

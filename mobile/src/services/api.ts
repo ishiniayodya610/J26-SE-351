@@ -525,4 +525,3 @@ export const api = {
     return res.json();
   },
 };
-

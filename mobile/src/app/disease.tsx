@@ -6,7 +6,7 @@ import {
   ScrollView, 
   RefreshControl,
   ActivityIndicator,
-  TouchableOpacity 
+  TouchableOpacity
 } from 'react-native';
 import {
   AlertTriangle, 
@@ -23,14 +23,14 @@ import {
   Activity
 } from 'lucide-react-native';
 import Svg, { Polyline, Line, Circle, Text as SvgText } from 'react-native-svg';
-import { 
-  api, 
+import {
+  api,
   DiseaseRiskData,
   TelemetryData,
   FishProfile,
-  predictAmmonia, 
-  predictWhiteSpot, 
-  PredictionResponse 
+  predictAmmonia,
+  predictWhiteSpot,
+  PredictionResponse
 } from '@/services/api';
 
 // ---------------------------------------------------------------------------
@@ -321,9 +321,9 @@ export default function DiseasePredictionScreen() {
           <Cpu size={18} color="#00E5FF" />
           <Text style={styles.sectionTitle}>Random Forest ML Predictions</Text>
         </View>
-        <TouchableOpacity 
-          style={styles.refreshBtn} 
-          onPress={() => runMlPredictions()} 
+        <TouchableOpacity
+          style={styles.refreshBtn}
+          onPress={() => runMlPredictions()}
           disabled={predictLoading}
         >
           {predictLoading ? (
@@ -345,16 +345,16 @@ export default function DiseasePredictionScreen() {
       <View style={styles.riskGrid}>
         {/* Ammonia ML Model Card */}
         <View style={[
-          styles.riskCard, 
+          styles.riskCard,
           ammoniaPrediction?.prediction === 'high_risk' ? styles.cardAlert : styles.cardOk
         ]}>
           <View style={styles.riskHeader}>
-            <Biohazard 
-              size={20} 
-              color={ammoniaPrediction?.prediction === 'high_risk' ? "#FF1744" : "#00E676"} 
+            <Biohazard
+              size={20}
+              color={ammoniaPrediction?.prediction === 'high_risk' ? "#FF1744" : "#00E676"}
             />
             <Text style={[
-              styles.riskStatus, 
+              styles.riskStatus,
               ammoniaPrediction?.prediction === 'high_risk' ? styles.textAlert : styles.textOk
             ]}>
               {ammoniaPrediction ? ammoniaPrediction.prediction.toUpperCase().replace('_', ' ') : 'LOADING'}
@@ -374,16 +374,16 @@ export default function DiseasePredictionScreen() {
 
         {/* White Spot ML Model Card */}
         <View style={[
-          styles.riskCard, 
+          styles.riskCard,
           whitespotPrediction?.prediction === 'high_risk' ? styles.cardAlert : styles.cardOk
         ]}>
           <View style={styles.riskHeader}>
-            <AlertTriangle 
-              size={20} 
-              color={whitespotPrediction?.prediction === 'high_risk' ? "#FF1744" : "#00E676"} 
+            <AlertTriangle
+              size={20}
+              color={whitespotPrediction?.prediction === 'high_risk' ? "#FF1744" : "#00E676"}
             />
             <Text style={[
-              styles.riskStatus, 
+              styles.riskStatus,
               whitespotPrediction?.prediction === 'high_risk' ? styles.textAlert : styles.textOk
             ]}>
               {whitespotPrediction ? whitespotPrediction.prediction.toUpperCase().replace('_', ' ') : 'LOADING'}
