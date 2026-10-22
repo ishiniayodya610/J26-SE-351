@@ -22,7 +22,8 @@ import {
   Flame,
   Power,
   AlertTriangle,
-  Radio
+  Radio,
+  SlidersHorizontal
 } from 'lucide-react-native';
 import { api, TelemetryData, FishProfile } from '@/services/api';
 import { triggerAnomalyHaptic, triggerResolvedHaptic, triggerSelectionHaptic } from '@/services/haptics';
@@ -105,32 +106,35 @@ export default function TankHealthScreen() {
       contentContainerStyle={styles.content}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#00E5FF" />}
     >
-      {/* Active Species Header Card */}
+      {/* Species Target Header Card */}
       <View style={styles.speciesCard}>
         <View style={styles.speciesRow}>
-          <View style={styles.fishIconContainer}>
-            <Fish color="#00E5FF" size={26} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.speciesTitle}>{activeFish?.common_name || 'Discus Tank'}</Text>
-            <Text style={styles.scientificName}>{activeFish?.scientific_name || 'Symphysodon aequifasciatus'}</Text>
+          <View style={styles.speciesTitleLeft}>
+            <View style={styles.fishIconContainer}>
+              <SlidersHorizontal color="#00E5FF" size={20} />
+            </View>
+            <Text style={styles.speciesTitle} numberOfLines={1}>Species Targets</Text>
           </View>
           <View style={[styles.statusPill, isOptimal ? styles.statusPillOk : styles.statusPillAlert]}>
-            {isOptimal ? <ShieldCheck size={14} color="#00E676" /> : <ShieldAlert size={14} color="#FF1744" />}
-            <Text style={[styles.statusPillText, isOptimal ? styles.textOk : styles.textAlert]}>
-              {isThermalRunaway ? "WELDED RUNAWAY" : (telemetry?.system_status || 'OPTIMAL')}
+            {isOptimal ? <ShieldCheck size={13} color="#00E676" /> : <ShieldAlert size={13} color="#FF1744" />}
+            <Text style={[styles.statusPillText, isOptimal ? styles.textOk : styles.textAlert]} numberOfLines={1}>
+              {isThermalRunaway 
+                ? "WELDED RUNAWAY" 
+                : (telemetry?.system_status === 'DEGRADED_FAULT_MITIGATED' 
+                    ? 'FAULT MITIGATED' 
+                    : (telemetry?.system_status || 'OPTIMAL'))}
             </Text>
           </View>
         </View>
 
         {/* Target Profile Bar */}
         <View style={styles.targetBar}>
-          <Text style={styles.targetLabel}>Species Targets:</Text>
-          <Text style={styles.targetVal}>{activeFish?.water_requirements.temperature_c || 29}°C</Text>
+          <Text style={styles.targetLabel}>Target Baseline:</Text>
+          <Text style={styles.targetVal}>{activeFish?.water_requirements?.temperature_c ?? telemetry?.tank_profile?.target_temp ?? 29}°C</Text>
           <Text style={styles.targetDot}>•</Text>
-          <Text style={styles.targetVal}>pH {activeFish?.water_requirements.ph || 6.5}</Text>
+          <Text style={styles.targetVal}>pH {activeFish?.water_requirements?.ph ?? telemetry?.tank_profile?.target_ph ?? 6.5}</Text>
           <Text style={styles.targetDot}>•</Text>
-          <Text style={styles.targetVal}>{activeFish?.water_requirements.tds_ppm || 150} ppm</Text>
+          <Text style={styles.targetVal}>{activeFish?.water_requirements?.tds_ppm ?? telemetry?.tank_profile?.target_tds ?? 150} ppm</Text>
         </View>
 
         {/* Dynamic Hardware vs. Simulator Source Banner */}
@@ -210,10 +214,6 @@ export default function TankHealthScreen() {
             <View style={styles.anomalyBadge}>
               <AlertTriangle size={15} color="#FF1744" />
               <Text style={styles.anomalyBadgeText}>GATEKEEPER INTERLOCK ACTIVE</Text>
-            </View>
-            <View style={styles.hapticTag}>
-              <Zap size={11} color="#FFB300" />
-              <Text style={styles.hapticTagText}>HAPTIC ALERT TRIGGERED</Text>
             </View>
           </View>
 
@@ -332,18 +332,32 @@ const styles = StyleSheet.create({
     borderColor: '#1E293B',
     marginBottom: 20,
   },
-  speciesRow: { flexDirection: 'row', alignItems: 'center' },
+  speciesRow: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  speciesTitleLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexShrink: 0,
+  },
   fishIconContainer: {
     backgroundColor: '#0F2C4C',
-    width: 44,
-    height: 44,
-    borderRadius: 10,
+    width: 36,
+    height: 36,
+    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: 10,
   },
-  speciesTitle: { color: '#F8FAFC', fontSize: 18, fontWeight: 'bold' },
-  scientificName: { color: '#64748B', fontSize: 13, fontStyle: 'italic', marginTop: 2 },
+  speciesTitle: { 
+    color: '#F8FAFC', 
+    fontSize: 16, 
+    fontWeight: 'bold',
+    flexShrink: 0,
+  },
   statusPill: {
     flexDirection: 'row',
     alignItems: 'center',

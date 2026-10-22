@@ -156,9 +156,9 @@ class AquioBridgeService:
                 "timestamp": datetime.now().isoformat()
             }
 
-        temp = readings.get("temp", 28.5)
-        ph = readings.get("ph", 6.8)
-        tds = readings.get("tds", 150.0)
+        temp = readings.get("temp") if readings.get("temp") is not None else 28.5
+        ph = readings.get("ph") if readings.get("ph") is not None else 6.8
+        tds = readings.get("tds") if readings.get("tds") is not None else 150.0
 
         # Feed directly into OUR local Edge Impulse TinyML engine & Gatekeeper!
         from backend.app.routers.telemetry import execute_edge_inference, manager
