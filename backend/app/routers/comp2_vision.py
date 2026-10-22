@@ -178,6 +178,8 @@ def run_video_behavior_and_species_analysis(video_bytes: bytes, filename: str) -
                     })
                 f_idx += 1
             cap.release()
+            if f_idx == 0:
+                raise HTTPException(status_code=422, detail="No readable video frames found. Try an MP4 or MOV clip.")
 
             # 2. Check if ANY fish was detected
             if not frame_records:
@@ -440,7 +442,11 @@ async def analyze_captured_video(file: UploadFile = File(...)):
     Automatically updates active tank profile.
     """
     try:
+        if _video_analyzer is None:
+            raise HTTPException(status_code=503, detail="Fish vision model is unavailable. Check backend startup logs.")
         contents = await file.read()
+        if not contents:
+            raise HTTPException(status_code=400, detail="The uploaded video is empty.")
         result = run_video_behavior_and_species_analysis(contents, file.filename or "captured_tank_video.mp4")
         
         # 🟢 FORENSIC PROOF FOR EVALUATORS: Print ANSI execution box to active terminal!
@@ -456,6 +462,8 @@ async def analyze_captured_video(file: UploadFile = File(...)):
             "message": f"Successfully analyzed video for {result['common_name']}",
             "data": result
         }
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Video behavioral analysis failed: {str(e)}")
 

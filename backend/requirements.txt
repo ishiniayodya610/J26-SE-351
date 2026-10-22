@@ -4,3 +4,7 @@ pydantic>=2.8.0
 websockets>=12.0
 python-multipart>=0.0.9
 httpx>=0.27.0
+
+# Vision endpoint and environment configuration
+python-dotenv>=1.0.0
+-r ../species_aware_fish_tracking/requirements.txt

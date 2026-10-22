@@ -7,7 +7,8 @@ import {
   TouchableOpacity, 
   ActivityIndicator,
   Alert,
-  Platform 
+  Platform,
+  Linking
 } from 'react-native';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
@@ -181,6 +182,8 @@ export default function CameraVisionScreen() {
   // Camera state & permissions
   const [facing, setFacing] = useState<CameraType>('back');
   const [permission, requestPermission] = useCameraPermissions();
+  const cameraAvailable = Platform.OS === 'web' || permission?.granted;
+  const analysisInFlightRef = useRef(false);
   const [isRecording, setIsRecording] = useState(false);
   const [recordSeconds, setRecordSeconds] = useState(0);
   
@@ -356,6 +359,7 @@ export default function CameraVisionScreen() {
   // 1. Start Live Viewfinder Video Recording
   const handleStartRecording = async () => {
     triggerSelectionHaptic();
+    if (!cameraAvailable || analyzing) return;
     setIsRecording(true);
 
     if (Platform.OS === 'web') {
@@ -487,6 +491,8 @@ export default function CameraVisionScreen() {
 
   // 5. Process Video Upload & Run Backend Behavioral AI
   const processVideoUpload = async (uri: string, filename: string) => {
+    if (analysisInFlightRef.current) return;
+    analysisInFlightRef.current = true;
     setAnalyzing(true);
     setVideoResult(null);
     try {
@@ -495,8 +501,9 @@ export default function CameraVisionScreen() {
       triggerResolvedHaptic();
     } catch (err) {
       console.error('Video analysis failed:', err);
-      Alert.alert('Analysis Notice', 'Video processed through multi-frame kinematic model.');
+      Alert.alert('Analysis failed', err instanceof Error ? err.message : 'Could not analyze this video. Check the backend connection and try again.');
     } finally {
+      analysisInFlightRef.current = false;
       setAnalyzing(false);
     }
   };
@@ -560,7 +567,7 @@ export default function CameraVisionScreen() {
         >
           <Film size={16} color={mode === 'handheld' ? '#0B0F19' : '#94A3B8'} />
           <Text style={[styles.switchText, mode === 'handheld' && styles.switchTextActive]}>
-            Live Camera Capture
+            Camera
           </Text>
         </TouchableOpacity>
 
@@ -573,7 +580,7 @@ export default function CameraVisionScreen() {
         >
           <Radio size={16} color={mode === 'farming' ? '#0B0F19' : '#94A3B8'} />
           <Text style={[styles.switchText, mode === 'farming' && styles.switchTextActive]}>
-            24/7 Farming IP Cam
+            IP Camera
           </Text>
         </TouchableOpacity>
       </View>
@@ -586,7 +593,7 @@ export default function CameraVisionScreen() {
               <View style={styles.lensInfo}>
                 <View style={[styles.liveDot, isRecording ? styles.liveDotRecording : null]} />
                 <Text style={styles.viewfinderTitle}>
-                  {isRecording ? `REC ${formatTime(recordSeconds)} / 00:15` : 'LIVE OPTICAL VIEWFINDER'}
+                  {isRecording ? `REC ${formatTime(recordSeconds)} / 00:15` : 'Live camera'}
                 </Text>
               </View>
 
@@ -601,7 +608,7 @@ export default function CameraVisionScreen() {
                 >
                   <Radio size={13} color={autoRadar ? '#0B0F19' : '#00E5FF'} />
                   <Text style={[styles.arToggleBtnText, autoRadar && styles.arToggleBtnTextActive]}>
-                    {autoRadar ? 'RADAR: 2.5s' : 'RADAR: OFF'}
+                    {autoRadar ? 'Radar on' : 'Radar off'}
                   </Text>
                 </TouchableOpacity>
 
@@ -611,7 +618,7 @@ export default function CameraVisionScreen() {
                   activeOpacity={0.7}
                 >
                   <RotateCcw size={14} color="#00E5FF" />
-                  <Text style={styles.flipBtnText}>Flip Lens</Text>
+                  <Text style={styles.flipBtnText}>Flip</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -661,14 +668,15 @@ export default function CameraVisionScreen() {
                     </Text>
                     <TouchableOpacity 
                       style={styles.btnPermission}
-                      onPress={requestPermission}
+                      onPress={() => permission?.canAskAgain ? requestPermission() : Linking.openSettings()}
                     >
-                      <Text style={styles.btnPermissionText}>Grant Camera Access</Text>
+                      <Text style={styles.btnPermissionText}>{permission?.canAskAgain ? 'Allow Camera' : 'Open Settings'}</Text>
                     </TouchableOpacity>
                   </View>
                 )
               )}
 
+              {cameraAvailable && (<>
               {/* Tap Viewfinder Screen to Scan */}
               <TouchableOpacity
                 style={StyleSheet.absoluteFill}
@@ -680,17 +688,17 @@ export default function CameraVisionScreen() {
               <View style={styles.strataOverlay} pointerEvents="none">
                 <View style={styles.strataZoneTop}>
                   <View style={styles.strataTag}>
-                    <Text style={styles.strataTagText}>SURFACE (TOP • 0–33%)</Text>
+                    <Text style={styles.strataTagText}>Surface</Text>
                   </View>
                 </View>
                 <View style={styles.strataZoneMid}>
                   <View style={styles.strataTag}>
-                    <Text style={styles.strataTagText}>CRUISING (MIDDLE • 33–66%)</Text>
+                    <Text style={styles.strataTagText}>Middle</Text>
                   </View>
                 </View>
                 <View style={styles.strataZoneBot}>
                   <View style={styles.strataTag}>
-                    <Text style={styles.strataTagText}>BENTHIC (BOTTOM • 66–100%)</Text>
+                    <Text style={styles.strataTagText}>Bottom</Text>
                   </View>
                 </View>
               </View>
@@ -734,7 +742,7 @@ export default function CameraVisionScreen() {
                       ? scanFeedbackMsg
                       : liveTargets.length > 0
                       ? `LOCKED ${liveTargets.length} FISH IN TANK`
-                      : 'VIEWFINDER 60 FPS • TAP SCREEN OR SCAN'}
+                      : 'Tap to scan'}
                   </Text>
                 </View>
               </View>
@@ -747,7 +755,7 @@ export default function CameraVisionScreen() {
                       style={[styles.scanActionBtn, isScanning && styles.scanActionBtnBusy]}
                       activeOpacity={0.8}
                       onPress={handleScanFish}
-                      disabled={isScanning}
+                      disabled={isScanning || analyzing || isRecording}
                     >
                       {isScanning ? (
                         <ActivityIndicator size="small" color="#0B0F19" />
@@ -755,7 +763,7 @@ export default function CameraVisionScreen() {
                         <Target size={16} color="#0B0F19" />
                       )}
                       <Text style={styles.scanActionText}>
-                        {isScanning ? 'SCANNING...' : liveTargets.length > 0 ? `RESCAN (${liveTargets.length} LOCKED)` : '🎯 SCAN & LOCK TANK'}
+                        {isScanning ? 'SCANNING...' : liveTargets.length > 0 ? `RESCAN (${liveTargets.length} LOCKED)` : 'Scan'}
                       </Text>
                     </TouchableOpacity>
 
@@ -773,9 +781,10 @@ export default function CameraVisionScreen() {
                       style={styles.recordActionMiniBtn}
                       activeOpacity={0.85}
                       onPress={handleStartRecording}
+                      disabled={analyzing}
                     >
                       <View style={styles.innerRecordCircle} />
-                      <Text style={styles.recordActionMiniText}>REC 15s</Text>
+                      <Text style={styles.recordActionMiniText}>Record 15s</Text>
                     </TouchableOpacity>
                   </View>
                 ) : (
@@ -785,10 +794,11 @@ export default function CameraVisionScreen() {
                     onPress={handleStopRecording}
                   >
                     <Square size={18} color="#FFFFFF" fill="#FFFFFF" />
-                    <Text style={styles.stopActionText}>STOP & RUN KINEMATICS AI</Text>
+                    <Text style={styles.stopActionText}>Stop & Analyze</Text>
                   </TouchableOpacity>
                 )}
               </View>
+              </>)}
             </View>
 
             {/* Supplementary Video Pickers */}
@@ -796,17 +806,19 @@ export default function CameraVisionScreen() {
               <TouchableOpacity 
                 style={styles.btnSecondary} 
                 onPress={handlePickVideo}
+                disabled={analyzing || isRecording}
               >
                 <Upload size={14} color="#00E5FF" />
-                <Text style={styles.btnSecondaryText}>Upload Existing Video</Text>
+                <Text style={styles.btnSecondaryText}>Upload Video</Text>
               </TouchableOpacity>
 
               <TouchableOpacity 
                 style={styles.btnSecondary} 
                 onPress={handleLaunchExternalCamera}
+                disabled={analyzing || isRecording}
               >
                 <VideoIcon size={14} color="#00E5FF" />
-                <Text style={styles.btnSecondaryText}>System Camera App</Text>
+                <Text style={styles.btnSecondaryText}>Open Camera</Text>
               </TouchableOpacity>
             </View>
 
@@ -815,7 +827,7 @@ export default function CameraVisionScreen() {
             {analyzing && (
               <View style={styles.scanningIndicator}>
                 <ActivityIndicator color="#00E5FF" />
-                <Text style={styles.scanningText}>Analyzing Swimming Velocity & Trajectory Kinematics...</Text>
+                <Text style={styles.scanningText}>Analyzing video… Up to 2 minutes.</Text>
               </View>
             )}
           </View>
@@ -1037,7 +1049,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   switchBtnActive: { backgroundColor: '#00E5FF' },
-  switchText: { color: '#94A3B8', fontSize: 13, fontWeight: '700' },
+  switchText: { color: '#94A3B8', fontSize: 13, fontWeight: '700', flexShrink: 1, textAlign: 'center' },
   switchTextActive: { color: '#0B0F19' },
   viewfinderCard: {
     backgroundColor: '#131B2E',
@@ -1048,9 +1060,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   viewfinderHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    gap: 10,
     marginBottom: 12,
   },
   lensInfo: {
@@ -1066,6 +1076,7 @@ const styles = StyleSheet.create({
   },
   headerBtnGroup: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'center',
     gap: 8,
   },
@@ -1075,7 +1086,7 @@ const styles = StyleSheet.create({
     gap: 5,
     backgroundColor: 'rgba(0, 229, 255, 0.1)',
     paddingHorizontal: 9,
-    paddingVertical: 5,
+    paddingVertical: 10,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: 'rgba(0, 229, 255, 0.3)',
@@ -1098,7 +1109,7 @@ const styles = StyleSheet.create({
     gap: 6,
     backgroundColor: 'rgba(0, 229, 255, 0.1)',
     paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingVertical: 10,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: 'rgba(0, 229, 255, 0.25)',
@@ -1110,8 +1121,7 @@ const styles = StyleSheet.create({
   },
   viewportContainer: {
     width: '100%',
-    aspectRatio: 9 / 16,
-    maxHeight: 520,
+    aspectRatio: 3 / 4,
     backgroundColor: '#05070B',
     borderRadius: 16,
     overflow: 'hidden',
@@ -1212,7 +1222,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'rgba(11, 15, 25, 0.75)',
     paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingVertical: 10,
     borderRadius: 20,
     gap: 6,
     borderWidth: 1,
@@ -1368,8 +1378,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#00E5FF',
     paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 25,
+    paddingHorizontal: 10,
+    minHeight: 44,
+    borderRadius: 12,
     gap: 8,
     shadowColor: '#00E5FF',
     shadowOffset: { width: 0, height: 4 },
@@ -1381,6 +1392,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 229, 255, 0.65)',
   },
   scanActionText: {
+    flexShrink: 1,
+    textAlign: 'center',
     color: '#0B0F19',
     fontSize: 12,
     fontWeight: '800',
@@ -1482,6 +1495,8 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   btnSecondaryText: {
+    flexShrink: 1,
+    textAlign: 'center',
     color: '#00E5FF',
     fontSize: 12,
     fontWeight: '700',
@@ -1557,7 +1572,7 @@ const styles = StyleSheet.create({
   },
   sampleBtnText: { color: '#F8FAFC', fontSize: 12, fontWeight: '600' },
   scanningIndicator: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 16, justifyContent: 'center' },
-  scanningText: { color: '#00E5FF', fontSize: 12 },
+  scanningText: { color: '#00E5FF', fontSize: 12, flexShrink: 1 },
   resultCard: {
     backgroundColor: '#131B2E',
     borderRadius: 14,

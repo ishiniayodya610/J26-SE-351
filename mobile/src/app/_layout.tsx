@@ -58,8 +58,8 @@ export default function TabLayout() {
       <Tabs.Screen
         name="camera"
         options={{
-          title: 'Vision & IP Cam',
-          headerTitle: 'Computer Vision & IP Monitor',
+          title: 'Vision',
+          headerTitle: 'Vision Monitor',
           tabBarIcon: ({ color, size }) => <Camera color={color} size={20} />,
         }}
       />

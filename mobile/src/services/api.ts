@@ -1,13 +1,19 @@
-import { Platform } from 'react-native';
+import { NativeModules, Platform } from 'react-native';
 import Constants from 'expo-constants';
 
-// Auto-detect the development machine's IP (e.g. 192.168.1.107) from Expo Metro bundler
+// Native Xcode builds may not populate expoConfig.hostUri. Use Metro's
+// actual bundle URL as the fallback so physical devices follow the current Mac.
+export const MANUAL_DEV_IP: string | null = null;
+const sourceCode = NativeModules.SourceCode;
+const scriptURL = sourceCode?.getConstants?.().scriptURL || sourceCode?.scriptURL;
 const debuggerHost = Constants.expoConfig?.hostUri;
-const detectedIp = debuggerHost ? debuggerHost.split(':')[0] : '192.168.1.107';
+const detectedHost = MANUAL_DEV_IP || debuggerHost || scriptURL;
+const detectedIp = detectedHost
+  ? new URL(detectedHost.includes('://') ? detectedHost : `http://${detectedHost}`).hostname
+  : (Platform.OS === 'android' ? '10.0.2.2' : 'localhost');
 
-export let API_BASE_URL = Platform.OS === 'android' && !debuggerHost
-  ? 'http://10.0.2.2:8000'
-  : (Platform.OS === 'web' ? 'http://localhost:8000' : `http://${detectedIp}:8000`);
+export let API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || `http://${detectedIp}:8000`;
+const VIDEO_TIMEOUT_MS = 120_000;
 
 export function setCustomApiHost(host: string) {
   API_BASE_URL = host.startsWith('http') ? host : `http://${host}:8000`;
@@ -175,60 +181,70 @@ export const api = {
     const targetUrl = `${API_BASE_URL}/api/comp2/analyze-video`;
     const name = filename || uri.split('/').pop() || 'captured_tank_video.mp4';
 
-    // 1. On iOS & Android Native: Use Expo FileSystem native multipart uploader
-    // This streams the file directly from device storage, avoiding FormDataPart crashes
-    if (Platform.OS !== 'web') {
-      try {
-        const { uploadAsync, FileSystemUploadType } = require('expo-file-system/legacy');
-        if (uploadAsync && FileSystemUploadType) {
-          const isMov = name.toLowerCase().endsWith('.mov');
-          const isWebm = name.toLowerCase().endsWith('.webm');
-          const uploadRes = await uploadAsync(targetUrl, uri, {
-            httpMethod: 'POST',
-            uploadType: FileSystemUploadType.MULTIPART,
-            fieldName: 'file',
-            mimeType: isMov ? 'video/quicktime' : (isWebm ? 'video/webm' : 'video/mp4'),
-            parameters: {},
-          });
+    const connection = new AbortController();
+    const connectionTimer = setTimeout(() => connection.abort(), 8_000);
+    try {
+      const status = await fetch(`${API_BASE_URL}/`, { signal: connection.signal });
+      if (!status.ok) throw new Error(`Backend returned ${status.status}.`);
+    } catch {
+      throw new Error(`Cannot reach the backend at ${API_BASE_URL}. Start the backend and connect both devices to the same Wi-Fi.`);
+    } finally {
+      clearTimeout(connectionTimer);
+    }
 
-          if (uploadRes.status >= 200 && uploadRes.status < 300) {
-            const parsed = JSON.parse(uploadRes.body);
-            return parsed.data;
-          } else {
-            throw new Error(`Upload failed (${uploadRes.status}): ${uploadRes.body}`);
-          }
+    const type = name.toLowerCase().endsWith('.mov') ? 'video/quicktime'
+      : name.toLowerCase().endsWith('.webm') ? 'video/webm' : 'video/mp4';
+    const timeoutMessage = 'Video analysis timed out after 2 minutes. Check the backend connection or try a shorter clip.';
+
+    if (Platform.OS !== 'web') {
+      const { createUploadTask, FileSystemUploadType, FileSystemSessionType } = await import('expo-file-system/legacy');
+      const task = createUploadTask(targetUrl, uri, {
+        httpMethod: 'POST',
+        uploadType: FileSystemUploadType.MULTIPART,
+        sessionType: FileSystemSessionType.FOREGROUND,
+        fieldName: 'file',
+        mimeType: type,
+      });
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      try {
+        const response = await Promise.race([
+          task.uploadAsync(),
+          new Promise<never>((_, reject) => {
+            timer = setTimeout(() => {
+              reject(new Error(timeoutMessage));
+              void task.cancelAsync().catch(() => {});
+            }, VIDEO_TIMEOUT_MS);
+          }),
+        ]);
+        if (!response) throw new Error('Video upload was cancelled.');
+        const result = JSON.parse(response.body);
+        if (response.status < 200 || response.status >= 300 || !result.success || !result.data) {
+          throw new Error(result.detail || `Video analysis failed (${response.status}).`);
         }
-      } catch (nativeErr: any) {
-        console.warn('Native uploadAsync failed, falling back to Blob upload:', nativeErr?.message);
+        return result.data;
+      } finally {
+        clearTimeout(timer);
       }
     }
 
-    // 2. On Web or Fallback: Standard fetch with real Blob
-    const formData = new FormData();
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), VIDEO_TIMEOUT_MS);
     try {
-      const res = await fetch(uri);
-      const blob = await res.blob();
-      formData.append('file', blob, name);
-    } catch (blobErr) {
-      console.warn('Could not convert URI to blob:', blobErr);
-      formData.append('file', {
-        uri,
-        name,
-        type: name.toLowerCase().endsWith('.mov') ? 'video/quicktime' : 'video/mp4',
-      } as any);
+      const file = await fetch(uri, { signal: controller.signal });
+      const formData = new FormData();
+      formData.append('file', await file.blob(), name);
+      const response = await fetch(targetUrl, { method: 'POST', body: formData, signal: controller.signal });
+      const result = await response.json();
+      if (!response.ok || !result.success || !result.data) {
+        throw new Error(result.detail || `Video analysis failed (${response.status}).`);
+      }
+      return result.data;
+    } catch (error) {
+      if (controller.signal.aborted) throw new Error(timeoutMessage);
+      throw error;
+    } finally {
+      clearTimeout(timer);
     }
-
-    const res = await fetch(targetUrl, {
-      method: 'POST',
-      body: formData,
-    });
-
-    if (!res.ok) {
-      const errText = await res.text();
-      throw new Error(`Video behavioral analysis failed: ${res.status} ${errText}`);
-    }
-    const result = await res.json();
-    return result.data;
   },
 
   async identifyFish(uri: string, filename?: string): Promise<any> {

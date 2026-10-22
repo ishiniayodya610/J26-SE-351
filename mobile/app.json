@@ -8,7 +8,9 @@
     "scheme": "mobile",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "bundleIdentifier": "com.sahansandaruwan.j26se351",
+      "appleTeamId": "LAR5668Q5K"
     },
     "android": {
       "adaptiveIcon": {
