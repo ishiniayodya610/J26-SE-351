@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AquaGuard AI — Decision Engine Interactive Showcase</title>
-  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/style.css?v=2.5">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐠</text></svg>">
 </head>
 <body>
@@ -21,7 +21,10 @@
     <div class="header-status-pills">
       <div class="status-pill" id="api-status-badge">
         <span class="pulse-dot"></span>
-        <span id="api-status-text">Engine Online (Port 8000)</span>
+        <span id="api-status-text">Engine Online (v1.1.0)</span>
+      </div>
+      <div class="status-pill" style="border-color: rgba(16, 185, 129, 0.4); color: var(--accent-teal); background: rgba(16, 185, 129, 0.1);">
+        <span>⚡ Multi-Tenant Firebase</span>
       </div>
       <div class="status-pill" style="border-color: rgba(56, 189, 248, 0.4); color: var(--primary-cyan); background: rgba(56, 189, 248, 0.1);">
         <span>KB Schema v2.0.0</span>
@@ -44,6 +47,9 @@
       <button class="nav-tab-btn" id="tab-btn-catalog" onclick="switchTab('tab-catalog')">
         <span>📖</span> Species Catalog (v2.0.0)
       </button>
+      <button class="nav-tab-btn" id="tab-btn-architecture" onclick="switchTab('tab-architecture')">
+        <span>🏛️</span> System Architecture
+      </button>
     </div>
   </nav>
 
@@ -52,74 +58,372 @@
 
     <!-- TAB 1: LIVE DECISION PIPELINE -->
     <section id="tab-evaluate" class="tab-panel active">
-      <!-- Quick Presets -->
+      <!-- 3-Tier Demonstration Pipeline Banner -->
+      <div class="tier-flow-banner">
+        <div class="tier-step-pill active" id="pill-step-inputs">
+          <div class="tier-step-num">1</div>
+          <div class="tier-step-text">
+            <strong>Tier 1: Multi-Source Inputs</strong>
+            <span>Member 1 (IoT), Member 3 (Vision), Member 4 (Cloud) &amp; Species DB</span>
+          </div>
+        </div>
+        <div class="tier-arrow">➔</div>
+        <div class="tier-step-pill active" id="pill-step-process">
+          <div class="tier-step-num">2</div>
+          <div class="tier-step-text">
+            <strong>Tier 2: Four-Stage Decision Pipeline</strong>
+            <span>CSP Gatekeeper ➔ Fuzzy ESI ➔ GA Optimizer ➔ XAI Simulation</span>
+          </div>
+        </div>
+        <div class="tier-arrow">➔</div>
+        <div class="tier-step-pill active" id="pill-step-outputs">
+          <div class="tier-step-num">3</div>
+          <div class="tier-step-text">
+            <strong>Tier 3: Outputs &amp; Provisions</strong>
+            <span>Hardware Targets (IoT), Biological Vectors (Cloud) &amp; XAI Alerts (Mobile)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Presets Bar -->
       <div class="presets-bar">
         <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase;">Quick Presets:</span>
         <button class="preset-chip" onclick="loadPreset('peaceful')">🟢 Peaceful Community (Cory + Neon)</button>
+        <button class="preset-chip" onclick="loadPreset('breeder_guppy')">🧬 Breeder Colony (Guppy Harem)</button>
         <button class="preset-chip" onclick="loadPreset('predator')">🔴 Predator Conflict (Angel + Neon)</button>
         <button class="preset-chip" onclick="loadPreset('overstock')">🔴 Overstock Bioload (60 Cory in 25L)</button>
         <button class="preset-chip" onclick="loadPreset('temp_violation')">🔴 Temp Shock (33°C Violation)</button>
         <button class="preset-chip" onclick="loadPreset('harem')">🟡 Livebearer Harem (Guppy + Platy)</button>
         <button class="preset-chip" onclick="loadPreset('betta')">🔵 Solitary Betta Tank</button>
+        <button class="preset-chip" style="background: linear-gradient(135deg, rgba(0, 242, 254, 0.2), rgba(139, 92, 246, 0.25)); border-color: var(--primary-cyan); color: #fff; font-weight: 800;" onclick="startGuidedDemoTour()">🎬 Auto-Demo Tour</button>
+      </div>
+
+      <!-- Guided Demo Tour Banner -->
+      <div id="tour-banner" class="tour-banner-container" style="display: none;">
+        <div class="tour-step-info">
+          <div class="tour-step-number" id="tour-step-number">Step 1 of 6</div>
+          <div>
+            <div class="tour-step-title" id="tour-step-title">Baseline Ecosystem &amp; Safe Overlap</div>
+            <div class="tour-step-desc" id="tour-step-desc">100L tank with Corydoras &amp; Neon Tetras. Engine calculates strict safe median.</div>
+          </div>
+        </div>
+        <div class="tour-controls">
+          <button type="button" class="tour-btn" onclick="prevTourStep()">◀ Back</button>
+          <button type="button" class="tour-btn primary" id="tour-next-btn" onclick="nextTourStep()">Next Step ▶</button>
+          <button type="button" class="tour-btn" onclick="stopGuidedDemoTour()" style="color: var(--accent-rose); border-color: rgba(244, 63, 94, 0.4);">✕ Exit Tour</button>
+        </div>
+      </div>
+
+      <!-- Interactive Virtual Fish Tank & Edge Parameter Tuning Simulator -->
+      <div class="virtual-tank-showcase" id="virtual-tank-showcase">
+        <div class="virtual-tank-header">
+          <div>
+            <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.25rem;">
+              <span style="font-size: 1.4rem;">🐠</span>
+              <h3 style="font-size: 1.2rem; font-weight: 800; color: #fff; margin: 0;">
+                Virtual Smart Aquarium — Dynamic ESP32 Target Tuning
+              </h3>
+              <span class="status-pill" style="border-color: rgba(56, 189, 248, 0.4); color: var(--primary-cyan); font-size: 0.72rem; background: rgba(56, 189, 248, 0.1);">
+                Edge Invariant Loop
+              </span>
+            </div>
+            <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0;">
+              <strong>Architectural Flow:</strong> The decision engine does <em>not</em> directly switch sensor relays. Based on tank capacity and fish population, it computes optimal safe overlapping parameters and provisions target setpoints to the <strong>ESP32 Edge Microcontroller</strong>.
+            </p>
+          </div>
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <button class="btn btn-primary" onclick="applyStableTargetsToEsp32()" id="btn-transmit-esp32" style="padding: 0.5rem 1rem; font-size: 0.85rem; display: flex; align-items: center; gap: 0.4rem;">
+              <span>⚡</span> Transmit Setpoints to ESP32 Edge
+            </button>
+          </div>
+        </div>
+
+        <!-- Glass Aquarium Simulation Tank -->
+        <div class="virtual-tank-glass" id="virtual-tank-glass">
+          <!-- Rising Bubbles -->
+          <div class="tank-bubble" style="left: 12%; width: 8px; height: 8px; animation-delay: 0s; animation-duration: 4.5s;"></div>
+          <div class="tank-bubble" style="left: 28%; width: 14px; height: 14px; animation-delay: 1.2s; animation-duration: 5.5s;"></div>
+          <div class="tank-bubble" style="left: 45%; width: 10px; height: 10px; animation-delay: 2.5s; animation-duration: 4s;"></div>
+          <div class="tank-bubble" style="left: 68%; width: 12px; height: 12px; animation-delay: 0.8s; animation-duration: 5s;"></div>
+          <div class="tank-bubble" style="left: 84%; width: 16px; height: 16px; animation-delay: 3s; animation-duration: 6s;"></div>
+
+          <!-- Top-Left Overlay: Capacity & Headcount -->
+          <div class="tank-overlay-badge tank-badge-topleft">
+            <span>💧</span>
+            <span style="color: var(--text-dim);">Capacity:</span>
+            <strong id="vtank-capacity-badge" style="color: var(--primary-cyan);">100 L</strong>
+            <span style="color: var(--border-subtle); margin: 0 0.2rem;">|</span>
+            <span>🐟</span>
+            <span style="color: var(--text-dim);">Fish:</span>
+            <strong id="vtank-fish-count" style="color: #fff;">10 specimens</strong>
+          </div>
+
+          <!-- Top-Right Overlay: Bioload & Safety Status -->
+          <div class="tank-overlay-badge tank-badge-topright" id="vtank-safety-badge">
+            <span id="vtank-status-dot">🟢</span>
+            <span id="vtank-status-label" style="font-weight: 700; color: var(--accent-teal);">STABLE ENVIRONMENT</span>
+            <span style="color: var(--border-subtle); margin: 0 0.2rem;">|</span>
+            <span style="font-size: 0.75rem; color: var(--text-muted);" id="vtank-bioload-pct">Bioload: 40%</span>
+          </div>
+
+          <!-- Swimming Fish Sprites Container -->
+          <div id="virtual-tank-fish-container" style="position: absolute; inset: 0; pointer-events: auto;">
+            <!-- Rendered dynamically by app.js -->
+          </div>
+
+          <!-- Bottom Bar: Dynamic Stable Targets calculated for ESP32 -->
+          <div class="tank-badge-bottom" style="position: absolute; bottom: 12px; left: 12px; right: 12px; z-index: 10;">
+            <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
+              <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                📡 ESP32 Target Parameters:
+              </span>
+              <span id="vtank-targets-summary" style="font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: var(--primary-cyan);">
+                Temp: 24.5°C | pH: 6.85 | TDS: 150 ppm
+              </span>
+            </div>
+            <div id="vtank-edge-dispatch-status" style="font-size: 0.72rem; color: var(--accent-teal); display: flex; align-items: center; gap: 0.35rem;">
+              <span>●</span> ESP32 Edge Synced via Firebase
+            </div>
+          </div>
+        </div>
+
+        <!-- Tank Interactive Controls: Capacity Slider + Add Fish Palette -->
+        <div class="tank-controls-bar">
+          <!-- Left: Tank Capacity / Volume Controls -->
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+              <span style="font-size: 0.82rem; font-weight: 700; color: #fff;">
+                💧 Adjust Tank Capacity (Liters):
+              </span>
+              <strong id="vtank-slider-label" style="font-family: 'JetBrains Mono', monospace; color: var(--primary-cyan);">100 L</strong>
+            </div>
+            <input type="range" class="form-range" id="vtank-volume-slider" min="15" max="400" step="5" value="100" oninput="onVirtualTankVolumeChange(this.value)">
+            <div class="quick-capacity-chips">
+              <button type="button" class="capacity-chip" onclick="setVirtualTankVolume(25)">25L Nano</button>
+              <button type="button" class="capacity-chip" onclick="setVirtualTankVolume(50)">50L Small</button>
+              <button type="button" class="capacity-chip active" id="chip-vol-100" onclick="setVirtualTankVolume(100)">100L Medium</button>
+              <button type="button" class="capacity-chip" onclick="setVirtualTankVolume(200)">200L Large</button>
+              <button type="button" class="capacity-chip" onclick="setVirtualTankVolume(300)">300L Breeder</button>
+            </div>
+          </div>
+
+          <!-- Right: Fish Selection & Addition Palette -->
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+              <span style="font-size: 0.82rem; font-weight: 700; color: #fff;">
+                🐟 Select &amp; Add Fish to Aquarium:
+              </span>
+              <span style="font-size: 0.72rem; color: var(--text-dim);">Pick species &amp; exact quantity</span>
+            </div>
+
+            <!-- Custom Selection Row -->
+            <div class="vtank-selection-row">
+              <select id="vtank-species-selector" class="vtank-select" onchange="updateAddButtonText()">
+                <option value="poecilia_reticulata" selected>🐠 Guppy</option>
+                <option value="paracheirodon_innesi">🐟 Neon Tetra</option>
+                <option value="corydoras_aeneus">🐡 Corydoras</option>
+                <option value="xiphophorus_maculatus">🦐 Platy</option>
+                <option value="pterophyllum_scalare">🦈 Angelfish ⚠️</option>
+                <option value="betta_splendens">🐬 Betta</option>
+                <option value="poecilia_sphenops">🖤 Molly</option>
+                <option value="danio_rerio">⚡ Zebra Danio</option>
+                <option value="trigonostigma_heteromorpha">🔶 Harlequin Rasbora</option>
+              </select>
+
+              <!-- Quantity Stepper -->
+              <div class="vtank-qty-stepper">
+                <button type="button" class="qty-btn" onclick="adjustAddQty(-1)">−</button>
+                <input type="number" id="vtank-add-qty" min="1" max="20" value="1" class="qty-input" onchange="updateAddButtonText()">
+                <button type="button" class="qty-btn" onclick="adjustAddQty(1)">+</button>
+              </div>
+
+              <!-- Sex Selector -->
+              <select id="vtank-add-sex" class="vtank-select sex-select" onchange="updateAddButtonText()">
+                <option value="female" selected>♀ Female</option>
+                <option value="male">♂ Male</option>
+                <option value="pair">⚖️ Pair</option>
+              </select>
+
+              <button type="button" class="btn btn-primary vtank-add-btn" id="btn-add-selected-fish" onclick="addSelectedFish()">
+                <span>➕</span> Add 1 Guppy
+              </button>
+
+              <button type="button" class="quick-fish-btn" onclick="clearVirtualTank()" style="border-color: rgba(244, 63, 94, 0.4); color: var(--accent-rose); padding: 0.45rem 0.65rem;" title="Clear all fish from tank">
+                <span>🗑️</span> Empty
+              </button>
+            </div>
+
+            <!-- Quick +1 Presets Palette (adds exactly 1 fish) -->
+            <div class="quick-fish-pills-row" style="margin-top: 0.6rem;">
+              <span style="font-size: 0.72rem; color: var(--text-dim); display: flex; align-items: center; margin-right: 0.2rem;">Quick +1:</span>
+              <button type="button" class="quick-fish-btn" onclick="addOneFish('poecilia_reticulata')" title="Add exactly 1 Guppy">
+                <span>🐠</span> +1 Guppy
+              </button>
+              <button type="button" class="quick-fish-btn" onclick="addOneFish('paracheirodon_innesi')" title="Add exactly 1 Neon Tetra">
+                <span>🐟</span> +1 Neon
+              </button>
+              <button type="button" class="quick-fish-btn" onclick="addOneFish('corydoras_aeneus')" title="Add exactly 1 Corydoras">
+                <span>🐡</span> +1 Cory
+              </button>
+              <button type="button" class="quick-fish-btn" onclick="addOneFish('xiphophorus_maculatus')" title="Add exactly 1 Platy">
+                <span>🦐</span> +1 Platy
+              </button>
+              <button type="button" class="quick-fish-btn predator" onclick="addOneFish('pterophyllum_scalare')" title="Add exactly 1 Angelfish (Predator)">
+                <span>🦈</span> +1 Angel ⚠️
+              </button>
+              <button type="button" class="quick-fish-btn" onclick="addOneFish('betta_splendens')" title="Add exactly 1 Betta">
+                <span>🐬</span> +1 Betta
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stable Environment Targets Generated for ESP32 Highlight Cards -->
+        <div class="stable-params-highlight-grid">
+          <div class="stable-param-card">
+            <div class="stable-param-icon">🌡️</div>
+            <div class="stable-param-info">
+              <span style="text-transform: uppercase; letter-spacing: 0.5px;">ESP32 Target Temperature</span>
+              <strong id="vtank-card-temp">24.5 °C</strong>
+              <span id="vtank-card-temp-desc">Strict safe median for all species</span>
+            </div>
+          </div>
+          <div class="stable-param-card">
+            <div class="stable-param-icon">🧪</div>
+            <div class="stable-param-info">
+              <span style="text-transform: uppercase; letter-spacing: 0.5px;">ESP32 Target pH Level</span>
+              <strong id="vtank-card-ph">6.85</strong>
+              <span id="vtank-card-ph-desc">Chemical buffer intersection</span>
+            </div>
+          </div>
+          <div class="stable-param-card">
+            <div class="stable-param-icon">💧</div>
+            <div class="stable-param-info">
+              <span style="text-transform: uppercase; letter-spacing: 0.5px;">ESP32 Target TDS</span>
+              <strong id="vtank-card-tds">150 ppm</strong>
+              <span id="vtank-card-tds-desc">Osmotic equilibrium setpoint</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="engine-grid">
-        <!-- Left: Input Control Panel -->
+        <!-- Left: Tier 1 Multi-Source Inputs Panel -->
         <div class="glass-panel">
-          <h2 class="section-title"><span>⚙️</span> Aquarium & Telemetry Parameters</h2>
-
-          <!-- Tank Volume -->
-          <div class="form-group">
-            <div class="form-label">
-              <span>Aquarium Volume</span>
-              <span class="form-val-display" id="volume-val-display">100 Liters</span>
-            </div>
-            <input type="range" class="range-slider" id="input-volume" min="10" max="350" step="5" value="100" oninput="updateVolumeDisplay()">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.5rem;">
+            <h2 class="section-title" style="margin-bottom: 0;"><span>📥</span> Tier 1: Multi-Source Inputs</h2>
+            <span class="status-pill" style="font-size: 0.72rem; border-color: rgba(56, 189, 248, 0.4); color: var(--primary-cyan); background: rgba(56, 189, 248, 0.08);">
+              4 Ingestion Streams
+            </span>
           </div>
 
-          <!-- Temperature -->
-          <div class="form-group">
-            <div class="form-label">
-              <span>Water Temperature</span>
-              <span class="form-val-display" id="temp-val-display">25.0 °C</span>
+          <!-- Phase 16: Tank Mode Switcher -->
+          <div class="mode-switcher-card">
+            <div class="form-label" style="display: flex; justify-content: space-between; align-items: center;">
+              <span>Routing Mode (Phase 16)</span>
+              <span class="mode-badge" id="mode-badge-indicator">🎨 Ornamental Mode</span>
             </div>
-            <input type="range" class="range-slider" id="input-temp" min="14.0" max="35.0" step="0.5" value="25.0" oninput="updateTempDisplay()">
+            <div class="mode-toggle-group">
+              <button type="button" class="mode-toggle-btn active" id="btn-mode-ornamental" onclick="setTankMode('ornamental')">
+                <span class="mode-icon">🎨</span>
+                <span class="mode-title">Ornamental Mode</span>
+                <span class="mode-desc">Bypasses GA for instant latency (&lt;5ms)</span>
+              </button>
+              <button type="button" class="mode-toggle-btn" id="btn-mode-breeder" onclick="setTankMode('breeder')">
+                <span class="mode-icon">🧬</span>
+                <span class="mode-title">Breeder Mode</span>
+                <span class="mode-desc">Executes Genetic Algorithm optimizer</span>
+              </button>
+            </div>
           </div>
 
-          <!-- pH Level -->
-          <div class="form-group">
-            <div class="form-label">
-              <span>Water pH Level</span>
-              <span class="form-val-display" id="ph-val-display">7.0</span>
+          <!-- INPUT SOURCE 1: MEMBER 1 - EDGE IOT -->
+          <div class="source-section-box">
+            <div class="source-badge-header">
+              <span class="source-badge-title iot"><span>📡</span> Member 1 – Edge IoT Telemetry</span>
+              <span class="source-meta-tag">Live Sensor Array</span>
             </div>
-            <input type="range" class="range-slider" id="input-ph" min="4.5" max="9.0" step="0.1" value="7.0" oninput="updatePhDisplay()">
+
+            <!-- Tank Volume -->
+            <div class="form-group" style="margin-bottom: 0.75rem;">
+              <div class="form-label">
+                <span>Aquarium Volume</span>
+                <span class="form-val-display" id="volume-val-display">100 Liters</span>
+              </div>
+              <input type="range" class="range-slider" id="input-volume" min="10" max="350" step="5" value="100" oninput="updateVolumeDisplay()">
+            </div>
+
+            <!-- Temperature -->
+            <div class="form-group" style="margin-bottom: 0.75rem;">
+              <div class="form-label">
+                <span>Water Temperature</span>
+                <span class="form-val-display" id="temp-val-display">25.0 °C</span>
+              </div>
+              <input type="range" class="range-slider" id="input-temp" min="14.0" max="35.0" step="0.5" value="25.0" oninput="updateTempDisplay()">
+            </div>
+
+            <!-- pH Level -->
+            <div class="form-group" style="margin-bottom: 0.75rem;">
+              <div class="form-label">
+                <span>Water pH Level</span>
+                <span class="form-val-display" id="ph-val-display">7.0</span>
+              </div>
+              <input type="range" class="range-slider" id="input-ph" min="4.5" max="9.0" step="0.1" value="7.0" oninput="updatePhDisplay()">
+            </div>
+
+            <!-- TDS ppm -->
+            <div class="form-group" style="margin-bottom: 0.4rem;">
+              <div class="form-label">
+                <span>Total Dissolved Solids (TDS)</span>
+                <span class="form-val-display" id="tds-val-display">150 ppm</span>
+              </div>
+              <input type="range" class="range-slider" id="input-tds" min="20" max="550" step="10" value="150" oninput="updateTdsDisplay()">
+            </div>
+
+            <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap;">
+              <span class="iot-sync-tag" style="font-size: 0.68rem;">Array: Nominal</span>
+              <span class="iot-sync-tag" style="font-size: 0.68rem; color: var(--primary-cyan); border-color: rgba(56, 189, 248, 0.3);">Fail-safes: Clear</span>
+            </div>
           </div>
 
-          <!-- TDS ppm -->
-          <div class="form-group">
-            <div class="form-label">
-              <span>Total Dissolved Solids (TDS)</span>
-              <span class="form-val-display" id="tds-val-display">150 ppm</span>
-            </div>
-            <input type="range" class="range-slider" id="input-tds" min="20" max="550" step="10" value="150" oninput="updateTdsDisplay()">
-          </div>
-
-          <!-- Population Builder -->
-          <div class="population-builder-card">
-            <div class="form-label">
-              <span>Current Aquarium Fish Population</span>
-              <span style="font-size: 0.75rem; color: var(--text-dim);" id="population-count-badge">0 Species</span>
+          <!-- INPUT SOURCE 2: MEMBER 3 - MOBILE VISION -->
+          <div class="source-section-box">
+            <div class="source-badge-header">
+              <span class="source-badge-title vision"><span>👁️</span> Member 3 – Mobile Vision Detections</span>
+              <span class="source-meta-tag" id="population-count-badge">0 Species Detected</span>
             </div>
 
             <div class="species-adder">
-              <select id="species-selector" class="input-select">
+              <select id="species-selector" class="input-select" style="flex: 1;">
                 <option value="" disabled selected>Select species to add...</option>
               </select>
+              <input type="number" id="input-species-qty" class="input-number" min="1" max="20" value="1" style="width: 50px; text-align: center; background: rgba(15,23,42,0.85); border: 1px solid var(--border-subtle); color: #fff; border-radius: var(--radius-sm); font-family: 'JetBrains Mono', monospace;" title="Quantity to add">
               <button class="btn-secondary" onclick="addSpeciesFromSelector()">+ Add</button>
             </div>
 
-            <div id="active-fish-list">
-              <!-- Dynamically populated fish rows -->
+            <div id="active-fish-list" style="margin-top: 0.6rem;">
+              <!-- Dynamically populated fish rows with vision tags -->
+            </div>
+          </div>
+
+          <!-- INPUT SOURCE 3 & 4: MEMBER 4 CLOUD & SPECIES DB -->
+          <div class="source-section-box">
+            <div class="source-badge-header">
+              <span class="source-badge-title cloud"><span>☁️</span> Member 4 Cloud &amp; <span>📚</span> Species DB</span>
+              <span class="source-meta-tag">Multi-Hour Horizon</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; font-size: 0.72rem;">
+              <div class="esp32-target-box" style="padding: 0.4rem;">
+                <div style="color: var(--text-dim); font-size: 0.68rem;">Ammonia Spike Risk</div>
+                <div style="font-weight: 700; color: var(--accent-teal);">2.0% (Stable)</div>
+              </div>
+              <div class="esp32-target-box" style="padding: 0.4rem;">
+                <div style="color: var(--text-dim); font-size: 0.68rem;">Disease Horizon</div>
+                <div style="font-weight: 700; color: var(--accent-teal);">Low Risk</div>
+              </div>
+            </div>
+            <div style="margin-top: 0.5rem; font-size: 0.72rem; color: var(--text-dim);">
+              📚 Knowledge Base: 8 Species envelopes active (Seriously Fish)
             </div>
           </div>
 
@@ -130,8 +434,12 @@
           </div>
         </div>
 
-        <!-- Right: 4-Stage Visual Execution Pipeline -->
+        <!-- Right: Tier 2 Four-Stage Decision Pipeline -->
         <div class="pipeline-flow">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.5rem;">
+            <h2 class="section-title" style="margin-bottom: 0;"><span>⚙️</span> Tier 2: Four-Stage Process (Member 2)</h2>
+            <span class="latency-badge" id="eval-latency-badge">Latency: -- ms</span>
+          </div>
 
           <!-- STAGE 1: CSP GATEKEEPER -->
           <div class="glass-panel stage-card" id="stage-1-card">
@@ -186,10 +494,13 @@
 
           <!-- STAGE 3: GENETIC ALGORITHM POPULATION OPTIMIZER -->
           <div class="glass-panel stage-card" id="stage-3-card">
-            <span class="stage-badge info">DEAP GA</span>
-            <h2 class="section-title"><span>🧬</span> Stage 3: Dynamic Population Optimizer</h2>
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem;">
-              Multi-objective genetic algorithm balancing ESI score, species breeding sex ratios, and carrying capacity bioload penalties.
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <span class="stage-badge info" id="ga-stage-badge">Mode-Aware</span>
+              <span style="font-size: 0.75rem; color: var(--text-dim);">Phase 16 Routing</span>
+            </div>
+            <h2 class="section-title"><span>🧬</span> Stage 3: Mode-Aware Population Optimizer</h2>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem;" id="ga-card-desc">
+              Multi-objective genetic algorithm balancing ESI score, breeding sex ratios, and carrying capacity bioload penalties (active in Breeder Mode).
             </p>
             <div id="optimizer-output-content">
               <p style="color: var(--text-dim); font-size: 0.9rem;">Optimized population breakdown will appear here upon evaluation approval.</p>
@@ -208,6 +519,81 @@
             </div>
           </div>
 
+        </div>
+      </div>
+
+      <!-- TIER 3: OUTPUTS & PROVISIONS (DEDICATED FULL-WIDTH SECTION) -->
+      <div class="provisions-section">
+        <div class="glass-panel">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div>
+              <h2 class="section-title" style="margin-bottom: 0.2rem;"><span>📤</span> Tier 3: Outputs &amp; Downstream Provisions</h2>
+              <p style="font-size: 0.85rem; color: var(--text-muted);">
+                The decision engine produces three tailored deliverables for Edge IoT actuators, Cloud Intelligence analytics, and the Mobile Application.
+              </p>
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+              <span class="status-pill" id="provisions-status-pill" style="border-color: rgba(16, 185, 129, 0.4); color: var(--accent-teal); background: rgba(16, 185, 129, 0.1);">
+                ⚡ Realtime Dispatch Ready
+              </span>
+            </div>
+          </div>
+
+          <div class="provisions-grid">
+            <!-- Provision 1: Hardware Targets to IoT -->
+            <div class="provision-box iot" id="provision-box-iot">
+              <div class="provision-header">
+                <div class="provision-title"><span>📡</span> Hardware Targets to Edge IoT</div>
+                <span class="stage-badge info" id="prov-iot-badge">Phase 14 Overlap</span>
+              </div>
+              <p class="provision-desc">
+                Strict safe median setpoints for temperature, pH, and TDS dynamically computed via Overlap intersection and synced to Firebase for ESP32 edge PID controllers.
+              </p>
+              <div id="prov-iot-content" class="provision-payload-box">
+                <span style="color: var(--text-dim);">Run evaluation to generate edge hardware targets.</span>
+              </div>
+              <div class="provision-status-line">
+                <span>Destination: Member 1 (Edge IoT)</span>
+                <span id="prov-iot-sync-text" style="color: var(--accent-teal);">⚡ users/default_user/...</span>
+              </div>
+            </div>
+
+            <!-- Provision 2: Biological Vectors to Cloud -->
+            <div class="provision-box cloud" id="provision-box-cloud">
+              <div class="provision-header">
+                <div class="provision-title"><span>☁️</span> Biological Vectors to Cloud</div>
+                <span class="stage-badge info" id="prov-cloud-badge">Member 4 Ingestion</span>
+              </div>
+              <p class="provision-desc">
+                Approved species stocking structures, sex ratios, carrying capacity allowances, and derived continuous ESI health indicators sent to cloud services.
+              </p>
+              <div id="prov-cloud-content" class="provision-payload-box">
+                <span style="color: var(--text-dim);">Run evaluation to generate cloud biological vector.</span>
+              </div>
+              <div class="provision-status-line">
+                <span>Destination: Member 4 (Cloud Engine)</span>
+                <span style="color: var(--accent-purple);">Longitudinal Analytics</span>
+              </div>
+            </div>
+
+            <!-- Provision 3: XAI Alerts to Mobile App -->
+            <div class="provision-box mobile" id="provision-box-mobile">
+              <div class="provision-header">
+                <div class="provision-title"><span>📱</span> XAI Alerts to Mobile App</div>
+                <span class="stage-badge info" id="prov-mobile-badge">Mobile UI Alerts</span>
+              </div>
+              <p class="provision-desc">
+                Explainable alerts, plain-language justifications of constraint violations, breeding sex ratio recommendations, and scenario delta comparisons for aquarists.
+              </p>
+              <div id="prov-mobile-content" class="provision-payload-box">
+                <span style="color: var(--text-dim);">Run evaluation to generate user-facing XAI alert.</span>
+              </div>
+              <div class="provision-status-line">
+                <span>Destination: React Native App</span>
+                <span style="color: var(--accent-teal);">User Interface &amp; Push</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -402,8 +788,170 @@
       </div>
     </section>
 
+    <!-- TAB 5: SYSTEM ARCHITECTURE & 4-STAGE PIPELINE -->
+    <section id="tab-architecture" class="tab-panel">
+      <div class="glass-panel" style="margin-bottom: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <h2 class="section-title" style="margin-bottom: 0.25rem;"><span>🏛️</span> Explainable Hybrid CSP-Fuzzy Optimizer</h2>
+            <p style="color: var(--text-muted); font-size: 0.92rem;">
+              From multi-source data to explainable, optimal aquarium ecosystem decisions (J26-SE-351).
+            </p>
+          </div>
+          <div style="display: flex; gap: 0.5rem;">
+            <span class="status-pill" style="border-color: rgba(0, 242, 254, 0.4); color: var(--primary-cyan); background: rgba(0, 242, 254, 0.1);">
+              4 Inputs • 4 Pipeline Stages • 3 Provisions
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 1: INPUTS -->
+      <div style="margin-bottom: 2rem;">
+        <h3 class="arch-section-header"><span>📥</span> 1. Multi-Source Inputs</h3>
+        <div class="arch-cards-grid">
+          <div class="arch-card">
+            <div class="arch-card-icon">📡</div>
+            <div class="arch-card-title">Member 1 – Edge IoT</div>
+            <p class="arch-card-desc">Real-time aquarium sensor readings (temperature, pH, TDS) and edge hardware operational diagnostics.</p>
+            <div class="arch-tag-list">
+              <span class="arch-tag">temperature_c</span>
+              <span class="arch-tag">ph</span>
+              <span class="arch-tag">tds_ppm</span>
+              <span class="arch-tag">diagnostics</span>
+            </div>
+          </div>
+          <div class="arch-card">
+            <div class="arch-card-icon">👁️</div>
+            <div class="arch-card-title">Member 3 – Mobile Vision</div>
+            <p class="arch-card-desc">Fish identification and image-based species count, gender distribution, lethargy index %, and posture states.</p>
+            <div class="arch-tag-list">
+              <span class="arch-tag">species_id</span>
+              <span class="arch-tag">male / female</span>
+              <span class="arch-tag">lethargy_pct</span>
+              <span class="arch-tag">surface_piping</span>
+            </div>
+          </div>
+          <div class="arch-card">
+            <div class="arch-card-icon">☁️</div>
+            <div class="arch-card-title">Member 4 – Cloud Intelligence</div>
+            <p class="arch-card-desc">Behavior analysis, multi-hour forecasting, ammonia spike risk modeling, and disease outbreak probabilities.</p>
+            <div class="arch-tag-list">
+              <span class="arch-tag">ammonia_risk_pct</span>
+              <span class="arch-tag">whitespot_risk</span>
+              <span class="arch-tag">temp_trend_c</span>
+              <span class="arch-tag">forecast_horizon</span>
+            </div>
+          </div>
+          <div class="arch-card">
+            <div class="arch-card-icon">📚</div>
+            <div class="arch-card-title">Species Database</div>
+            <p class="arch-card-desc">Species biological envelopes, aggression metrics, adult standard length, swimming layers, and social compatibility rules.</p>
+            <div class="arch-tag-list">
+              <span class="arch-tag">thermal_limits</span>
+              <span class="arch-tag">ph_tolerances</span>
+              <span class="arch-tag">aggression_1-10</span>
+              <span class="arch-tag">breeding_ratios</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 2: FOUR-STAGE PROCESSING PIPELINE -->
+      <div style="margin-bottom: 2rem;">
+        <h3 class="arch-section-header"><span>⚙️</span> 2. Four-Stage Processing Pipeline (Member 2)</h3>
+        <div class="pipeline-arch-grid">
+          <div class="pipeline-arch-card">
+            <div class="pipeline-step-badge">Stage 1</div>
+            <div class="pipeline-arch-title">🛡️ CSP Gatekeeper</div>
+            <ul class="pipeline-arch-list">
+              <li>Validates hard constraints & biological invariants.</li>
+              <li>Prunes predator/prey pairings (e.g. Angel + Neon).</li>
+              <li>Enforces tank volume carrying capacity & thermal safety.</li>
+              <li>Filters out infeasible combinations early (fail-fast).</li>
+            </ul>
+          </div>
+          <div class="pipeline-arch-card">
+            <div class="pipeline-step-badge">Stage 2</div>
+            <div class="pipeline-arch-title">🌊 Fuzzy Inference System</div>
+            <ul class="pipeline-arch-list">
+              <li>Handles uncertainty using Mamdani Fuzzy Logic (`scikit-fuzzy`).</li>
+              <li>Fuzzifies multivariate telemetry & community aggression.</li>
+              <li>Computes continuous Ecosystem Stability Index (ESI: 0.0 to 1.0).</li>
+              <li>Derives linguistic health classifications (Critical/Suboptimal/Stable).</li>
+            </ul>
+          </div>
+          <div class="pipeline-arch-card">
+            <div class="pipeline-step-badge">Stage 3</div>
+            <div class="pipeline-arch-title">🧬 Population Optimizer</div>
+            <ul class="pipeline-arch-list">
+              <li>Mode-Aware Branching (Ornamental vs Breeder).</li>
+              <li>Ornamental Mode: Fast-path bypass (<5ms latency).</li>
+              <li>Breeder Mode: DEAP Multi-Objective Genetic Algorithm.</li>
+              <li>Balances fitness, diversity, sex ratios & fry bioload capacity.</li>
+            </ul>
+          </div>
+          <div class="pipeline-arch-card">
+            <div class="pipeline-step-badge">Stage 4</div>
+            <div class="pipeline-arch-title">💡 XAI Simulation</div>
+            <ul class="pipeline-arch-list">
+              <li>Simulates ecosystem and counterfactual parameter shifts.</li>
+              <li>Interactive What-If counterfactual scenario sandbox.</li>
+              <li>Computes stability delta (ΔESI) between states.</li>
+              <li>Generates deterministic natural language explanations & reasons.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 3: OUTPUTS & PROVISIONS -->
+      <div>
+        <h3 class="arch-section-header"><span>📤</span> 3. Outputs & Provisions</h3>
+        <div class="arch-cards-grid" style="grid-template-columns: repeat(3, 1fr);">
+          <div class="arch-card provision-card">
+            <div class="arch-card-icon" style="background: rgba(0, 242, 254, 0.15); color: var(--primary-cyan);">📡</div>
+            <div class="arch-card-title">Hardware Targets to IoT</div>
+            <p class="arch-card-desc">
+              Optimized environmental setpoints and actuation targets dynamically computed via Phase 14 Overlap algorithm and dispatched to Firebase for ESP32 edge PID controllers.
+            </p>
+            <div class="arch-tag-list">
+              <span class="arch-tag" style="color: var(--primary-cyan);">target_temp_c</span>
+              <span class="arch-tag" style="color: var(--primary-cyan);">target_ph</span>
+              <span class="arch-tag" style="color: var(--primary-cyan);">target_tds_ppm</span>
+              <span class="arch-tag" style="color: var(--accent-teal);">users/{uid}/tanks/{tid}/esp32_targets</span>
+            </div>
+          </div>
+          <div class="arch-card provision-card">
+            <div class="arch-card-icon" style="background: rgba(139, 92, 246, 0.15); color: var(--accent-purple);">☁️</div>
+            <div class="arch-card-title">Biological Vectors to Cloud</div>
+            <p class="arch-card-desc">
+              Optimized species mix, sex ratios, carrying capacity allowances, and derived biological stability indicators transmitted to cloud services for analytics.
+            </p>
+            <div class="arch-tag-list">
+              <span class="arch-tag" style="color: var(--accent-purple);">approved_population</span>
+              <span class="arch-tag" style="color: var(--accent-purple);">esi_score</span>
+              <span class="arch-tag" style="color: var(--accent-purple);">risk_level</span>
+              <span class="arch-tag" style="color: var(--accent-purple);">bioload_margin</span>
+            </div>
+          </div>
+          <div class="arch-card provision-card">
+            <div class="arch-card-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--accent-teal);">📱</div>
+            <div class="arch-card-title">XAI Alerts to Mobile App</div>
+            <p class="arch-card-desc">
+              Explainable alerts, plain-language justifications of constraint violations, breeding sex ratio recommendations, and scenario delta comparisons for aquarists.
+            </p>
+            <div class="arch-tag-list">
+              <span class="arch-tag" style="color: var(--accent-teal);">explanation_summary</span>
+              <span class="arch-tag" style="color: var(--accent-teal);">rule_violation_trace</span>
+              <span class="arch-tag" style="color: var(--accent-teal);">husbandry_actions</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
   </main>
 
-  <script src="/static/app.js"></script>
+  <script src="/static/app.js?v=2.5"></script>
 </body>
 </html>

@@ -16,7 +16,13 @@ def _get_base_dir() -> str:
     return os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 
 
+_SPECIES_DB_CACHE = None
+_BENCHMARKS_CACHE = None
+
 def _load_species_db() -> Dict[str, Any]:
+    global _SPECIES_DB_CACHE
+    if _SPECIES_DB_CACHE is not None:
+        return _SPECIES_DB_CACHE
     base_dir = _get_base_dir()
     path = os.path.join(base_dir, "data", "species_seed.json")
     if not os.path.exists(path):
@@ -24,16 +30,21 @@ def _load_species_db() -> Dict[str, Any]:
     with open(path, "r", encoding="utf-8") as f:
         data = json.load(f)
         species_list = data["species"] if isinstance(data, dict) and "species" in data else data
-        return {s["species_id"]: s for s in species_list}
+        _SPECIES_DB_CACHE = {s["species_id"]: s for s in species_list}
+        return _SPECIES_DB_CACHE
 
 
 def _load_benchmarks() -> Dict[str, Any]:
+    global _BENCHMARKS_CACHE
+    if _BENCHMARKS_CACHE is not None:
+        return _BENCHMARKS_CACHE
     base_dir = _get_base_dir()
     path = os.path.join(base_dir, "data", "benchmark_100.json")
     if not os.path.exists(path):
         path = os.path.join(base_dir, "app", "data", "benchmark_100.json")
     with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
+        _BENCHMARKS_CACHE = json.load(f)
+        return _BENCHMARKS_CACHE
 
 
 @router.get("/")

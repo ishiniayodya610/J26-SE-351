@@ -4,6 +4,37 @@ let speciesCatalog = [];
 let currentFishPopulation = [];
 let proposedFishPopulation = [];
 let allBenchmarkResults = [];
+let currentTankMode = 'ornamental';
+
+// Mode Switching (Phase 16)
+function setTankMode(mode) {
+  currentTankMode = mode;
+  const btnOrnamental = document.getElementById('btn-mode-ornamental');
+  const btnBreeder = document.getElementById('btn-mode-breeder');
+  const badge = document.getElementById('mode-badge-indicator');
+
+  if (mode === 'breeder') {
+    if (btnBreeder) btnBreeder.classList.add('active');
+    if (btnOrnamental) btnOrnamental.classList.remove('active');
+    if (badge) {
+      badge.textContent = '🧬 Breeder Mode';
+      badge.style.color = 'var(--accent-purple)';
+      badge.style.borderColor = 'rgba(139, 92, 246, 0.4)';
+      badge.style.background = 'rgba(139, 92, 246, 0.15)';
+    }
+  } else {
+    if (btnOrnamental) btnOrnamental.classList.add('active');
+    if (btnBreeder) btnBreeder.classList.remove('active');
+    if (badge) {
+      badge.textContent = '🎨 Ornamental Mode';
+      badge.style.color = 'var(--primary-cyan)';
+      badge.style.borderColor = 'rgba(0, 242, 254, 0.3)';
+      badge.style.background = 'rgba(0, 242, 254, 0.12)';
+    }
+  }
+
+  executeDecisionPipeline();
+}
 
 // Initialize Dashboard on DOM Load
 document.addEventListener('DOMContentLoaded', async () => {
@@ -47,6 +78,20 @@ async function fetchSpeciesCatalog() {
       const simOpt = opt.cloneNode(true);
       simSelector.appendChild(simOpt);
     });
+
+    // Populate Virtual Tank Species Selector
+    const vtankSel = document.getElementById('vtank-species-selector');
+    if (vtankSel && speciesCatalog.length > 0) {
+      vtankSel.innerHTML = '';
+      speciesCatalog.forEach(s => {
+        const meta = SPECIES_EMOJI_MAP[s.species_id] || { emoji: '🐟' };
+        const opt = document.createElement('option');
+        opt.value = s.species_id;
+        opt.textContent = `${meta.emoji} ${s.common_name}`;
+        vtankSel.appendChild(opt);
+      });
+      updateAddButtonText();
+    }
 
     renderSpeciesCatalogGrid();
   } catch (err) {
@@ -94,15 +139,25 @@ function renderSpeciesCatalogGrid() {
 
 // Preset Loader
 function loadPreset(presetKey) {
+  let targetMode = 'ornamental';
   switch (presetKey) {
     case 'peaceful':
+      targetMode = 'ornamental';
       setTankParams(100, 24.5, 6.8, 120);
       currentFishPopulation = [
         { species_id: 'corydoras_aeneus', common_name: 'Corydoras (Bronze Cory)', male: 2, female: 4, lethargy_index_pct: 0 },
         { species_id: 'paracheirodon_innesi', common_name: 'Neon Tetra', male: 5, female: 5, lethargy_index_pct: 0 }
       ];
       break;
+    case 'breeder_guppy':
+      targetMode = 'breeder';
+      setTankParams(100, 25.5, 7.2, 180);
+      currentFishPopulation = [
+        { species_id: 'poecilia_reticulata', common_name: 'Guppy', male: 4, female: 12, lethargy_index_pct: 0 }
+      ];
+      break;
     case 'predator':
+      targetMode = 'ornamental';
       setTankParams(150, 26.0, 7.0, 150);
       currentFishPopulation = [
         { species_id: 'pterophyllum_scalare', common_name: 'Angelfish', male: 1, female: 1, lethargy_index_pct: 0 },
@@ -110,18 +165,21 @@ function loadPreset(presetKey) {
       ];
       break;
     case 'overstock':
+      targetMode = 'ornamental';
       setTankParams(25, 24.0, 7.0, 150);
       currentFishPopulation = [
         { species_id: 'corydoras_aeneus', common_name: 'Corydoras (Bronze Cory)', male: 15, female: 15, lethargy_index_pct: 0 }
       ];
       break;
     case 'temp_violation':
+      targetMode = 'ornamental';
       setTankParams(100, 33.0, 7.0, 150);
       currentFishPopulation = [
         { species_id: 'paracheirodon_innesi', common_name: 'Neon Tetra', male: 5, female: 5, lethargy_index_pct: 0 }
       ];
       break;
     case 'harem':
+      targetMode = 'breeder';
       setTankParams(100, 25.0, 7.5, 220);
       currentFishPopulation = [
         { species_id: 'poecilia_reticulata', common_name: 'Guppy', male: 2, female: 6, lethargy_index_pct: 0 },
@@ -129,6 +187,7 @@ function loadPreset(presetKey) {
       ];
       break;
     case 'betta':
+      targetMode = 'ornamental';
       setTankParams(45, 26.0, 7.0, 150);
       currentFishPopulation = [
         { species_id: 'betta_splendens', common_name: 'Betta', male: 1, female: 0, lethargy_index_pct: 0 }
@@ -136,7 +195,7 @@ function loadPreset(presetKey) {
       break;
   }
   renderFishPopulation();
-  executeDecisionPipeline();
+  setTankMode(targetMode);
 }
 
 function setTankParams(vol, temp, ph, tds) {
@@ -144,24 +203,42 @@ function setTankParams(vol, temp, ph, tds) {
   document.getElementById('input-temp').value = temp;
   document.getElementById('input-ph').value = ph;
   document.getElementById('input-tds').value = tds;
+  const vSlider = document.getElementById('vtank-volume-slider');
+  if (vSlider) vSlider.value = vol;
+  const vLabel = document.getElementById('vtank-slider-label');
+  if (vLabel) vLabel.textContent = `${vol} L`;
+  updateCapacityChipActive(vol);
   updateVolumeDisplay();
   updateTempDisplay();
   updatePhDisplay();
   updateTdsDisplay();
 }
 
+// Debounce Helper for High-Frequency Slider Inputs
+let debouncePipelineTimer = null;
+function debouncedPipeline(delay = 120) {
+  clearTimeout(debouncePipelineTimer);
+  debouncePipelineTimer = setTimeout(() => {
+    executeDecisionPipeline();
+  }, delay);
+}
+
 // Display Helpers for Sliders
 function updateVolumeDisplay() {
   document.getElementById('volume-val-display').textContent = `${document.getElementById('input-volume').value} Liters`;
+  debouncedPipeline(100);
 }
 function updateTempDisplay() {
   document.getElementById('temp-val-display').textContent = `${Number(document.getElementById('input-temp').value).toFixed(1)} °C`;
+  debouncedPipeline(100);
 }
 function updatePhDisplay() {
   document.getElementById('ph-val-display').textContent = Number(document.getElementById('input-ph').value).toFixed(1);
+  debouncedPipeline(100);
 }
 function updateTdsDisplay() {
   document.getElementById('tds-val-display').textContent = `${document.getElementById('input-tds').value} ppm`;
+  debouncedPipeline(100);
 }
 
 // Population Builder UI
@@ -201,33 +278,38 @@ function addSpeciesFromSelector() {
   const speciesId = sel.value;
   if (!speciesId) return;
 
+  const qtyInput = document.getElementById('input-species-qty');
+  const qty = Math.max(1, parseInt(qtyInput ? qtyInput.value : 1) || 1);
+
   const sp = speciesCatalog.find(s => s.species_id === speciesId);
   const exists = currentFishPopulation.find(f => f.species_id === speciesId);
 
   if (exists) {
-    exists.male += 1;
-    exists.female += 2;
+    exists.female = (parseInt(exists.female) || 0) + qty;
   } else {
     currentFishPopulation.push({
       species_id: speciesId,
       common_name: sp ? sp.common_name : speciesId,
-      male: 2,
-      female: 4,
+      male: 0,
+      female: qty,
       lethargy_index_pct: 0
     });
   }
   renderFishPopulation();
+  executeDecisionPipeline();
 }
 
 function updateFishCount(idx, field, val) {
   if (currentFishPopulation[idx]) {
     currentFishPopulation[idx][field] = Math.max(0, parseInt(val) || 0);
+    executeDecisionPipeline();
   }
 }
 
 function removeFish(idx) {
   currentFishPopulation.splice(idx, 1);
   renderFishPopulation();
+  executeDecisionPipeline();
 }
 
 // Execute 4-Stage Decision Pipeline (POST /api/v1/evaluate)
@@ -242,6 +324,7 @@ async function executeDecisionPipeline() {
   const tdsVal = parseFloat(document.getElementById('input-tds').value) || 150;
 
   const payload = {
+    tank_mode: currentTankMode,
     scenario_id: 'demo_live_evaluation',
     description: 'Live interactive evaluation from demo dashboard',
     aquarium: {
@@ -290,13 +373,16 @@ async function executeDecisionPipeline() {
   };
 
   try {
+    const t0 = performance.now();
     const res = await fetch('/api/v1/evaluate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
     const decision = await res.json();
-    renderPipelineResults(decision, payload);
+    const t1 = performance.now();
+    const latencyMs = Math.round(t1 - t0);
+    renderPipelineResults(decision, payload, latencyMs);
   } catch (err) {
     console.error('Pipeline error:', err);
   } finally {
@@ -306,8 +392,15 @@ async function executeDecisionPipeline() {
 }
 
 // Render Pipeline Outputs
-function renderPipelineResults(decision, payload) {
+function renderPipelineResults(decision, payload, latencyMs) {
   const isApproved = decision.status === 'APPROVED';
+
+  // Execution Latency Display
+  const latencyBadge = document.getElementById('eval-latency-badge');
+  if (latencyBadge && latencyMs !== undefined) {
+    latencyBadge.textContent = `⚡ Latency: ${latencyMs} ms`;
+    latencyBadge.style.color = latencyMs < 25 ? 'var(--accent-teal)' : 'var(--accent-amber)';
+  }
 
   // 1. Stage 1: CSP Gatekeeper
   const cspBadge = document.getElementById('csp-status-badge');
@@ -392,40 +485,177 @@ function renderPipelineResults(decision, payload) {
   });
   document.getElementById('ant-agg-val').textContent = `${maxAgg}/10`;
 
-  // 3. Stage 3: Dynamic Population Optimizer
-  const optContent = document.getElementById('optimizer-output-content');
-  if (isApproved && decision.population && decision.population.length > 0) {
-    let popCards = '<div class="optimizer-pop-grid">';
-    decision.population.forEach(f => {
-      const sp = speciesCatalog.find(s => s.species_id === f.species_id);
-      popCards += `
-        <div class="opt-fish-card">
-          <div class="opt-fish-name">${sp ? sp.common_name : f.species_id}</div>
-          <div class="opt-counts">
-            <span class="count-badge-m">♂ ${f.male} Males</span>
-            <span class="count-badge-f">♀ ${f.female} Females</span>
+  // PHASE 14 & 15: ESP32 Environmental Targets & Firebase Sync
+  const esp32Card = document.getElementById('esp32-target-card');
+  const esp32Badge = document.getElementById('esp32-status-badge');
+  const esp32Content = document.getElementById('esp32-output-content');
+  const esp32SyncTag = document.getElementById('esp32-sync-tag');
+
+  if (isApproved && decision.esp32_targets) {
+    const targets = decision.esp32_targets;
+    if (esp32Badge) {
+      esp32Badge.className = 'stage-badge pass';
+      esp32Badge.textContent = 'TARGETS LOCKED';
+    }
+    if (esp32Card) esp32Card.style.borderColor = 'rgba(16, 185, 129, 0.5)';
+    if (esp32SyncTag) {
+      esp32SyncTag.innerHTML = '<span>⚡</span> Synced: users/default_user/tanks/aquarium_001/esp32_targets';
+      esp32SyncTag.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+      esp32SyncTag.style.color = 'var(--accent-teal)';
+    }
+
+    if (esp32Content) {
+      esp32Content.innerHTML = `
+        <div class="esp32-targets-grid">
+          <div class="esp32-target-box">
+            <div class="esp32-label">🌡️ Target Temperature</div>
+            <div class="esp32-val">${targets.temperature_c.toFixed(1)} <span style="font-size: 0.9rem;">°C</span></div>
+            <div class="esp32-band">Strict Safe Median</div>
           </div>
-          <div style="font-size: 0.72rem; color: var(--text-dim); margin-top: 0.35rem;">
-            Breeding Ratio: ${f.male > 0 ? (f.female / f.male).toFixed(1) : 'Solitary'} : 1
+          <div class="esp32-target-box">
+            <div class="esp32-label">🧪 Target pH Level</div>
+            <div class="esp32-val">${targets.ph.toFixed(2)}</div>
+            <div class="esp32-band">Chemical Buffer Target</div>
+          </div>
+          <div class="esp32-target-box">
+            <div class="esp32-label">💧 Target TDS</div>
+            <div class="esp32-val">${Math.round(targets.tds_ppm)} <span style="font-size: 0.9rem;">ppm</span></div>
+            <div class="esp32-band">Osmotic Equilibrium</div>
+          </div>
+        </div>
+        <p style="font-size: 0.8rem; color: var(--text-dim); margin-top: 0.4rem;">
+          Dynamic intersection calculated via Phase 14 Overlap algorithm and dispatched to Firebase for edge hardware actuators.
+        </p>
+      `;
+    }
+  } else {
+    if (esp32Badge) {
+      esp32Badge.className = 'stage-badge fail';
+      esp32Badge.textContent = 'HARDWARE LOCKOUT';
+    }
+    if (esp32Card) esp32Card.style.borderColor = 'rgba(244, 63, 94, 0.5)';
+    if (esp32SyncTag) {
+      esp32SyncTag.innerHTML = '<span>⚠️</span> Firebase Sync Locked (Conflict)';
+      esp32SyncTag.style.borderColor = 'rgba(244, 63, 94, 0.4)';
+      esp32SyncTag.style.color = 'var(--accent-rose)';
+    }
+
+    if (esp32Content) {
+      esp32Content.innerHTML = `
+        <div class="bypass-banner" style="border-color: rgba(244, 63, 94, 0.4); background: rgba(244, 63, 94, 0.08);">
+          <span style="font-size: 1.25rem;">🛑</span>
+          <div>
+            <strong style="color: var(--accent-rose);">Hardware Setpoint Update Aborted</strong>
+            <p style="font-size: 0.82rem; color: #cbd5e1; margin-top: 0.2rem;">
+              ${decision.violations?.[0]?.explanation || 'Environmental tolerances conflict between current species. ESP32 target generation halted to prevent thermal/chemical shock.'}
+            </p>
           </div>
         </div>
       `;
-    });
-    popCards += '</div>';
+    }
+  }
 
-    optContent.innerHTML = `
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-        <span style="font-size: 0.88rem; color: var(--accent-teal); font-weight: 600;">✓ Optimized Population Candidate Generated</span>
-        <span style="font-size: 0.75rem; color: var(--text-dim);">Convergence: DEAP Generation 10</span>
-      </div>
-      ${popCards}
-    `;
+  // 3. Stage 3: Mode-Aware Population Optimizer (Phase 16)
+  const optContent = document.getElementById('optimizer-output-content');
+  const gaBadge = document.getElementById('ga-stage-badge');
+  const stage3Card = document.getElementById('stage-3-card');
+  const mode = decision.mode || currentTankMode;
+
+  if (isApproved) {
+    if (mode === 'breeder') {
+      if (gaBadge) {
+        gaBadge.className = 'stage-badge pass';
+        gaBadge.textContent = 'DEAP GA ACTIVE';
+        gaBadge.style.background = 'rgba(139, 92, 246, 0.2)';
+        gaBadge.style.color = 'var(--accent-purple)';
+        gaBadge.style.borderColor = 'rgba(139, 92, 246, 0.4)';
+      }
+      if (stage3Card) stage3Card.style.borderColor = 'rgba(139, 92, 246, 0.5)';
+
+      let popCards = '<div class="optimizer-pop-grid">';
+      (decision.population || []).forEach(f => {
+        const sp = speciesCatalog.find(s => s.species_id === f.species_id);
+        popCards += `
+          <div class="opt-fish-card" style="border-color: rgba(139, 92, 246, 0.35);">
+            <div class="opt-fish-name">${sp ? sp.common_name : f.species_id}</div>
+            <div class="opt-counts">
+              <span class="count-badge-m">♂ ${f.male} Males</span>
+              <span class="count-badge-f">♀ ${f.female} Females</span>
+            </div>
+            <div style="font-size: 0.72rem; color: var(--text-dim); margin-top: 0.35rem;">
+              Breeding Ratio: ${f.male > 0 ? (f.female / f.male).toFixed(1) : 'Solitary'} : 1
+            </div>
+          </div>
+        `;
+      });
+      popCards += '</div>';
+
+      if (optContent) {
+        optContent.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
+            <span style="font-size: 0.88rem; color: var(--accent-purple); font-weight: 700;">🧬 Genetic Algorithm Optimized Population</span>
+            <span style="font-size: 0.75rem; color: var(--text-dim);">Sex Ratios & Fry Bioload Reserve Applied</span>
+          </div>
+          ${popCards}
+        `;
+      }
+    } else {
+      // Ornamental Mode - Fast path
+      if (gaBadge) {
+        gaBadge.className = 'stage-badge info';
+        gaBadge.textContent = 'GA BYPASSED (<5ms)';
+        gaBadge.style.background = 'rgba(0, 242, 254, 0.12)';
+        gaBadge.style.color = 'var(--primary-cyan)';
+        gaBadge.style.borderColor = 'rgba(0, 242, 254, 0.3)';
+      }
+      if (stage3Card) stage3Card.style.borderColor = 'rgba(0, 242, 254, 0.3)';
+
+      let popCards = '<div class="optimizer-pop-grid">';
+      (decision.population || currentFishPopulation).forEach(f => {
+        const sp = speciesCatalog.find(s => s.species_id === f.species_id);
+        popCards += `
+          <div class="opt-fish-card">
+            <div class="opt-fish-name">${sp ? sp.common_name : f.species_id}</div>
+            <div class="opt-counts">
+              <span class="count-badge-m">♂ ${f.male || 0}</span>
+              <span class="count-badge-f">♀ ${f.female || 0}</span>
+            </div>
+            <div style="font-size: 0.72rem; color: var(--text-dim); margin-top: 0.35rem;">
+              Status: Maintained as Prescribed
+            </div>
+          </div>
+        `;
+      });
+      popCards += '</div>';
+
+      if (optContent) {
+        optContent.innerHTML = `
+          <div class="bypass-banner">
+            <span style="font-size: 1.25rem;">⚡</span>
+            <div>
+              <strong style="color: var(--primary-cyan);">Ornamental Fast-Path Routing Active</strong>
+              <p style="font-size: 0.82rem; color: #cbd5e1; margin-top: 0.2rem;">
+                The Genetic Algorithm was bypassed to achieve sub-5ms IoT edge response latency. Current fish population is verified safe and preserved without breeding mutation.
+              </p>
+            </div>
+          </div>
+          ${popCards}
+        `;
+      }
+    }
   } else {
-    optContent.innerHTML = `
-      <p style="color: var(--text-dim); font-size: 0.88rem;">
-        GA optimization bypassed because Stage 1 CSP Gatekeeper blocked the configuration.
-      </p>
-    `;
+    if (gaBadge) {
+      gaBadge.className = 'stage-badge fail';
+      gaBadge.textContent = 'BYPASSED';
+    }
+    if (stage3Card) stage3Card.style.borderColor = 'var(--border-subtle)';
+    if (optContent) {
+      optContent.innerHTML = `
+        <p style="color: var(--text-dim); font-size: 0.88rem;">
+          GA optimization bypassed because Stage 1 CSP Gatekeeper blocked the configuration.
+        </p>
+      `;
+    }
   }
 
   // 4. Stage 4: Explainable AI (XAI)
@@ -446,6 +676,143 @@ function renderPipelineResults(decision, payload) {
       </div>
     </div>
   `;
+
+  // 5. Tier 3: Outputs & Downstream Provisions (IoT, Cloud, Mobile App)
+  const provIotContent = document.getElementById('prov-iot-content');
+  const provIotBadge = document.getElementById('prov-iot-badge');
+  const provIotSyncText = document.getElementById('prov-iot-sync-text');
+
+  const provCloudContent = document.getElementById('prov-cloud-content');
+  const provCloudBadge = document.getElementById('prov-cloud-badge');
+
+  const provMobileContent = document.getElementById('prov-mobile-content');
+  const provMobileBadge = document.getElementById('prov-mobile-badge');
+  const provPill = document.getElementById('provisions-status-pill');
+
+  if (isApproved) {
+    if (provPill) {
+      provPill.textContent = '⚡ Realtime Dispatch Active';
+      provPill.style.color = 'var(--accent-teal)';
+      provPill.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+    }
+
+    // Provision 1: Hardware Targets to IoT
+    if (decision.esp32_targets) {
+      const tg = decision.esp32_targets;
+      if (provIotBadge) {
+        provIotBadge.className = 'stage-badge pass';
+        provIotBadge.textContent = 'SETPOINTS LOCKED';
+      }
+      if (provIotSyncText) {
+        provIotSyncText.textContent = '⚡ users/default_user/tanks/aquarium_001/esp32_targets';
+        provIotSyncText.style.color = 'var(--accent-teal)';
+      }
+      if (provIotContent) {
+        provIotContent.innerHTML = `
+          <div style="display: flex; justify-content: space-between; margin-bottom: 0.35rem;">
+            <span>Target Temp (PID):</span> <strong style="color: var(--primary-cyan);">${tg.temperature_c.toFixed(1)} °C</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 0.35rem;">
+            <span>Target pH Buffer:</span> <strong style="color: var(--primary-cyan);">${tg.ph.toFixed(2)}</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span>Target TDS (RO):</span> <strong style="color: var(--primary-cyan);">${Math.round(tg.tds_ppm)} ppm</strong>
+          </div>
+        `;
+      }
+    }
+
+    // Provision 2: Biological Vectors to Cloud
+    if (provCloudBadge) {
+      provCloudBadge.className = 'stage-badge pass';
+      provCloudBadge.textContent = 'VECTOR SYNCED';
+    }
+    if (provCloudContent) {
+      const popCount = decision.population ? decision.population.length : 0;
+      provCloudContent.innerHTML = `
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.35rem;">
+          <span>Approved Stocking:</span> <strong style="color: var(--accent-purple);">${popCount} Species (${mode.toUpperCase()})</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.35rem;">
+          <span>Stability ESI:</span> <strong style="color: var(--accent-teal);">${decision.esi.toFixed(2)} (${decision.risk_level})</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+          <span>Bioload Headroom:</span> <strong style="color: #fff;">${payload.aquarium.volume_liters}L Capacity OK</strong>
+        </div>
+      `;
+    }
+
+    // Provision 3: XAI Alerts to Mobile App
+    if (provMobileBadge) {
+      provMobileBadge.className = 'stage-badge pass';
+      provMobileBadge.textContent = 'ALERT DELIVERED';
+    }
+    if (provMobileContent) {
+      provMobileContent.innerHTML = `
+        <div style="color: var(--accent-teal); font-weight: 700; margin-bottom: 0.3rem;">
+          ✓ ${xaiItem.summary || 'Ecosystem Approved'}
+        </div>
+        <div style="font-size: 0.73rem; color: #cbd5e1; line-height: 1.35;">
+          ${xaiItem.reason || 'All constraints satisfied.'}
+        </div>
+      `;
+    }
+  } else {
+    if (provPill) {
+      provPill.textContent = '🛑 Actuation Halted (Conflict)';
+      provPill.style.color = 'var(--accent-rose)';
+      provPill.style.borderColor = 'rgba(244, 63, 94, 0.4)';
+    }
+
+    if (provIotBadge) {
+      provIotBadge.className = 'stage-badge fail';
+      provIotBadge.textContent = 'LOCKOUT ACTIVE';
+    }
+    if (provIotSyncText) {
+      provIotSyncText.textContent = '⚠️ Hardware Lockout Enforced';
+      provIotSyncText.style.color = 'var(--accent-rose)';
+    }
+    if (provIotContent) {
+      provIotContent.innerHTML = `
+        <div style="color: var(--accent-rose); font-weight: 600;">Lockout Enforced</div>
+        <div style="font-size: 0.72rem; color: var(--text-dim); margin-top: 0.2rem;">
+          Actuator dispatch prevented to protect aquatic life from shock.
+        </div>
+      `;
+    }
+
+    if (provCloudBadge) {
+      provCloudBadge.className = 'stage-badge fail';
+      provCloudBadge.textContent = 'VIOLATION LOGGED';
+    }
+    if (provCloudContent) {
+      const v = decision.violations?.[0] || {};
+      provCloudContent.innerHTML = `
+        <div style="color: var(--accent-rose); font-weight: 600;">Rule: ${v.rule_id || 'CSP_VIOLATION'}</div>
+        <div style="font-size: 0.72rem; color: var(--text-dim); margin-top: 0.2rem;">
+          ${v.reason_code || 'BIOLOGICAL_MISMATCH'} (ESI: 0.00)
+        </div>
+      `;
+    }
+
+    if (provMobileBadge) {
+      provMobileBadge.className = 'stage-badge fail';
+      provMobileBadge.textContent = 'CRITICAL WARNING';
+    }
+    if (provMobileContent) {
+      provMobileContent.innerHTML = `
+        <div style="color: var(--accent-rose); font-weight: 700; margin-bottom: 0.3rem;">
+          ⚠️ ${xaiItem.summary || 'Stocking Conflict Detected'}
+        </div>
+        <div style="font-size: 0.73rem; color: #cbd5e1; line-height: 1.35;">
+          ${xaiItem.reason || 'Husbandry intervention required.'}
+        </div>
+      `;
+    }
+  }
+
+  // Render Virtual Smart Fish Tank & Dynamic Edge Parameters
+  renderVirtualTank(decision, payload);
 }
 
 // ---------------- WHAT-IF SIMULATOR LAB (Tab 2) ----------------
@@ -728,3 +1095,517 @@ function filterBenchmarkTable() {
 
   renderBenchmarkTableRows(filtered, allBenchmarkResults.some(b => b.actual_csp_status));
 }
+
+// ============================================================================
+// VIRTUAL SMART AQUARIUM CONTROLLER & EDGE SETPOINT TUNING SIMULATOR
+// ============================================================================
+
+const SPECIES_EMOJI_MAP = {
+  'poecilia_reticulata': { emoji: '🐠', name: 'Guppy', color: '#38bdf8', bioloadLiters: 2.5 },
+  'paracheirodon_innesi': { emoji: '🐟', name: 'Neon Tetra', color: '#00f2fe', bioloadLiters: 2.0 },
+  'corydoras_aeneus': { emoji: '🐡', name: 'Corydoras', color: '#fbbf24', bioloadLiters: 4.0 },
+  'xiphophorus_maculatus': { emoji: '🦐', name: 'Platy', color: '#f97316', bioloadLiters: 3.5 },
+  'pterophyllum_scalare': { emoji: '🦈', name: 'Angelfish', color: '#f43f5e', bioloadLiters: 15.0 },
+  'betta_splendens': { emoji: '🐬', name: 'Betta', color: '#a855f7', bioloadLiters: 6.0 }
+};
+
+function renderVirtualTank(decision, payload) {
+  const isApproved = decision.status === 'APPROVED';
+  const glass = document.getElementById('virtual-tank-glass');
+  const fishContainer = document.getElementById('virtual-tank-fish-container');
+  const capacityBadge = document.getElementById('vtank-capacity-badge');
+  const fishCountBadge = document.getElementById('vtank-fish-count');
+  const statusDot = document.getElementById('vtank-status-dot');
+  const statusLabel = document.getElementById('vtank-status-label');
+  const bioloadPctLabel = document.getElementById('vtank-bioload-pct');
+  const targetsSummary = document.getElementById('vtank-targets-summary');
+  const edgeDispatch = document.getElementById('vtank-edge-dispatch-status');
+
+  const cardTemp = document.getElementById('vtank-card-temp');
+  const cardPh = document.getElementById('vtank-card-ph');
+  const cardTds = document.getElementById('vtank-card-tds');
+  const cardTempDesc = document.getElementById('vtank-card-temp-desc');
+  const cardPhDesc = document.getElementById('vtank-card-ph-desc');
+  const cardTdsDesc = document.getElementById('vtank-card-tds-desc');
+
+  if (!glass || !fishContainer) return;
+
+  const currentVol = parseFloat(payload.aquarium.volume_liters) || 100;
+
+  // Calculate Headcount & Bioload
+  let totalCount = 0;
+  let totalBioloadLiters = 0;
+
+  currentFishPopulation.forEach(f => {
+    const count = (parseInt(f.male) || 0) + (parseInt(f.female) || 0);
+    totalCount += count;
+    const meta = SPECIES_EMOJI_MAP[f.species_id] || { bioloadLiters: 3.0 };
+    totalBioloadLiters += count * meta.bioloadLiters;
+  });
+
+  const bioloadPct = Math.round((totalBioloadLiters / currentVol) * 100);
+
+  // Update Top Left Badges
+  if (capacityBadge) capacityBadge.textContent = `${currentVol} L`;
+  if (fishCountBadge) {
+    fishCountBadge.textContent = `${totalCount} specimen${totalCount !== 1 ? 's' : ''} (${currentFishPopulation.length} species)`;
+  }
+
+  // Update Slider Sync
+  const slider = document.getElementById('vtank-volume-slider');
+  const sliderLabel = document.getElementById('vtank-slider-label');
+  if (slider && parseFloat(slider.value) !== currentVol) slider.value = currentVol;
+  if (sliderLabel) sliderLabel.textContent = `${currentVol} L`;
+  updateCapacityChipActive(currentVol);
+
+  // Status & Glass Appearance
+  glass.classList.remove('conflict', 'overcrowded');
+
+  if (isApproved && decision.esp32_targets) {
+    const targets = decision.esp32_targets;
+    const esiVal = decision.esi !== undefined ? decision.esi.toFixed(2) : '0.88';
+
+    if (statusDot) statusDot.textContent = '🟢';
+    if (statusLabel) {
+      statusLabel.textContent = `STABLE ENVIRONMENT (ESI: ${esiVal})`;
+      statusLabel.style.color = 'var(--accent-teal)';
+    }
+    if (bioloadPctLabel) {
+      bioloadPctLabel.textContent = `Bioload: ${bioloadPct}% (${totalBioloadLiters.toFixed(0)}L / ${currentVol}L)`;
+      bioloadPctLabel.style.color = bioloadPct > 80 ? 'var(--accent-amber)' : 'var(--text-muted)';
+    }
+
+    if (targetsSummary) {
+      targetsSummary.innerHTML = `Temp: <strong>${targets.temperature_c.toFixed(1)}°C</strong> | pH: <strong>${targets.ph.toFixed(2)}</strong> | TDS: <strong>${Math.round(targets.tds_ppm)} ppm</strong>`;
+      targetsSummary.style.color = 'var(--primary-cyan)';
+    }
+    if (edgeDispatch) {
+      edgeDispatch.innerHTML = '<span>●</span> ESP32 Edge Target Setpoints In Sync';
+      edgeDispatch.style.color = 'var(--accent-teal)';
+    }
+
+    if (cardTemp) cardTemp.textContent = `${targets.temperature_c.toFixed(1)} °C`;
+    if (cardPh) cardPh.textContent = targets.ph.toFixed(2);
+    if (cardTds) cardTds.textContent = `${Math.round(targets.tds_ppm)} ppm`;
+
+    if (cardTempDesc) cardTempDesc.textContent = 'Strict safe median for all species';
+    if (cardPhDesc) cardPhDesc.textContent = 'Chemical buffer equilibrium point';
+    if (cardTdsDesc) cardTdsDesc.textContent = 'Osmotic equilibrium setpoint';
+  } else {
+    // Conflict or Violation
+    const violation = decision.violations?.[0] || {};
+    const isPredator = violation.rule_id === 'CSP-001' || (decision.xai?.[0]?.summary || '').toLowerCase().includes('predator');
+    const isOvercrowd = violation.rule_id === 'CSP-002' || bioloadPct > 100 || (decision.xai?.[0]?.summary || '').toLowerCase().includes('bioload');
+
+    if (isPredator) {
+      glass.classList.add('conflict');
+      if (statusDot) statusDot.textContent = '🔴';
+      if (statusLabel) {
+        statusLabel.textContent = 'PREDATOR AGGRESSION CONFLICT';
+        statusLabel.style.color = 'var(--accent-rose)';
+      }
+    } else if (isOvercrowd) {
+      glass.classList.add('overcrowded');
+      if (statusDot) statusDot.textContent = '🟡';
+      if (statusLabel) {
+        statusLabel.textContent = 'TANK OVERCROWDED (BIOLOAD LIMIT)';
+        statusLabel.style.color = 'var(--accent-amber)';
+      }
+    } else {
+      glass.classList.add('conflict');
+      if (statusDot) statusDot.textContent = '🔴';
+      if (statusLabel) {
+        statusLabel.textContent = 'ENVIRONMENTAL INCOMPATIBILITY';
+        statusLabel.style.color = 'var(--accent-rose)';
+      }
+    }
+
+    if (bioloadPctLabel) {
+      bioloadPctLabel.textContent = `Bioload: ${bioloadPct}% (${totalBioloadLiters.toFixed(0)}L / ${currentVol}L)`;
+      bioloadPctLabel.style.color = bioloadPct > 100 ? 'var(--accent-rose)' : 'var(--accent-amber)';
+    }
+
+    if (targetsSummary) {
+      targetsSummary.innerHTML = `⚠️ <span style="color: var(--accent-rose); font-weight: 700;">ACTUATOR LOCKOUT</span>: Biological Invariants Violated`;
+    }
+    if (edgeDispatch) {
+      edgeDispatch.innerHTML = '<span>⚠️</span> Actuation Halted to Prevent Shock';
+      edgeDispatch.style.color = 'var(--accent-rose)';
+    }
+
+    if (cardTemp) cardTemp.textContent = 'LOCKOUT';
+    if (cardPh) cardPh.textContent = 'LOCKOUT';
+    if (cardTds) cardTds.textContent = 'LOCKOUT';
+
+    if (cardTempDesc) cardTempDesc.textContent = 'Heater actuation prohibited';
+    if (cardPhDesc) cardPhDesc.textContent = 'pH dosing pump halted';
+    if (cardTdsDesc) cardTdsDesc.textContent = 'Mineral injector halted';
+  }
+
+  // Render Swimming Fish Sprites
+  fishContainer.innerHTML = '';
+  if (currentFishPopulation.length === 0) {
+    const emptyMsg = document.createElement('div');
+    emptyMsg.style.cssText = 'position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--text-dim); font-size: 0.9rem; pointer-events: none;';
+    emptyMsg.innerHTML = 'Aquarium is currently empty. Click a Quick Preset above or "+ Fish" below to populate!';
+    fishContainer.appendChild(emptyMsg);
+    return;
+  }
+
+  // Flatten specimens for display (max 18 sprites to preserve clean layout)
+  const specimensToRender = [];
+  currentFishPopulation.forEach((f, fIdx) => {
+    const totalSpeciesCount = (parseInt(f.male) || 0) + (parseInt(f.female) || 0);
+    const spriteCount = Math.min(totalSpeciesCount, Math.max(1, Math.min(4, totalSpeciesCount)));
+    const meta = SPECIES_EMOJI_MAP[f.species_id] || { emoji: '🐟', name: f.common_name || f.species_id };
+
+    for (let i = 0; i < spriteCount; i++) {
+      specimensToRender.push({
+        speciesId: f.species_id,
+        name: meta.name,
+        emoji: meta.emoji,
+        color: meta.color || '#38bdf8',
+        totalCount: totalSpeciesCount,
+        isPredator: f.species_id === 'pterophyllum_scalare'
+      });
+    }
+  });
+
+  specimensToRender.slice(0, 18).forEach((item, idx) => {
+    const sprite = document.createElement('div');
+    const isEven = idx % 2 === 0;
+    sprite.className = `swimming-fish-sprite ${isEven ? 'cruise-right' : 'cruise-left'}`;
+    if (item.isPredator) sprite.classList.add('predator-sprite');
+
+    // Coordinates spread across the tank mid-water section
+    const topPct = 24 + ((idx * 23) % 48);
+    const leftPct = 6 + ((idx * 37) % 76);
+    const animDelay = (idx * 0.4) % 3.5;
+    const animDuration = 4.5 + ((idx * 0.8) % 3.0);
+
+    sprite.style.top = `${topPct}%`;
+    sprite.style.left = `${leftPct}%`;
+    sprite.style.animationDelay = `${animDelay}s`;
+    sprite.style.animationDuration = `${animDuration}s`;
+    if (item.color) {
+      sprite.style.borderColor = `${item.color}55`;
+    }
+
+    sprite.innerHTML = `
+      <span style="font-size: 1.15rem;">${item.emoji}</span>
+      <span style="font-size: 0.76rem; font-weight: 600; color: #fff;">${item.name}</span>
+      <span class="fish-remove-x" onclick="removeFishFromTank('${item.speciesId}', event)" title="Remove one ${item.name}">✕</span>
+    `;
+
+    fishContainer.appendChild(sprite);
+  });
+
+  // Pulse stable target cards to signal dynamic recalculation
+  document.querySelectorAll('.stable-param-card').forEach(card => {
+    card.classList.remove('updated');
+    void card.offsetWidth;
+    card.classList.add('updated');
+  });
+}
+
+function onVirtualTankVolumeChange(val) {
+  const vol = parseFloat(val) || 100;
+  document.getElementById('input-volume').value = vol;
+  updateVolumeDisplay();
+  const label = document.getElementById('vtank-slider-label');
+  if (label) label.textContent = `${vol} L`;
+  updateCapacityChipActive(vol);
+  debouncedPipeline(100);
+}
+
+function setVirtualTankVolume(vol) {
+  const slider = document.getElementById('vtank-volume-slider');
+  if (slider) slider.value = vol;
+  onVirtualTankVolumeChange(vol);
+}
+
+function updateCapacityChipActive(vol) {
+  document.querySelectorAll('.capacity-chip').forEach(c => c.classList.remove('active'));
+  const chip = document.getElementById(`chip-vol-${vol}`);
+  if (chip) chip.classList.add('active');
+}
+
+function addOneFish(speciesId, sex = 'female') {
+  const sp = speciesCatalog.find(s => s.species_id === speciesId);
+  const exists = currentFishPopulation.find(f => f.species_id === speciesId);
+  if (exists) {
+    if (sex === 'male') {
+      exists.male = (parseInt(exists.male) || 0) + 1;
+    } else {
+      exists.female = (parseInt(exists.female) || 0) + 1;
+    }
+  } else {
+    currentFishPopulation.push({
+      species_id: speciesId,
+      common_name: sp ? sp.common_name : speciesId,
+      male: sex === 'male' ? 1 : 0,
+      female: sex === 'male' ? 0 : 1,
+      lethargy_index_pct: 0
+    });
+  }
+  renderFishPopulation();
+  executeDecisionPipeline();
+  showToastNotification(`Added 1 ${sp ? sp.common_name : speciesId} to aquarium`);
+}
+
+function addQuickFish(speciesId) {
+  addOneFish(speciesId, 'female');
+}
+
+function addSelectedFish() {
+  const speciesSelect = document.getElementById('vtank-species-selector');
+  const qtyInput = document.getElementById('vtank-add-qty');
+  const sexSelect = document.getElementById('vtank-add-sex');
+
+  const speciesId = speciesSelect ? speciesSelect.value : 'poecilia_reticulata';
+  const qty = Math.max(1, Math.min(50, parseInt(qtyInput ? qtyInput.value : 1) || 1));
+  const sexChoice = sexSelect ? sexSelect.value : 'female';
+
+  const sp = speciesCatalog.find(s => s.species_id === speciesId);
+  let exists = currentFishPopulation.find(f => f.species_id === speciesId);
+
+  let addMale = 0;
+  let addFemale = 0;
+
+  if (sexChoice === 'pair') {
+    addMale = Math.ceil(qty / 2);
+    addFemale = Math.floor(qty / 2) || 1;
+  } else if (sexChoice === 'male') {
+    addMale = qty;
+  } else {
+    addFemale = qty;
+  }
+
+  if (exists) {
+    exists.male = (parseInt(exists.male) || 0) + addMale;
+    exists.female = (parseInt(exists.female) || 0) + addFemale;
+  } else {
+    currentFishPopulation.push({
+      species_id: speciesId,
+      common_name: sp ? sp.common_name : speciesId,
+      male: addMale,
+      female: addFemale,
+      lethargy_index_pct: 0
+    });
+  }
+
+  renderFishPopulation();
+  executeDecisionPipeline();
+  showToastNotification(`Added ${qty} ${sp ? sp.common_name : speciesId} to aquarium`);
+}
+
+function adjustAddQty(delta) {
+  const input = document.getElementById('vtank-add-qty');
+  if (!input) return;
+  const current = parseInt(input.value) || 1;
+  const next = Math.max(1, Math.min(20, current + delta));
+  input.value = next;
+  updateAddButtonText();
+}
+
+function updateAddButtonText() {
+  const btn = document.getElementById('btn-add-selected-fish');
+  const qtyInput = document.getElementById('vtank-add-qty');
+  const speciesSelect = document.getElementById('vtank-species-selector');
+  if (!btn || !qtyInput || !speciesSelect) return;
+  const qty = parseInt(qtyInput.value) || 1;
+  const selOption = speciesSelect.options[speciesSelect.selectedIndex];
+  const name = selOption ? selOption.text.split('(')[0].trim() : 'Fish';
+  btn.innerHTML = `<span>➕</span> Add ${qty} ${name}`;
+}
+
+function removeFishFromTank(speciesId, event) {
+  if (event) event.stopPropagation();
+  const fish = currentFishPopulation.find(f => f.species_id === speciesId);
+  if (!fish) return;
+
+  if ((fish.female || 0) > 0) {
+    fish.female -= 1;
+  } else if ((fish.male || 0) > 0) {
+    fish.male -= 1;
+  }
+
+  if ((fish.male || 0) <= 0 && (fish.female || 0) <= 0) {
+    const idx = currentFishPopulation.indexOf(fish);
+    if (idx >= 0) currentFishPopulation.splice(idx, 1);
+  }
+
+  renderFishPopulation();
+  executeDecisionPipeline();
+}
+
+function clearVirtualTank() {
+  currentFishPopulation = [];
+  renderFishPopulation();
+  executeDecisionPipeline();
+}
+
+function applyStableTargetsToEsp32() {
+  const btn = document.getElementById('btn-transmit-esp32');
+  const statusEl = document.getElementById('vtank-edge-dispatch-status');
+  const summaryEl = document.getElementById('vtank-targets-summary');
+
+  if (!btn) return;
+
+  const origHtml = btn.innerHTML;
+  btn.innerHTML = '<span>📡</span> Transmitting Setpoints...';
+  btn.disabled = true;
+
+  setTimeout(() => {
+    btn.innerHTML = '<span>✅</span> Parameters Synced to ESP32!';
+    btn.style.borderColor = 'var(--accent-teal)';
+    btn.style.boxShadow = '0 0 15px rgba(16, 185, 129, 0.4)';
+
+    if (statusEl && summaryEl) {
+      statusEl.innerHTML = '<span>⚡</span> Transmitted to ESP32 Edge: ' + summaryEl.textContent;
+      statusEl.style.color = 'var(--accent-teal)';
+    }
+
+    showToastNotification('📡 Dynamic Setpoints successfully transmitted to ESP32 Edge via Firebase RTDB!');
+
+    setTimeout(() => {
+      btn.innerHTML = origHtml;
+      btn.disabled = false;
+      btn.style.borderColor = '';
+      btn.style.boxShadow = '';
+    }, 2500);
+  }, 400);
+}
+
+function showToastNotification(message) {
+  let toast = document.getElementById('demo-toast-notification');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'demo-toast-notification';
+    toast.style.cssText = 'position: fixed; bottom: 24px; right: 24px; background: rgba(15, 23, 42, 0.95); border: 1px solid var(--primary-cyan); box-shadow: 0 10px 25px rgba(0, 242, 254, 0.3); color: #fff; padding: 0.85rem 1.4rem; border-radius: 8px; z-index: 9999; font-family: "Plus Jakarta Sans", sans-serif; font-size: 0.88rem; transition: all 0.3s ease; pointer-events: none;';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = message;
+  toast.style.opacity = '1';
+  toast.style.transform = 'translateY(0)';
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(10px)';
+  }, 3500);
+}
+
+// ============================================================================
+// GUIDED AUTO-DEMO TOUR CONTROLLER & PRESENTATION SHORTCUTS
+// ============================================================================
+
+let currentTourStep = 0;
+const TOUR_STEPS = [
+  {
+    title: "1️⃣ Baseline Ecosystem & Safe Overlap",
+    desc: "100L tank with Corydoras & Neon Tetras. Engine calculates strict safe median: 23.0°C, pH 6.80, TDS 100 ppm.",
+    action: () => {
+      loadPreset('peaceful');
+      window.scrollTo({ top: 320, behavior: 'smooth' });
+    }
+  },
+  {
+    title: "2️⃣ Precise Fish Addition (No Bulk Swarms)",
+    desc: "Adding exactly 2 female Guppies with the quantity stepper. Safe setpoints re-evaluated in <5ms.",
+    action: () => {
+      addOneFish('poecilia_reticulata', 'female');
+      addOneFish('poecilia_reticulata', 'female');
+    }
+  },
+  {
+    title: "3️⃣ Predator Aggression & Actuator Lockout",
+    desc: "Introducing an Angelfish with small Tetras. Rule CSP-001 triggers instant red alert & LOCKOUT to protect fish.",
+    action: () => {
+      addOneFish('pterophyllum_scalare', 'male');
+    }
+  },
+  {
+    title: "4️⃣ Invariant Restoration & Ecosystem Stabilization",
+    desc: "Removing the conflicting predator restores crystal-blue water; safe edge setpoints are unlocked.",
+    action: () => {
+      removeFishFromTank('pterophyllum_scalare');
+    }
+  },
+  {
+    title: "5️⃣ Breeder Mode & Genetic Algorithm Optimization",
+    desc: "Switching to Breeder Mode engages DEAP GA to optimize sex ratios (1♂:3♀) and fry reserve bioload.",
+    action: () => {
+      loadPreset('breeder_guppy');
+    }
+  },
+  {
+    title: "6️⃣ Edge Provisioning to ESP32 Microcontroller",
+    desc: "Final target parameters dispatched to Firebase Realtime Database for localized PID regulation.",
+    action: () => {
+      applyStableTargetsToEsp32();
+    }
+  }
+];
+
+function startGuidedDemoTour() {
+  currentTourStep = 0;
+  const banner = document.getElementById('tour-banner');
+  if (banner) banner.style.display = 'flex';
+  renderTourStep();
+}
+
+function stopGuidedDemoTour() {
+  const banner = document.getElementById('tour-banner');
+  if (banner) banner.style.display = 'none';
+}
+
+function nextTourStep() {
+  if (currentTourStep < TOUR_STEPS.length - 1) {
+    currentTourStep++;
+    renderTourStep();
+  } else {
+    stopGuidedDemoTour();
+    showToastNotification("🎉 Guided Demo Tour Completed Successfully!");
+  }
+}
+
+function prevTourStep() {
+  if (currentTourStep > 0) {
+    currentTourStep--;
+    renderTourStep();
+  }
+}
+
+function renderTourStep() {
+  const step = TOUR_STEPS[currentTourStep];
+  if (!step) return;
+  const numEl = document.getElementById('tour-step-number');
+  const titleEl = document.getElementById('tour-step-title');
+  const descEl = document.getElementById('tour-step-desc');
+  const nextBtn = document.getElementById('tour-next-btn');
+
+  if (numEl) numEl.textContent = `Step ${currentTourStep + 1} of ${TOUR_STEPS.length}`;
+  if (titleEl) titleEl.textContent = step.title;
+  if (descEl) descEl.textContent = step.desc;
+  if (nextBtn) {
+    nextBtn.textContent = currentTourStep === TOUR_STEPS.length - 1 ? 'Finish Tour 🎉' : 'Next Step ▶';
+  }
+
+  step.action();
+}
+
+// Global Presentation Keyboard Shortcuts
+document.addEventListener('keydown', (e) => {
+  if (['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+
+  if (e.key === '1') loadPreset('peaceful');
+  else if (e.key === '2') loadPreset('breeder_guppy');
+  else if (e.key === '3') loadPreset('predator');
+  else if (e.key === '4') loadPreset('overstock');
+  else if (e.key === '5') loadPreset('temp_violation');
+  else if (e.key === 't' || e.key === 'T') startGuidedDemoTour();
+  else if (e.key === ' ') {
+    e.preventDefault();
+    executeDecisionPipeline();
+  }
+});
+

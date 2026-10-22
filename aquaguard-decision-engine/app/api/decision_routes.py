@@ -17,7 +17,13 @@ from app.database.firebase_client import save_decision_result
 router = APIRouter()
 
 
+_SPECIES_DB_CACHE = None
+
 def load_species_db():
+    global _SPECIES_DB_CACHE
+    if _SPECIES_DB_CACHE is not None:
+        return _SPECIES_DB_CACHE
+
     base_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
     target_path = os.path.join(base_dir, "data", "species_seed.json")
     if not os.path.exists(target_path):
@@ -25,7 +31,8 @@ def load_species_db():
     with open(target_path, "r", encoding="utf-8") as f:
         data = json.load(f)
         species_list = data["species"] if isinstance(data, dict) and "species" in data else data
-        return {s["species_id"]: s for s in species_list}
+        _SPECIES_DB_CACHE = {s["species_id"]: s for s in species_list}
+        return _SPECIES_DB_CACHE
 
 
 @router.post("/evaluate")
