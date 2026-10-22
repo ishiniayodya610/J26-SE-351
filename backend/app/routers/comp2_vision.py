@@ -2,12 +2,15 @@ import os
 import sys
 import time
 import base64
+import json
+import asyncio
 import random
 import tempfile
 import cv2
 import numpy as np
 from pathlib import Path
-from fastapi import APIRouter, UploadFile, File, HTTPException, Request
+from fastapi import APIRouter, UploadFile, File, HTTPException, Request, Query, WebSocket, WebSocketDisconnect
+from starlette.concurrency import run_in_threadpool
 from datetime import datetime
 from pydantic import BaseModel
 from typing import Optional, Dict, Any
@@ -20,6 +23,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
 TRACKING_DIR = BASE_DIR / "species_aware_fish_tracking"
 if str(TRACKING_DIR) not in sys.path:
     sys.path.insert(0, str(TRACKING_DIR))
+
+from multi_track import analyze_multi
+from live_tracker import LiveTrackerSession
+
+MODEL_PATH = TRACKING_DIR / "aquaguard_yolo11n_best.pt"
+ANNOTATED_DIR = BASE_DIR / "backend" / "static" / "annotated"
+UPLOAD_SAMPLE_EVERY = 2
+MAX_ANALYSED_SECONDS = 60
 
 # Initialize Component 2 Video Analyzer
 _video_analyzer = None
@@ -88,6 +99,24 @@ def format_vision_terminal_log(res: Dict[str, Any]) -> str:
 
     target_p = res.get("target_parameters", {})
 
+    # One row per ByteTrack track ("Track #N" - IDs are not physical fish identity)
+    track_rows = []
+    for tr in res.get("tracks", []):
+        st = tr.get("behavior_status", "")
+        c = RED if st == "PROTOTYPE_ABNORMAL" else (GREEN if st == "PROTOTYPE_NORMAL" else YELLOW)
+        track_rows.append(
+            f"│   Track #{tr.get('track_id')}: {tr.get('species')} ({tr.get('species_confidence', 0) * 100:.0f}%) • "
+            f"{tr.get('avg_speed_bl_s', 0):.3f} BL/s • Stat {tr.get('stationary_percent', 0):.0f}% • "
+            f"{tr.get('position')}/{tr.get('direction')} • {tr.get('frames')} fr • {c}{BOLD}{st}{RESET}"
+        )
+    summary = res.get("summary", {})
+    tracks_str = (
+        f"│ {BOLD}Multi-Track Audit{RESET}:         Tracked: {summary.get('tracked', 0)} • "
+        f"Normal: {summary.get('normal', 0)} • Abnormal: {summary.get('abnormal', 0)} • "
+        f"Insufficient: {summary.get('insufficient', 0)}\n"
+        + ("\n".join(track_rows) + "\n" if track_rows else "")
+    ) if "tracks" in res else ""
+
     ansi_box = (
         f"\n{BOLD}{box_color}┌─── [COMPONENT 2: COMPUTER VISION & BEHAVIOR TRACKING] ────────────────────────┐{RESET}\n"
         f"│ {DIM}Timestamp: {now_str} | Model: YOLO11n (aquaguard_yolo11n_best.pt) | ByteTrack{RESET}  │\n"
@@ -100,6 +129,7 @@ def format_vision_terminal_log(res: Dict[str, Any]) -> str:
         f"│ {BOLD}Behavior Audit Verdict{RESET}:    {status_color}{BOLD}{status}{RESET}\n"
         f"│ {BOLD}Clinical Findings{RESET}:\n"
         f"{reasons_str}\n"
+        f"{tracks_str}"
         f"│ {BOLD}Ecosystem Auto-Sync{RESET}:       Target Water Profile Synced -> "
         f"{CYAN}T: {target_p.get('temp')}°C, "
         f"pH: {target_p.get('ph')}, "
@@ -108,7 +138,97 @@ def format_vision_terminal_log(res: Dict[str, Any]) -> str:
     )
     return ansi_box
 
-def run_video_behavior_and_species_analysis(video_bytes: bytes, filename: str) -> Dict[str, Any]:
+def _no_fish_result(filename: str, file_size_kb: float, total_frames: int) -> Dict[str, Any]:
+    return {
+        "species_id": "unidentified",
+        "common_name": "No Fish Detected",
+        "scientific_name": "Unidentified aquatic subject",
+        "confidence": 0.0,
+        "video_filename": filename,
+        "video_size_kb": file_size_kb,
+        "frames_processed": total_frames,
+        "average_speed_bl_s": 0.0,
+        "maximum_speed_bl_s": 0.0,
+        "stationary_percent": 0.0,
+        "swimming_activity_pct": 0.0,
+        "lethargy_index_pct": 0.0,
+        "position": "Unknown",
+        "direction": "None",
+        "posture": "Indeterminate",
+        "surface_piping": "None Detected",
+        "feeding_response": "Indeterminate",
+        "health_status": "NO FISH RECOGNIZED IN FOOTAGE",
+        "behavior_status": "PROTOTYPE_NORMAL",
+        "reasons": [
+            "YOLO11n detected no Guppy, Betta, or Swordtail in any video frame.",
+            "Please hold camera 15-30 cm from tank glass and ensure adequate lighting."
+        ],
+        "target_parameters": {"temp": 25.0, "ph": 7.0, "tds": 150.0},
+        "care_notes": "Position camera closer to the fish and avoid reflective glare on the glass surface."
+    }
+
+
+def _pick_dominant_track(tracks):
+    """Track that represents the whole clip in the legacy single-fish fields.
+
+    Species = duration x confidence weighted vote over all judged tracks (one stray
+    mislabelled track must not decide the tank's species); then the strongest track of
+    that species. Longest-only picked static false positives seen for the whole clip.
+    """
+    valid = [t for t in tracks if t["behavior_status"] != "INSUFFICIENT_DATA"]
+    pool = valid or tracks
+    weight = lambda t: (t["last_t"] - t["first_t"]) * t["species_confidence"]
+    votes = {}
+    for t in pool:
+        votes[t["species"]] = votes.get(t["species"], 0.0) + weight(t)
+    species = max(votes, key=votes.get)
+    return max((t for t in pool if t["species"] == species), key=lambda t: (weight(t), t["frames"]))
+
+
+def build_legacy_fields(track: Dict[str, Any], filename: str, file_size_kb: float,
+                        total_frames: int, frames_with_tracks: int) -> Dict[str, Any]:
+    """Legacy single-fish response fields, filled from one track."""
+    matched = SPECIES_DATABASE.get(track["species"].lower().strip(), active_profile)
+    status = track["behavior_status"]
+    is_normal = status == "PROTOTYPE_NORMAL"
+    posture = track["posture"]
+    stationary_pct = track["stationary_percent"]
+    if status == "INSUFFICIENT_DATA":
+        health = "INSUFFICIENT TRACKING DATA"
+    else:
+        health = "TYPICAL SWIMMING / NORMAL" if is_normal else "IRREGULAR BEHAVIOR DETECTED"
+    return {
+        "species_id": matched.species_id,
+        "common_name": matched.common_name,
+        "scientific_name": matched.scientific_name,
+        "confidence": track["species_confidence"],
+        "video_filename": filename,
+        "video_size_kb": file_size_kb,
+        "frames_processed": frames_with_tracks,
+        "total_video_frames": total_frames,
+        "average_speed_bl_s": track["avg_speed_bl_s"],
+        "maximum_speed_bl_s": track["max_speed_bl_s"],
+        "stationary_percent": stationary_pct,
+        "swimming_activity_pct": round(max(0.0, 100.0 - stationary_pct), 1),
+        "lethargy_index_pct": stationary_pct,
+        "position": track["position"],
+        "direction": track["direction"],
+        "posture": posture,
+        "surface_piping": "Detected (Surface Piping Alert)" if "Head-Up" in posture else "None Detected (Optimal O2)",
+        "feeding_response": "Active / Alert" if is_normal else "Diminished / Inhibited",
+        "health_status": health,
+        "behavior_status": status,
+        "reasons": list(track["reason"]),
+        "target_parameters": {
+            "temp": matched.water_requirements.temperature_c,
+            "ph": matched.water_requirements.ph,
+            "tds": matched.water_requirements.tds_ppm
+        },
+        "care_notes": matched.vulnerability_notes
+    }
+
+
+def run_video_behavior_and_species_analysis(video_bytes: bytes, filename: str, annotate: bool = False) -> Dict[str, Any]:
     file_size_kb = round(len(video_bytes) / 1024.0, 1)
 
     if _video_analyzer is not None:
@@ -118,212 +238,35 @@ def run_video_behavior_and_species_analysis(video_bytes: bytes, filename: str) -
             ext = ".mp4"
 
         tmp_file = tempfile.NamedTemporaryFile(suffix=ext, delete=False)
+        tmp_path = tmp_file.name
         try:
             tmp_file.write(video_bytes)
             tmp_file.flush()
-            tmp_path = tmp_file.name
             tmp_file.close()
 
-            # 1. Read video sequentially using OpenCV
-            cap = cv2.VideoCapture(tmp_path)
-            fps = cap.get(cv2.CAP_PROP_FPS)
-            if fps <= 0 or np.isnan(fps):
-                fps = 30.0
-
-            width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)) or 1280
-            height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)) or 720
-
-            frame_records = []
-            f_idx = 0
-
-            while True:
-                ret, frame = cap.read()
-                if not ret or frame is None:
-                    break
-
-                # Predict on this frame using our trained YOLO11n model
-                preds = _video_analyzer.model.predict(
-                    source=frame,
-                    conf=0.10,
-                    imgsz=640,
+            try:
+                multi = analyze_multi(
+                    tmp_path,
+                    sample_every=UPLOAD_SAMPLE_EVERY,
+                    max_seconds=MAX_ANALYSED_SECONDS,
+                    annotate=annotate,
+                    model=_video_analyzer.model,
+                    behavior_engine=_video_analyzer.behavior_engine,
                     device=_video_analyzer.device,
-                    verbose=False
+                    annotate_dir=str(ANNOTATED_DIR),
                 )
+            except ValueError as err:
+                raise HTTPException(status_code=422, detail=str(err))
 
-                if preds and len(preds) > 0 and preds[0].boxes is not None and len(preds[0].boxes) > 0:
-                    boxes = preds[0].boxes
-                    # Select detection with highest confidence in this frame
-                    best_i = int(boxes.conf.argmax())
-                    b = boxes.xyxy[best_i].cpu().tolist()
-                    x1, y1, x2, y2 = b
-                    cx = (x1 + x2) / 2.0
-                    cy = (y1 + y2) / 2.0
-                    w = max(1.0, float(x2 - x1))
-                    h = max(1.0, float(y2 - y1))
-                    cls_id = int(boxes.cls[best_i].item())
-                    conf = float(boxes.conf[best_i].item())
-                    sp_name = _video_analyzer.model.names.get(cls_id, "Betta")
-
-                    frame_records.append({
-                        "frame": f_idx,
-                        "time_s": f_idx / fps,
-                        "cx": cx,
-                        "cy": cy,
-                        "w": w,
-                        "h": h,
-                        "body_length_px": max(w, h),
-                        "aspect_ratio": h / w,
-                        "species": sp_name,
-                        "confidence": conf
-                    })
-                f_idx += 1
-            cap.release()
-            if f_idx == 0:
-                raise HTTPException(status_code=422, detail="No readable video frames found. Try an MP4 or MOV clip.")
-
-            # 2. Check if ANY fish was detected
-            if not frame_records:
-                return {
-                    "species_id": "unidentified",
-                    "common_name": "No Fish Detected",
-                    "scientific_name": "Unidentified aquatic subject",
-                    "confidence": 0.0,
-                    "video_filename": filename,
-                    "video_size_kb": file_size_kb,
-                    "frames_processed": f_idx,
-                    "average_speed_bl_s": 0.0,
-                    "maximum_speed_bl_s": 0.0,
-                    "stationary_percent": 0.0,
-                    "swimming_activity_pct": 0.0,
-                    "lethargy_index_pct": 0.0,
-                    "position": "Unknown",
-                    "direction": "None",
-                    "posture": "Indeterminate",
-                    "surface_piping": "None Detected",
-                    "feeding_response": "Indeterminate",
-                    "health_status": "NO FISH RECOGNIZED IN FOOTAGE",
-                    "behavior_status": "PROTOTYPE_NORMAL",
-                    "reasons": [
-                        "YOLO11n detected no Guppy, Betta, or Swordtail in any video frame.",
-                        "Please hold camera 15-30 cm from tank glass and ensure adequate lighting."
-                    ],
-                    "target_parameters": {"temp": 25.0, "ph": 7.0, "tds": 150.0},
-                    "care_notes": "Position camera closer to the fish and avoid reflective glare on the glass surface."
-                }
-
-            # 3. Species Classification by Top Vote
-            from collections import Counter
-            species_votes = Counter(r["species"] for r in frame_records)
-            detected_sp = species_votes.most_common(1)[0][0]
-            matched = SPECIES_DATABASE.get(detected_sp.lower().strip(), active_profile)
-            sp_confs = [r["confidence"] for r in frame_records if r["species"] == detected_sp]
-            avg_conf = float(np.mean(sp_confs)) if sp_confs else 0.90
-
-            # 4. Body Length Proxy
-            median_bl = float(np.median([r["body_length_px"] for r in frame_records]))
-            median_bl = max(10.0, median_bl)
-
-            # 5. Motion Velocity & Resting/Stationary Percentage (Real Physical Measurement)
-            speeds = []
-            stationary_count = 0
-            dx_total = 0.0
-            dy_total = 0.0
-
-            for i in range(1, len(frame_records)):
-                prev = frame_records[i - 1]
-                curr = frame_records[i]
-                dt = curr["time_s"] - prev["time_s"]
-                if dt <= 0:
-                    continue
-                dx = curr["cx"] - prev["cx"]
-                dy = curr["cy"] - prev["cy"]
-                dist_px = np.sqrt(dx**2 + dy**2)
-                inst_speed = dist_px / (median_bl * dt)
-
-                # Hand tremor deadband: small movements under 0.12 BL/s count as resting
-                if inst_speed < 0.12:
-                    stationary_count += 1
-                    speeds.append(0.0)
-                else:
-                    speeds.append(inst_speed)
-                    dx_total += dx
-                    dy_total += dy
-
-            if speeds:
-                avg_speed = round(float(np.mean(speeds)), 3)
-                max_speed = round(float(np.max(speeds)), 3)
-                stationary_pct = round((stationary_count / len(speeds)) * 100.0, 1)
+            total_frames = multi.pop("total_frames")
+            tracks = multi["tracks"]
+            frames_with_tracks = sum(1 for e in multi["timeline"] if e["boxes"])
+            if tracks:
+                legacy = build_legacy_fields(_pick_dominant_track(tracks), filename, file_size_kb,
+                                             total_frames, frames_with_tracks)
             else:
-                avg_speed = 0.05
-                max_speed = 0.10
-                stationary_pct = 90.0
-
-            activity_pct = round(max(0.0, 100.0 - stationary_pct), 1)
-
-            # 6. Dominant Direction
-            if abs(dx_total) >= abs(dy_total):
-                direction = "Right" if dx_total >= 0 else "Left"
-            else:
-                direction = "Down" if dy_total >= 0 else "Up"
-
-            # 7. Posture Analysis
-            mean_ar = float(np.mean([r["aspect_ratio"] for r in frame_records]))
-            if mean_ar > 1.35 and abs(dy_total) > abs(dx_total) * 1.5:
-                posture = "Head-Up (Surface Piping)" if dy_total < 0 else "Head-Down (Head-Standing)"
-            else:
-                posture = "Horizontal (Normal)"
-
-            # 8. Water Column Strata
-            mean_cy = float(np.mean([r["cy"] for r in frame_records]))
-            rel_y = mean_cy / height
-            if rel_y < 0.33:
-                position = "Top"
-            elif rel_y < 0.67:
-                position = "Middle"
-            else:
-                position = "Bottom"
-
-            # 9. Evaluate with AquaGuard Behavior Engine
-            eval_res = _video_analyzer.behavior_engine.evaluate(
-                species=detected_sp,
-                avg_speed_bl_s=avg_speed,
-                stationary_percent=stationary_pct,
-                dominant_position=position,
-                dominant_direction=direction,
-                posture=posture
-            )
-
-            is_normal = eval_res.get("behavior_status") == "PROTOTYPE_NORMAL"
-
-            return {
-                "species_id": matched.species_id,
-                "common_name": matched.common_name,
-                "scientific_name": matched.scientific_name,
-                "confidence": round(avg_conf, 4),
-                "video_filename": filename,
-                "video_size_kb": file_size_kb,
-                "frames_processed": len(frame_records),
-                "total_video_frames": f_idx,
-                "average_speed_bl_s": avg_speed,
-                "maximum_speed_bl_s": max_speed,
-                "stationary_percent": stationary_pct,
-                "swimming_activity_pct": activity_pct,
-                "lethargy_index_pct": stationary_pct,
-                "position": position,
-                "direction": direction,
-                "posture": posture,
-                "surface_piping": "Detected (Surface Piping Alert)" if "Head-Up" in posture else "None Detected (Optimal O2)",
-                "feeding_response": "Active / Alert" if is_normal else "Diminished / Inhibited",
-                "health_status": "TYPICAL SWIMMING / NORMAL" if is_normal else "IRREGULAR BEHAVIOR DETECTED",
-                "behavior_status": eval_res.get("behavior_status", "PROTOTYPE_NORMAL"),
-                "reasons": eval_res.get("reason", []),
-                "target_parameters": {
-                    "temp": matched.water_requirements.temperature_c,
-                    "ph": matched.water_requirements.ph,
-                    "tds": matched.water_requirements.tds_ppm
-                },
-                "care_notes": matched.vulnerability_notes
-            }
+                legacy = _no_fish_result(filename, file_size_kb, total_frames)
+            return {**legacy, **multi}
 
         finally:
             if os.path.exists(tmp_path):
@@ -332,7 +275,7 @@ def run_video_behavior_and_species_analysis(video_bytes: bytes, filename: str) -
                 except Exception:
                     pass
 
-    # 10. Fallback only if model fails to load
+    # Fallback only if model fails to load
     return {
         "species_id": "unidentified",
         "common_name": "Model Unavailable",
@@ -435,11 +378,12 @@ def run_real_or_mock_fish_identification(file_bytes: bytes, filename: str = "sna
     }
 
 @router.post("/analyze-video")
-async def analyze_captured_video(file: UploadFile = File(...)):
+async def analyze_captured_video(file: UploadFile = File(...), annotate: bool = Query(False)):
     """
     Receives temporal video footage captured from the phone camera or IP camera,
-    analyzes multi-frame fish kinematics, swimming activity, posture, and species.
-    Automatically updates active tank profile.
+    tracks every fish with YOLO11n + ByteTrack, and returns per-track kinematics,
+    behavior verdicts and a per-frame box timeline (plus legacy single-fish fields
+    from the dominant track). Automatically updates active tank profile.
     """
     try:
         if _video_analyzer is None:
@@ -447,8 +391,10 @@ async def analyze_captured_video(file: UploadFile = File(...)):
         contents = await file.read()
         if not contents:
             raise HTTPException(status_code=400, detail="The uploaded video is empty.")
-        result = run_video_behavior_and_species_analysis(contents, file.filename or "captured_tank_video.mp4")
-        
+        result = await run_in_threadpool(
+            run_video_behavior_and_species_analysis, contents, file.filename or "captured_tank_video.mp4", annotate
+        )
+
         # 🟢 FORENSIC PROOF FOR EVALUATORS: Print ANSI execution box to active terminal!
         ansi_log = format_vision_terminal_log(result)
         sys.stdout.write(ansi_log)
@@ -457,15 +403,121 @@ async def analyze_captured_video(file: UploadFile = File(...)):
         # Automatically update active profile in backend
         if result["species_id"] in SPECIES_DATABASE:
             await set_active_profile(result["species_id"])
+        n_tracks = len(result.get("tracks", []))
         return {
             "success": True,
-            "message": f"Successfully analyzed video for {result['common_name']}",
+            "message": f"Successfully analyzed video for {result['common_name']} ({n_tracks} track(s))",
             "data": result
         }
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Video behavioral analysis failed: {str(e)}")
+
+
+def _new_live_session() -> LiveTrackerSession:
+    """One model instance per WebSocket connection so ByteTrack state never leaks between clients."""
+    from ultralytics import YOLO
+    return LiveTrackerSession(
+        model=YOLO(str(MODEL_PATH)),
+        behavior_engine=_video_analyzer.behavior_engine,
+        device=_video_analyzer.device,
+    )
+
+
+def _decode_jpeg_b64(b64_str: str):
+    if "," in b64_str:
+        b64_str = b64_str.split(",", 1)[1]
+    raw = base64.b64decode(b64_str, validate=False)
+    img = cv2.imdecode(np.frombuffer(raw, np.uint8), cv2.IMREAD_COLOR)
+    if img is None:
+        raise ValueError("Could not decode jpeg_b64 frame")
+    return img
+
+
+@router.websocket("/live")
+async def live_tracking_ws(websocket: WebSocket):
+    """
+    Live multi-fish tracking. Client sends {"type":"frame","t":ms,"jpeg_b64":...} or {"type":"reset"};
+    server replies {"type":"tracks",...} or {"type":"error","detail":...}. Latest frame wins:
+    frames that arrive while one is being processed replace each other, never queue.
+    """
+    await websocket.accept()
+    if _video_analyzer is None:
+        await websocket.send_json({"type": "error", "detail": "Fish vision model is unavailable."})
+        await websocket.close()
+        return
+    try:
+        session = await run_in_threadpool(_new_live_session)
+    except Exception as e:
+        await websocket.send_json({"type": "error", "detail": f"Live tracker init failed: {e}"})
+        await websocket.close()
+        return
+
+    latest: Dict[str, Any] = {"msg": None, "reset": False}
+    ready = asyncio.Event()
+    closed = asyncio.Event()
+
+    async def receiver():
+        try:
+            while True:
+                text = await websocket.receive_text()
+                try:
+                    msg = json.loads(text)
+                except Exception:
+                    await websocket.send_json({"type": "error", "detail": "Invalid JSON message"})
+                    continue
+                mtype = msg.get("type") if isinstance(msg, dict) else None
+                if mtype == "reset":
+                    latest["reset"], latest["msg"] = True, None
+                    ready.set()
+                elif mtype == "frame":
+                    latest["msg"] = msg
+                    ready.set()
+                else:
+                    await websocket.send_json({"type": "error", "detail": f"Unknown message type: {mtype}"})
+        except (WebSocketDisconnect, RuntimeError):
+            pass
+        finally:
+            closed.set()
+            ready.set()
+
+    async def worker():
+        while True:
+            await ready.wait()
+            ready.clear()
+            if closed.is_set():
+                return
+            if latest["reset"]:
+                latest["reset"] = False
+                session.reset()
+            msg, latest["msg"] = latest["msg"], None
+            if msg is None:
+                continue
+            try:
+                frame = _decode_jpeg_b64(str(msg.get("jpeg_b64") or ""))
+                t_ms = float(msg.get("t", 0))
+                out = await run_in_threadpool(session.process, frame, t_ms)
+                out["t"] = msg.get("t", t_ms)
+                await websocket.send_json(out)
+            except (WebSocketDisconnect, RuntimeError):
+                return
+            except Exception as e:
+                try:
+                    await websocket.send_json({"type": "error", "detail": str(e)})
+                except Exception:
+                    return
+
+    recv_task = asyncio.create_task(receiver())
+    work_task = asyncio.create_task(worker())
+    await asyncio.wait({recv_task, work_task}, return_when=asyncio.FIRST_COMPLETED)
+    for task in (recv_task, work_task):
+        task.cancel()
+    try:
+        await websocket.close()
+    except Exception:
+        pass
+
 
 @router.post("/identify-fish")
 async def identify_fish_snapshot(file: UploadFile = File(...)):
