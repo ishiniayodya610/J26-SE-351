@@ -1,0 +1,68 @@
+{
+  "benchmarks": [
+    {
+      "id": "BM-001",
+      "type": "valid_combination",
+      "expected_csp_status": "PASS",
+      "aquarium": { "volume_liters": 100 },
+      "telemetry": { "temperature_c": 25.0, "ph": 7.0, "tds_ppm": 150 },
+      "fish": [
+        { "species_id": "poecilia_reticulata", "male": 2, "female": 4 },
+        { "species_id": "corydoras_aeneus", "male": 3, "female": 3 }
+      ]
+    },
+    {
+      "id": "BM-002",
+      "type": "predator_prey",
+      "expected_csp_status": "REJECTED",
+      "aquarium": { "volume_liters": 150 },
+      "telemetry": { "temperature_c": 26.0, "ph": 7.0, "tds_ppm": 150 },
+      "fish": [
+        { "species_id": "pterophyllum_scalare", "male": 1, "female": 1 },
+        { "species_id": "paracheirodon_innesi", "male": 5, "female": 5 }
+      ]
+    },
+    {
+      "id": "BM-003",
+      "type": "tank_volume",
+      "expected_csp_status": "REJECTED",
+      "aquarium": { "volume_liters": 30 },
+      "telemetry": { "temperature_c": 24.0, "ph": 7.0, "tds_ppm": 150 },
+      "fish": [
+        { "species_id": "corydoras_aeneus", "male": 20, "female": 20 }
+      ]
+    },
+    {
+      "id": "BM-004",
+      "type": "territorial_conflict",
+      "expected_csp_status": "REJECTED",
+      "aquarium": { "volume_liters": 100 },
+      "telemetry": { "temperature_c": 25.0, "ph": 7.0, "tds_ppm": 150 },
+      "fish": [
+        { "species_id": "betta_splendens", "male": 1, "female": 0 },
+        { "species_id": "poecilia_reticulata", "male": 2, "female": 4 }
+      ]
+    },
+    {
+      "id": "BM-005",
+      "type": "temperature_violation",
+      "expected_csp_status": "REJECTED",
+      "aquarium": { "volume_liters": 100 },
+      "telemetry": { "temperature_c": 33.0, "ph": 7.0, "tds_ppm": 150 },
+      "fish": [
+        { "species_id": "paracheirodon_innesi", "male": 5, "female": 5 }
+      ]
+    },
+    {
+      "id": "BM-006",
+      "type": "valid_community",
+      "expected_csp_status": "PASS",
+      "aquarium": { "volume_liters": 100 },
+      "telemetry": { "temperature_c": 24.5, "ph": 6.8, "tds_ppm": 120 },
+      "fish": [
+        { "species_id": "corydoras_aeneus", "male": 2, "female": 4 },
+        { "species_id": "paracheirodon_innesi", "male": 5, "female": 5 }
+      ]
+    }
+  ]
+}

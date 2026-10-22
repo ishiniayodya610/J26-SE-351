@@ -1,0 +1,152 @@
+[
+  {
+    "species_id": "poecilia_reticulata",
+    "common_name": "Guppy",
+    "temperament": "peaceful",
+    "environment": {
+      "temperature": { "min": 22, "optimal_min": 24, "optimal_max": 28, "max": 30 },
+      "ph": { "min": 6.5, "optimal_min": 7.0, "optimal_max": 8.0, "max": 8.5 },
+      "tds": { "min": 100, "optimal_min": 150, "optimal_max": 300, "max": 500 },
+      "min_volume_liters": 2.0
+    },
+    "behavior": { "aggression": 1, "fin_nipping": false, "territorial": false },
+    "spatial": { "zones": ["Top", "Middle"] },
+    "breeding": { "type": "livebearer", "male_female_ratio": 1.0 },
+    "compatibility": { "betta_splendens": "high_risk", "pterophyllum_scalare": "moderate_risk" }
+  },
+  {
+    "species_id": "xiphophorus_hellerii",
+    "common_name": "Swordtail",
+    "temperament": "semi-aggressive",
+    "environment": {
+      "temperature": { "min": 20, "optimal_min": 22, "optimal_max": 26, "max": 28 },
+      "ph": { "min": 7.0, "optimal_min": 7.5, "optimal_max": 8.3, "max": 8.5 },
+      "tds": { "min": 150, "optimal_min": 200, "optimal_max": 400, "max": 500 },
+      "min_volume_liters": 5.0
+    },
+    "behavior": { "aggression": 3, "fin_nipping": false, "territorial": true },
+    "spatial": { "zones": ["Top", "Middle"] },
+    "breeding": { "type": "livebearer", "male_female_ratio": 3.0 },
+    "compatibility": { "betta_splendens": "moderate_risk" }
+  },
+  {
+    "species_id": "betta_splendens",
+    "common_name": "Betta",
+    "temperament": "aggressive",
+    "environment": {
+      "temperature": { "min": 24, "optimal_min": 25, "optimal_max": 27, "max": 30 },
+      "ph": { "min": 6.0, "optimal_min": 6.5, "optimal_max": 7.5, "max": 8.0 },
+      "tds": { "min": 50, "optimal_min": 100, "optimal_max": 200, "max": 300 },
+      "min_volume_liters": 10.0
+    },
+    "behavior": { "aggression": 9, "fin_nipping": false, "territorial": true },
+    "spatial": { "zones": ["Top"] },
+    "breeding": { "type": "egglayer", "male_female_ratio": 0.0 },
+    "compatibility": { "poecilia_reticulata": "high_risk" }
+  },
+  {
+    "species_id": "paracheirodon_innesi",
+    "common_name": "Neon Tetra",
+    "temperament": "peaceful",
+    "environment": {
+      "temperature": { "min": 20, "optimal_min": 22, "optimal_max": 25, "max": 26 },
+      "ph": { "min": 5.0, "optimal_min": 6.0, "optimal_max": 7.0, "max": 7.5 },
+      "tds": { "min": 10, "optimal_min": 50, "optimal_max": 100, "max": 150 },
+      "min_volume_liters": 2.0
+    },
+    "behavior": { "aggression": 1, "fin_nipping": false, "territorial": false },
+    "spatial": { "zones": ["Middle"] },
+    "breeding": { "type": "egglayer", "male_female_ratio": 1.0 },
+    "compatibility": { "pterophyllum_scalare": "high_risk" }
+  },
+  {
+    "species_id": "trigonostigma_heteromorpha",
+    "common_name": "Harlequin Rasbora",
+    "temperament": "peaceful",
+    "environment": {
+      "temperature": { "min": 22, "optimal_min": 24, "optimal_max": 27, "max": 28 },
+      "ph": { "min": 5.0, "optimal_min": 6.0, "optimal_max": 7.0, "max": 7.5 },
+      "tds": { "min": 20, "optimal_min": 50, "optimal_max": 120, "max": 150 },
+      "min_volume_liters": 2.5
+    },
+    "behavior": { "aggression": 1, "fin_nipping": false, "territorial": false },
+    "spatial": { "zones": ["Middle", "Top"] },
+    "breeding": { "type": "egglayer", "male_female_ratio": 1.0 },
+    "compatibility": {}
+  },
+  {
+    "species_id": "corydoras_aeneus",
+    "common_name": "Corydoras",
+    "temperament": "peaceful",
+    "environment": {
+      "temperature": { "min": 21, "optimal_min": 23, "optimal_max": 26, "max": 27 },
+      "ph": { "min": 6.0, "optimal_min": 6.5, "optimal_max": 7.5, "max": 8.0 },
+      "tds": { "min": 50, "optimal_min": 100, "optimal_max": 200, "max": 250 },
+      "min_volume_liters": 4.0
+    },
+    "behavior": { "aggression": 1, "fin_nipping": false, "territorial": false },
+    "spatial": { "zones": ["Bottom"] },
+    "breeding": { "type": "egglayer", "male_female_ratio": 2.0 },
+    "compatibility": {}
+  },
+  {
+    "species_id": "xiphophorus_maculatus",
+    "common_name": "Platy",
+    "temperament": "peaceful",
+    "environment": {
+      "temperature": { "min": 20, "optimal_min": 22, "optimal_max": 25, "max": 26 },
+      "ph": { "min": 7.0, "optimal_min": 7.2, "optimal_max": 8.2, "max": 8.5 },
+      "tds": { "min": 150, "optimal_min": 200, "optimal_max": 350, "max": 400 },
+      "min_volume_liters": 3.0
+    },
+    "behavior": { "aggression": 1, "fin_nipping": false, "territorial": false },
+    "spatial": { "zones": ["Middle", "Top"] },
+    "breeding": { "type": "livebearer", "male_female_ratio": 2.0 },
+    "compatibility": {}
+  },
+  {
+    "species_id": "poecilia_sphenops",
+    "common_name": "Molly",
+    "temperament": "peaceful",
+    "environment": {
+      "temperature": { "min": 24, "optimal_min": 25, "optimal_max": 28, "max": 30 },
+      "ph": { "min": 7.5, "optimal_min": 7.8, "optimal_max": 8.5, "max": 8.8 },
+      "tds": { "min": 200, "optimal_min": 300, "optimal_max": 450, "max": 500 },
+      "min_volume_liters": 6.0
+    },
+    "behavior": { "aggression": 2, "fin_nipping": false, "territorial": false },
+    "spatial": { "zones": ["Top", "Middle", "Bottom"] },
+    "breeding": { "type": "livebearer", "male_female_ratio": 3.0 },
+    "compatibility": {}
+  },
+  {
+    "species_id": "pterophyllum_scalare",
+    "common_name": "Angelfish",
+    "temperament": "semi-aggressive",
+    "environment": {
+      "temperature": { "min": 24, "optimal_min": 26, "optimal_max": 28, "max": 30 },
+      "ph": { "min": 6.0, "optimal_min": 6.5, "optimal_max": 7.4, "max": 7.5 },
+      "tds": { "min": 50, "optimal_min": 100, "optimal_max": 250, "max": 300 },
+      "min_volume_liters": 15.0
+    },
+    "behavior": { "aggression": 5, "fin_nipping": false, "territorial": true },
+    "spatial": { "zones": ["Middle"] },
+    "breeding": { "type": "egglayer", "male_female_ratio": 1.0 },
+    "compatibility": { "paracheirodon_innesi": "high_risk", "poecilia_reticulata": "moderate_risk" }
+  },
+  {
+    "species_id": "danio_rerio",
+    "common_name": "Zebra Danio",
+    "temperament": "peaceful",
+    "environment": {
+      "temperature": { "min": 18, "optimal_min": 20, "optimal_max": 24, "max": 25 },
+      "ph": { "min": 6.5, "optimal_min": 7.0, "optimal_max": 7.5, "max": 8.0 },
+      "tds": { "min": 50, "optimal_min": 100, "optimal_max": 200, "max": 250 },
+      "min_volume_liters": 2.5
+    },
+    "behavior": { "aggression": 1, "fin_nipping": true, "territorial": false },
+    "spatial": { "zones": ["Top", "Middle"] },
+    "breeding": { "type": "egglayer", "male_female_ratio": 1.0 },
+    "compatibility": { "betta_splendens": "moderate_risk" }
+  }
+]
