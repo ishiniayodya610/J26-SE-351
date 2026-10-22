@@ -1,88 +1,65 @@
-# AquaGuard Decision Engine
+# AquaGuard Decision Engine (J26-SE-351)
 
-The **AquaGuard Decision Engine** is the central reasoning core for the AquaGuard ecosystem. It integrates Constraint Satisfaction Problems (CSP), Fuzzy Logic Inference, Genetic Algorithms (GA), and Explainable AI (XAI) to ensure aquatic species biocompatibility and optimal water quality management.
+**An Explainable Hybrid CSP-Fuzzy Dynamic Breeding Population Optimizer for Aquarium Management**
 
----
+AquaGuard is an AI-driven backend decision engine designed to process live IoT telemetry, evaluate biological constraints, compute ecosystem stability, and optimize aquatic breeding populations. It serves as the intelligent core between the ESP32 hardware edge and the React Native mobile application.
 
-## 🏛️ Directory Structure
+## 🧠 System Architecture
 
-```text
-aquaguard-decision-engine/
-├── app/
-│   ├── main.py                     # FastAPI entry point & route mounting
-│   ├── api/                        # REST API routing endpoints
-│   │   ├── decision_routes.py      # Telemetry evaluation & decision endpoints
-│   │   ├── simulation_routes.py    # Counterfactual what-if simulation endpoints
-│   │   └── species_routes.py       # Species catalog & biological profiles
-│   ├── models/                     # Pydantic data schemas
-│   │   ├── species.py              # Biological parameters & ranges
-│   │   ├── aquarium.py             # Tank setup, equipment, and current stock
-│   │   ├── telemetry.py            # Real-time sensor readings (pH, Temp, NH3)
-│   │   └── decision.py             # Decision outputs, recommendations & XAI schemas
-│   ├── database/                   # Persistence layer
-│   │   ├── mongodb.py              # PyMongo connection management
-│   │   └── repositories.py         # Repositories for species & telemetry
-│   ├── csp/                        # Constraint Satisfaction Problem Engine
-│   │   ├── constraints.py          # Biocompatibility and parameter constraints
-│   │   └── csp_engine.py           # python-constraint solver
-│   ├── fuzzy/                      # Fuzzy Logic Inference System
-│   │   ├── membership.py           # Linguistic variables & membership curves
-│   │   ├── rules.py                # Fuzzy associative matrix & rules
-│   │   └── fuzzy_engine.py         # scikit-fuzzy inference & defuzzification
-│   ├── optimizer/                  # Genetic Algorithm (GA) Optimization
-│   │   ├── fitness.py              # Multi-objective fitness functions
-│   │   ├── constraints.py          # Biological viability checks
-│   │   └── optimizer.py            # DEAP evolutionary algorithm engine
-│   ├── xai/                        # Explainable AI (XAI)
-│   │   ├── rule_trace.py           # Trace collector for rule firings
-│   │   ├── explanation.py          # Natural language explanation generator
-│   │   └── templates.py            # Explanation formatting templates
-│   ├── simulation/                 # Predictive Simulation
-│   │   └── what_if_engine.py       # What-if counterfactual scenario simulator
-│   ├── tests/                      # Test Suite
-│   │   ├── test_csp.py             # CSP engine tests
-│   │   ├── test_fuzzy.py           # Fuzzy logic tests
-│   │   ├── test_optimizer.py       # Genetic algorithm tests
-│   │   ├── test_xai.py             # XAI and explanation tests
-│   │   └── test_api.py             # FastAPI integration tests
-│   └── data/                       # Data Assets
-│       ├── species_seed.json       # Seed catalog of fish species & parameters
-│       └── test_scenarios.json     # Evaluation scenarios (normal, spikes, conflicts)
-├── requirements.txt                # Python 3.11 environment dependencies
-└── README.md
-```
+The decision engine operates on a strict, 4-stage pipeline:
 
----
+1. **CSP Gatekeeper:** A Constraint Satisfaction Problem engine that filters out fatal biological mismatches (e.g., predator/prey conflicts, extreme temperature violations, volume capacity limits).
+2. **Fuzzy Stability Engine:** A Mamdani Fuzzy Inference System (using `scikit-fuzzy`) that calculates a continuous Ecosystem Stability Index (ESI) based on live pH, TDS, temperature, and aggression metrics.
+3. **Dynamic Population Optimizer:** A Genetic Algorithm (using `DEAP`) that recommends optimal stocking counts and breeding ratios while penalizing high bioloads.
+4. **XAI Generator:** An Explainable AI module that translates mathematical rejections and stability scores into human-readable recommendations.
 
-## 🚀 Getting Started
+## 🚀 Installation & Setup
 
-### 1. Environment Setup
-
+**1. Clone the repository and setup the environment:**
 ```bash
-# Create and activate virtual environment
 python -m venv venv
+# On Windows: .\venv\Scripts\activate
+# On Mac/Linux: source venv/bin/activate
+```
 
-# Windows (PowerShell):
-.\venv\Scripts\Activate.ps1
-# Linux / macOS:
-source venv/bin/activate
+**2. Install dependencies:**
 
-# Install dependencies
+```bash
 pip install -r requirements.txt
+pip install pytest scipy networkx
 ```
 
-### 2. Run Development Server
+**3. Configure Firebase:**
+Download your `serviceAccountKey.json` from the Firebase Console and place it in the root directory. **(Do not commit this file to version control).**
+
+## 🌐 Running the API Server
+
+Start the FastAPI server locally:
 
 ```bash
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+uvicorn app.main:app --reload
 ```
 
-Interactive API documentation:
-- Swagger UI: [http://localhost:8000/docs](http://localhost:8000/docs)
-- ReDoc: [http://localhost:8000/redoc](http://localhost:8000/redoc)
+Access the interactive API documentation (Swagger UI) at: `http://127.0.0.1:8000/docs`
 
-### 3. Run Test Suite
+## 🧪 Testing & Benchmarks
+
+The system includes a comprehensive Pytest suite and automated benchmark scripts to validate the 100 required stocking permutations for evaluation.
+
+**Run the Unit Test Suite:**
 
 ```bash
-pytest app/tests/ -v
+pytest -v
+```
+
+**Run the 100-Permutation Benchmark Evaluation:**
+
+```bash
+python scripts/evaluate_metrics.py
+```
+
+**Run the Millisecond Latency Profiler:**
+
+```bash
+python scripts/performance_test.py
 ```
