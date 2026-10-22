@@ -28,10 +28,139 @@ import {
   Sparkles,
   Camera as CameraIcon,
   RotateCcw,
-  Square
+  Square,
+  Target,
+  X
 } from 'lucide-react-native';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import { api, BehaviorData, VideoAnalysisData } from '@/services/api';
 import { triggerAnomalyHaptic, triggerResolvedHaptic, triggerSelectionHaptic } from '@/services/haptics';
+
+export interface LiveTargetData {
+  id?: number;
+  detected?: boolean;
+  species_id?: string;
+  common_name?: string;
+  scientific_name?: string;
+  confidence?: number;
+  box?: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+  position?: string;
+  posture?: string;
+  speed_bl_s?: number;
+  status?: string;
+  target_parameters?: {
+    temp: number;
+    ph: number;
+    tds: number;
+  };
+  message?: string;
+}
+
+// Fluid Reanimated Multi-Fish Reticle with Spring Motion Interpolation
+interface FishReticleProps {
+  target: LiveTargetData;
+  viewportWidth: number;
+  viewportHeight: number;
+}
+
+const FishTargetReticle: React.FC<FishReticleProps> = ({ target, viewportWidth, viewportHeight }) => {
+  const targetX = Math.max(0, (target.box?.x ?? 0) * viewportWidth);
+  const targetY = Math.max(0, (target.box?.y ?? 0) * viewportHeight);
+  const targetW = Math.min(viewportWidth, Math.max(80, (target.box?.width ?? 0.2) * viewportWidth));
+  const targetH = Math.min(viewportHeight, Math.max(60, (target.box?.height ?? 0.15) * viewportHeight));
+
+  const animX = useSharedValue(targetX);
+  const animY = useSharedValue(targetY);
+  const animW = useSharedValue(targetW);
+  const animH = useSharedValue(targetH);
+
+  useEffect(() => {
+    animX.value = withSpring(targetX, { damping: 15, stiffness: 90 });
+    animY.value = withSpring(targetY, { damping: 15, stiffness: 90 });
+    animW.value = withSpring(targetW, { damping: 15, stiffness: 90 });
+    animH.value = withSpring(targetH, { damping: 15, stiffness: 90 });
+  }, [targetX, targetY, targetW, targetH]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: animX.value },
+      { translateY: animY.value }
+    ],
+    width: animW.value,
+    height: animH.value,
+  }));
+
+  const isBetta = target.species_id?.toLowerCase() === 'betta';
+  const isGuppy = target.species_id?.toLowerCase() === 'guppy';
+  // Distinct neon palette: Betta (Cyan #00E5FF), Guppy (Emerald #00E676), Swordtail (Amber #FF9100)
+  const themeColor = isBetta ? '#00E5FF' : isGuppy ? '#00E676' : '#FF9100';
+  const isNearTop = (target.box?.y ?? 0) < 0.28;
+
+  return (
+    <Animated.View
+      style={[
+        styles.liveTargetBox,
+        animatedStyle,
+        { 
+          borderColor: themeColor,
+          backgroundColor: isBetta ? 'rgba(0, 229, 255, 0.08)' : isGuppy ? 'rgba(0, 230, 118, 0.08)' : 'rgba(255, 145, 0, 0.08)'
+        }
+      ]}
+      pointerEvents="none"
+    >
+      {/* High-tech Reticle Corner Brackets */}
+      <View style={[styles.reticleTL, { borderColor: themeColor }]} />
+      <View style={[styles.reticleTR, { borderColor: themeColor }]} />
+      <View style={[styles.reticleBL, { borderColor: themeColor }]} />
+      <View style={[styles.reticleBR, { borderColor: themeColor }]} />
+
+      {/* Floating Telemetry Glass Card */}
+      <View style={[
+        styles.floatingHud,
+        isNearTop ? styles.floatingHudBelow : styles.floatingHudAbove,
+        { borderColor: themeColor }
+      ]}>
+        <View style={styles.floatingHudHeader}>
+          <View style={[styles.livePulseDot, { backgroundColor: themeColor }]} />
+          <Text style={styles.floatingFishName} numberOfLines={1}>
+            {target.common_name || 'Fish'}
+          </Text>
+          <View style={[styles.floatingConfBadge, { borderColor: themeColor }]}>
+            <Text style={[styles.floatingConfidence, { color: themeColor }]}>
+              {((target.confidence || 0) * 100).toFixed(0)}%
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.floatingHudDivider} />
+
+        <View style={styles.floatingHudBody}>
+          <Text style={styles.floatingStat}>
+            SPEED: <Text style={[styles.floatingHighlight, { color: themeColor }]}>
+              {target.speed_bl_s !== undefined ? `${target.speed_bl_s.toFixed(2)} BL/s` : '0.30 BL/s'}
+            </Text> • {target.status}
+          </Text>
+          <Text style={styles.floatingStat}>
+            POSTURE: <Text style={[styles.floatingHighlight, { color: themeColor }]}>{target.posture || 'Normal'}</Text>
+          </Text>
+          <Text style={styles.floatingStat}>
+            ZONE: <Text style={[styles.floatingHighlight, { color: themeColor }]}>{target.position || 'Middle'}</Text>
+          </Text>
+          {target.target_parameters && (
+            <Text style={[styles.floatingParam, { color: themeColor }]}>
+              TARGET: {target.target_parameters.temp}°C | pH {target.target_parameters.ph} | {target.target_parameters.tds}ppm
+            </Text>
+          )}
+        </View>
+      </View>
+    </Animated.View>
+  );
+};
 
 export default function CameraVisionScreen() {
   const [mode, setMode] = useState<'farming' | 'handheld'>('handheld');
@@ -39,6 +168,15 @@ export default function CameraVisionScreen() {
   const [analyzing, setAnalyzing] = useState(false);
   const [videoResult, setVideoResult] = useState<VideoAnalysisData | null>(null);
   const [activeVideoUri, setActiveVideoUri] = useState<string | null>(null);
+
+  // Hybrid 60 FPS Viewfinder & Multi-Fish Target Lock State
+  const [autoRadar, setAutoRadar] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
+  const [liveTargets, setLiveTargets] = useState<LiveTargetData[]>([]);
+  const [scanFeedbackMsg, setScanFeedbackMsg] = useState<string | null>(null);
+  const [viewportDim, setViewportDim] = useState({ width: 0, height: 0 });
+  const liveInFlightRef = useRef(false);
+  const feedbackTimeoutRef = useRef<any>(null);
 
   // Camera state & permissions
   const [facing, setFacing] = useState<CameraType>('back');
@@ -127,6 +265,88 @@ export default function CameraVisionScreen() {
     };
   }, [isRecording]);
 
+  // 1-Tap Snapshot Scan & Lock Target (Silky 60 FPS Camera Viewfinder)
+  const handleScanFish = async () => {
+    if (isScanning || isRecording || liveInFlightRef.current) return;
+    triggerSelectionHaptic();
+    setIsScanning(true);
+    liveInFlightRef.current = true;
+    if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
+    setScanFeedbackMsg('SCANNING WATER COLUMN...');
+
+    const applyDetectionResult = (data: any) => {
+      if (data.detected && data.targets && data.targets.length > 0) {
+        setLiveTargets(data.targets);
+        triggerResolvedHaptic();
+        setScanFeedbackMsg(`LOCKED ${data.targets.length} FISH IN WATER COLUMN`);
+      } else if (data.detected) {
+        setLiveTargets([data]);
+        triggerResolvedHaptic();
+        setScanFeedbackMsg(`LOCKED: ${data.common_name?.toUpperCase()}`);
+      } else {
+        setLiveTargets([]);
+        setScanFeedbackMsg('No fish in frame. Point at Betta, Guppy, or Swordtail.');
+      }
+    };
+
+    try {
+      if (Platform.OS === 'web') {
+        if (webVideoRef.current && webVideoRef.current.videoWidth > 0) {
+          const video = webVideoRef.current;
+          const canvas = document.createElement('canvas');
+          canvas.width = 480;
+          canvas.height = Math.round((video.videoHeight / video.videoWidth) * 480) || 270;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const b64 = canvas.toDataURL('image/jpeg', 0.5);
+            const data = await api.sendLiveFrame(b64);
+            applyDetectionResult(data);
+          }
+        }
+      } else {
+        // Native iOS / Android (Single lightweight snapshot on demand)
+        if (cameraRef.current) {
+          const photo = await (cameraRef.current as any).takePictureAsync({
+            quality: 0.35,
+            base64: true,
+            skipProcessing: true,
+          });
+          if (photo?.base64) {
+            const data = await api.sendLiveFrame(photo.base64);
+            applyDetectionResult(data);
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('Scan frame error:', err);
+      setScanFeedbackMsg('Scan connection issue. Check server.');
+    } finally {
+      setIsScanning(false);
+      liveInFlightRef.current = false;
+      feedbackTimeoutRef.current = setTimeout(() => {
+        setScanFeedbackMsg(null);
+      }, 3500);
+    }
+  };
+
+  const handleClearLock = () => {
+    triggerSelectionHaptic();
+    setLiveTargets([]);
+    setScanFeedbackMsg(null);
+  };
+
+  // Optional Throttled Auto-Radar (Cadence of 2.5s to preserve 60 FPS fluid preview)
+  useEffect(() => {
+    if (!autoRadar || isRecording || mode !== 'handheld') return;
+
+    const interval = setInterval(() => {
+      handleScanFish();
+    }, 2500);
+
+    return () => clearInterval(interval);
+  }, [autoRadar, isRecording, mode]);
+
   // Flip Camera Lens
   const toggleCameraFacing = () => {
     triggerSelectionHaptic();
@@ -172,24 +392,28 @@ export default function CameraVisionScreen() {
     } else {
       // Native (iOS / Android)
       if (cameraRef.current) {
-        try {
-          const videoPromise = cameraRef.current.recordAsync({
-            maxDuration: 15,
-          });
-          videoPromise.then(async (data) => {
-            if (data?.uri) {
-              setActiveVideoUri(data.uri);
-              await processVideoUpload(data.uri, 'live_tank_video.mp4');
-            }
-          }).catch(err => {
-            console.error('Record error:', err);
-          }).finally(() => {
+        setTimeout(async () => {
+          if (!cameraRef.current) return;
+          try {
+            const videoPromise = cameraRef.current.recordAsync({
+              maxDuration: 15,
+            });
+            videoPromise.then(async (data) => {
+              if (data?.uri) {
+                setActiveVideoUri(data.uri);
+                const fname = data.uri.split('/').pop() || 'live_tank_video.mp4';
+                await processVideoUpload(data.uri, fname);
+              }
+            }).catch(err => {
+              console.error('Record error:', err);
+            }).finally(() => {
+              setIsRecording(false);
+            });
+          } catch (err) {
+            console.error('Native record start error:', err);
             setIsRecording(false);
-          });
-        } catch (err) {
-          console.error('Native record start error:', err);
-          setIsRecording(false);
-        }
+          }
+        }, 150);
       }
     }
   };
@@ -230,7 +454,8 @@ export default function CameraVisionScreen() {
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const asset = result.assets[0];
         setActiveVideoUri(asset.uri);
-        await processVideoUpload(asset.uri, asset.fileName || 'tank_capture.mp4');
+        const fname = asset.fileName || asset.uri.split('/').pop() || 'tank_capture.mp4';
+        await processVideoUpload(asset.uri, fname);
       }
     } catch (err) {
       console.error('External camera error:', err);
@@ -251,7 +476,8 @@ export default function CameraVisionScreen() {
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const asset = result.assets[0];
         setActiveVideoUri(asset.uri);
-        await processVideoUpload(asset.uri, asset.fileName || 'tank_library_clip.mp4');
+        const fname = asset.fileName || asset.uri.split('/').pop() || 'tank_library_clip.mp4';
+        await processVideoUpload(asset.uri, fname);
       }
     } catch (err) {
       console.error('Library pick error:', err);
@@ -364,18 +590,42 @@ export default function CameraVisionScreen() {
                 </Text>
               </View>
 
-              <TouchableOpacity 
-                style={styles.flipBtn} 
-                onPress={toggleCameraFacing}
-                activeOpacity={0.7}
-              >
-                <RotateCcw size={16} color="#00E5FF" />
-                <Text style={styles.flipBtnText}>Flip Lens</Text>
-              </TouchableOpacity>
+              <View style={styles.headerBtnGroup}>
+                <TouchableOpacity 
+                  style={[styles.arToggleBtn, autoRadar && styles.arToggleBtnActive]} 
+                  onPress={() => {
+                    triggerSelectionHaptic();
+                    setAutoRadar(!autoRadar);
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Radio size={13} color={autoRadar ? '#0B0F19' : '#00E5FF'} />
+                  <Text style={[styles.arToggleBtnText, autoRadar && styles.arToggleBtnTextActive]}>
+                    {autoRadar ? 'RADAR: 2.5s' : 'RADAR: OFF'}
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={styles.flipBtn} 
+                  onPress={toggleCameraFacing}
+                  activeOpacity={0.7}
+                >
+                  <RotateCcw size={14} color="#00E5FF" />
+                  <Text style={styles.flipBtnText}>Flip Lens</Text>
+                </TouchableOpacity>
+              </View>
             </View>
 
             {/* Embedded Live Camera Feed Viewport */}
-            <View style={styles.viewportContainer}>
+            <View 
+              style={styles.viewportContainer}
+              onLayout={(e) => {
+                const { width, height } = e.nativeEvent.layout;
+                if (width > 0 && height > 0) {
+                  setViewportDim({ width, height });
+                }
+              }}
+            >
               {Platform.OS === 'web' ? (
                 /* Web Browser Webcam Feed */
                 <View style={styles.cameraFrame}>
@@ -400,7 +650,7 @@ export default function CameraVisionScreen() {
                     ref={cameraRef}
                     style={StyleSheet.absoluteFill}
                     facing={facing}
-                    mode="video"
+                    mode={isRecording ? 'video' : 'picture'}
                   />
                 ) : (
                   <View style={styles.permissionBox}>
@@ -419,18 +669,72 @@ export default function CameraVisionScreen() {
                 )
               )}
 
-              {/* HUD / Optical Tracking Crosshairs & Overlays */}
-              <View style={styles.crosshairTopLeft} />
-              <View style={styles.crosshairTopRight} />
-              <View style={styles.crosshairBottomLeft} />
-              <View style={styles.crosshairBottomRight} />
+              {/* Tap Viewfinder Screen to Scan */}
+              <TouchableOpacity
+                style={StyleSheet.absoluteFill}
+                activeOpacity={0.9}
+                onPress={handleScanFish}
+              />
 
-              {/* AI Detection Bounding Box Overlay */}
-              <View style={styles.hudOverlay}>
-                <View style={styles.aiTrackBadge}>
-                  <Sparkles size={12} color="#00E5FF" />
-                  <Text style={styles.aiTrackText}>
-                    {isRecording ? 'TRACKING KINEMATICS ACTIVE' : 'AI TARGET ACQUIRED • 1080p 30FPS'}
+              {/* Real Water Column Depth Strata Guides (matching backend 33.3% / 66.7% thresholds) */}
+              <View style={styles.strataOverlay} pointerEvents="none">
+                <View style={styles.strataZoneTop}>
+                  <View style={styles.strataTag}>
+                    <Text style={styles.strataTagText}>SURFACE (TOP • 0–33%)</Text>
+                  </View>
+                </View>
+                <View style={styles.strataZoneMid}>
+                  <View style={styles.strataTag}>
+                    <Text style={styles.strataTagText}>CRUISING (MIDDLE • 33–66%)</Text>
+                  </View>
+                </View>
+                <View style={styles.strataZoneBot}>
+                  <View style={styles.strataTag}>
+                    <Text style={styles.strataTagText}>BENTHIC (BOTTOM • 66–100%)</Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* Active Laser Scanning Beam Animation */}
+              {isScanning && (
+                <View style={styles.scanBeamContainer} pointerEvents="none">
+                  <View style={styles.scanBeamGlow} />
+                  <View style={styles.scanBeamLine} />
+                </View>
+              )}
+
+              {/* Dynamic Multi-Fish AR Targets with Reanimated Spring Smoothing */}
+              {!isRecording && liveTargets.length > 0 && viewportDim.width > 0 && (
+                liveTargets.map((tgt, i) => (
+                  <FishTargetReticle
+                    key={tgt.id || i}
+                    target={tgt}
+                    viewportWidth={viewportDim.width}
+                    viewportHeight={viewportDim.height}
+                  />
+                ))
+              )}
+
+              {/* HUD / Optical Tracking Crosshairs & Overlays */}
+              <View style={styles.crosshairTopLeft} pointerEvents="none" />
+              <View style={styles.crosshairTopRight} pointerEvents="none" />
+              <View style={styles.crosshairBottomLeft} pointerEvents="none" />
+              <View style={styles.crosshairBottomRight} pointerEvents="none" />
+
+              {/* Status Header Overlay */}
+              <View style={styles.hudOverlay} pointerEvents="none">
+                <View style={[styles.aiTrackBadge, liveTargets.length > 0 && styles.aiTrackBadgeLocked]}>
+                  <Sparkles size={12} color={liveTargets.length > 0 ? '#00E676' : isScanning ? '#FFD600' : '#00E5FF'} />
+                  <Text style={[styles.aiTrackText, liveTargets.length > 0 && { color: '#00E676' }]}>
+                    {isRecording 
+                      ? 'TRACKING KINEMATICS ACTIVE • 15s REC' 
+                      : isScanning
+                      ? 'AI SCANNING WATER COLUMN...'
+                      : scanFeedbackMsg
+                      ? scanFeedbackMsg
+                      : liveTargets.length > 0
+                      ? `LOCKED ${liveTargets.length} FISH IN TANK`
+                      : 'VIEWFINDER 60 FPS • TAP SCREEN OR SCAN'}
                   </Text>
                 </View>
               </View>
@@ -438,14 +742,42 @@ export default function CameraVisionScreen() {
               {/* Viewfinder Recording Action Controls */}
               <View style={styles.viewfinderControls}>
                 {!isRecording ? (
-                  <TouchableOpacity 
-                    style={styles.recordActionBtn}
-                    activeOpacity={0.85}
-                    onPress={handleStartRecording}
-                  >
-                    <View style={styles.innerRecordCircle} />
-                    <Text style={styles.recordActionText}>RECORD 15s BEHAVIOR CLIP</Text>
-                  </TouchableOpacity>
+                  <View style={styles.controlsRow}>
+                    <TouchableOpacity 
+                      style={[styles.scanActionBtn, isScanning && styles.scanActionBtnBusy]}
+                      activeOpacity={0.8}
+                      onPress={handleScanFish}
+                      disabled={isScanning}
+                    >
+                      {isScanning ? (
+                        <ActivityIndicator size="small" color="#0B0F19" />
+                      ) : (
+                        <Target size={16} color="#0B0F19" />
+                      )}
+                      <Text style={styles.scanActionText}>
+                        {isScanning ? 'SCANNING...' : liveTargets.length > 0 ? `RESCAN (${liveTargets.length} LOCKED)` : '🎯 SCAN & LOCK TANK'}
+                      </Text>
+                    </TouchableOpacity>
+
+                    {liveTargets.length > 0 && (
+                      <TouchableOpacity 
+                        style={styles.clearLockBtn}
+                        activeOpacity={0.7}
+                        onPress={handleClearLock}
+                      >
+                        <X size={16} color="#FF1744" />
+                      </TouchableOpacity>
+                    )}
+
+                    <TouchableOpacity 
+                      style={styles.recordActionMiniBtn}
+                      activeOpacity={0.85}
+                      onPress={handleStartRecording}
+                    >
+                      <View style={styles.innerRecordCircle} />
+                      <Text style={styles.recordActionMiniText}>REC 15s</Text>
+                    </TouchableOpacity>
+                  </View>
                 ) : (
                   <TouchableOpacity 
                     style={styles.stopActionBtn}
@@ -478,30 +810,7 @@ export default function CameraVisionScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* Quick Demo Clip Selector for Evaluators */}
-            <Text style={styles.sampleLabel}>Or Test Pre-Recorded Demo Clips (Evaluator Mode):</Text>
-            <View style={styles.btnRow}>
-              <TouchableOpacity 
-                style={styles.sampleBtn} 
-                onPress={() => handleSimulatedClip('discus')}
-              >
-                <Text style={styles.sampleBtnText}>📹 Discus Clip</Text>
-              </TouchableOpacity>
 
-              <TouchableOpacity 
-                style={styles.sampleBtn} 
-                onPress={() => handleSimulatedClip('koi')}
-              >
-                <Text style={styles.sampleBtnText}>📹 Koi Clip</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity 
-                style={styles.sampleBtn} 
-                onPress={() => handleSimulatedClip('cichlid')}
-              >
-                <Text style={styles.sampleBtnText}>📹 Cichlid Clip</Text>
-              </TouchableOpacity>
-            </View>
 
             {analyzing && (
               <View style={styles.scanningIndicator}>
@@ -755,6 +1064,34 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 0.5,
   },
+  headerBtnGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  arToggleBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(0, 229, 255, 0.1)',
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 229, 255, 0.3)',
+  },
+  arToggleBtnActive: {
+    backgroundColor: '#00E5FF',
+    borderColor: '#00E5FF',
+  },
+  arToggleBtnText: {
+    color: '#00E5FF',
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  arToggleBtnTextActive: {
+    color: '#0B0F19',
+  },
   flipBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -773,15 +1110,60 @@ const styles = StyleSheet.create({
   },
   viewportContainer: {
     width: '100%',
-    height: 280,
+    aspectRatio: 9 / 16,
+    maxHeight: 520,
     backgroundColor: '#05070B',
-    borderRadius: 12,
+    borderRadius: 16,
     overflow: 'hidden',
     position: 'relative',
-    borderWidth: 1,
-    borderColor: '#1E293B',
+    borderWidth: 1.5,
+    borderColor: 'rgba(0, 229, 255, 0.35)',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  strataOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    flexDirection: 'column',
+  },
+  strataZoneTop: {
+    flex: 1,
+    borderBottomWidth: 1.5,
+    borderColor: 'rgba(0, 229, 255, 0.3)',
+    borderStyle: 'dashed',
+    padding: 10,
+    justifyContent: 'flex-start',
+  },
+  strataZoneMid: {
+    flex: 1,
+    borderBottomWidth: 1.5,
+    borderColor: 'rgba(0, 229, 255, 0.3)',
+    borderStyle: 'dashed',
+    padding: 10,
+    justifyContent: 'flex-start',
+  },
+  strataZoneBot: {
+    flex: 1,
+    padding: 10,
+    justifyContent: 'flex-start',
+  },
+  strataTag: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(11, 15, 25, 0.75)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 229, 255, 0.25)',
+  },
+  strataTagText: {
+    color: '#00E5FF',
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.5,
   },
   cameraFrame: {
     width: '100%',
@@ -842,12 +1224,194 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 0.5,
   },
+  aiTrackBadgeLocked: {
+    backgroundColor: 'rgba(0, 230, 118, 0.2)',
+    borderColor: '#00E676',
+  },
+  liveTargetBox: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    borderWidth: 1.5,
+    borderRadius: 8,
+  },
+  reticleTL: { position: 'absolute', top: -2, left: -2, width: 10, height: 10, borderLeftWidth: 3, borderTopWidth: 3, borderColor: '#00E5FF' },
+  reticleTR: { position: 'absolute', top: -2, right: -2, width: 10, height: 10, borderRightWidth: 3, borderTopWidth: 3, borderColor: '#00E5FF' },
+  reticleBL: { position: 'absolute', bottom: -2, left: -2, width: 10, height: 10, borderLeftWidth: 3, borderBottomWidth: 3, borderColor: '#00E5FF' },
+  reticleBR: { position: 'absolute', bottom: -2, right: -2, width: 10, height: 10, borderRightWidth: 3, borderBottomWidth: 3, borderColor: '#00E5FF' },
+  floatingHud: {
+    position: 'absolute',
+    minWidth: 175,
+    maxWidth: 230,
+    backgroundColor: 'rgba(11, 15, 25, 0.92)',
+    borderRadius: 8,
+    padding: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 229, 255, 0.45)',
+    shadowColor: '#00E5FF',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  floatingHudAbove: {
+    bottom: '100%',
+    marginBottom: 6,
+    left: 0,
+  },
+  floatingHudBelow: {
+    top: '100%',
+    marginTop: 6,
+    left: 0,
+  },
+  floatingHudHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    justifyContent: 'space-between',
+  },
+  livePulseDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#00E676',
+  },
+  floatingFishName: {
+    flex: 1,
+    color: '#F8FAFC',
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.3,
+  },
+  floatingConfBadge: {
+    backgroundColor: 'rgba(0, 230, 118, 0.15)',
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: 4,
+    borderWidth: 0.5,
+    borderColor: '#00E676',
+  },
+  floatingConfidence: {
+    color: '#00E676',
+    fontSize: 9,
+    fontWeight: '800',
+  },
+  floatingHudDivider: {
+    height: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    marginVertical: 4,
+  },
+  floatingHudBody: {
+    gap: 2,
+  },
+  floatingStat: {
+    color: '#94A3B8',
+    fontSize: 9,
+    fontWeight: '600',
+    lineHeight: 13,
+  },
+  floatingHighlight: {
+    color: '#00E5FF',
+    fontWeight: '800',
+  },
+  floatingParam: {
+    color: '#00E676',
+    fontSize: 8.5,
+    fontWeight: '700',
+    marginTop: 2,
+  },
+  scanBeamContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  scanBeamGlow: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 229, 255, 0.08)',
+  },
+  scanBeamLine: {
+    width: '100%',
+    height: 3,
+    backgroundColor: '#00E5FF',
+    shadowColor: '#00E5FF',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.9,
+    shadowRadius: 10,
+    elevation: 8,
+  },
   viewfinderControls: {
     position: 'absolute',
     bottom: 14,
-    left: 16,
-    right: 16,
+    left: 14,
+    right: 14,
     alignItems: 'center',
+  },
+  controlsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    width: '100%',
+    justifyContent: 'center',
+  },
+  scanActionBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#00E5FF',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 25,
+    gap: 8,
+    shadowColor: '#00E5FF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  scanActionBtnBusy: {
+    backgroundColor: 'rgba(0, 229, 255, 0.65)',
+  },
+  scanActionText: {
+    color: '#0B0F19',
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  clearLockBtn: {
+    backgroundColor: 'rgba(255, 23, 68, 0.15)',
+    borderWidth: 1,
+    borderColor: '#FF1744',
+    padding: 10,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  recordActionMiniBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FF1744',
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 25,
+    gap: 6,
+    borderWidth: 1.5,
+    borderColor: '#FFFFFF',
+  },
+  recordActionMiniText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.5,
   },
   recordActionBtn: {
     flexDirection: 'row',

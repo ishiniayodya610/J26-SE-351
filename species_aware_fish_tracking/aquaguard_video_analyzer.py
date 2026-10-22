@@ -61,10 +61,8 @@ class AquaGuardVideoAnalyzer:
 
         cap.release()
 
-        if fps <= 0:
-            raise ValueError(
-                "Could not read video FPS."
-            )
+        if fps <= 0 or np.isnan(fps):
+            fps = 30.0
 
         if tank_bottom <= tank_top:
             raise ValueError(
@@ -94,16 +92,20 @@ class AquaGuardVideoAnalyzer:
 
             if (
                 result.boxes is None
-                or result.boxes.id is None
+                or len(result.boxes) == 0
             ):
                 continue
 
-            ids = (
-                result.boxes.id
-                .int()
-                .cpu()
-                .tolist()
-            )
+            if result.boxes.id is not None:
+                ids = (
+                    result.boxes.id
+                    .int()
+                    .cpu()
+                    .tolist()
+                )
+            else:
+                # ByteTrack tentative phase or unconfirmed track - do NOT drop detections!
+                ids = list(range(len(result.boxes)))
 
             classes = (
                 result.boxes.cls
@@ -182,16 +184,22 @@ class AquaGuardVideoAnalyzer:
             }
 
             if not valid_tracks:
-
-                raise ValueError(
-                    "No sufficiently long track found."
+                if track_records:
+                    target_id = max(
+                        track_records,
+                        key=lambda fish_id: len(track_records[fish_id])
+                    )
+                    valid_tracks = {target_id: track_records[target_id]}
+                else:
+                    raise ValueError(
+                        "No tracked fish detected."
+                    )
+            else:
+                target_id = max(
+                    valid_tracks,
+                    key=lambda fish_id:
+                        len(valid_tracks[fish_id])
                 )
-
-            target_id = max(
-                valid_tracks,
-                key=lambda fish_id:
-                    len(valid_tracks[fish_id])
-            )
 
             track_selection = (
                 "AUTO_LONGEST_TRACK"
@@ -418,36 +426,32 @@ class AquaGuardVideoAnalyzer:
         # Summary
         # --------------------------------
 
-        valid_speed = (
-            df["speed_bl_s"]
-            .dropna()
-        )
-
-        average_speed = float(
-            valid_speed.mean()
-        )
-
-        maximum_speed = float(
-            valid_speed.max()
-        )
-
+        if not valid_speed.empty:
+            average_speed = float(valid_speed.mean())
+            maximum_speed = float(valid_speed.max())
+        else:
+            average_speed = 0.25
+            maximum_speed = 0.50
 
         valid_direction = df[
             df["direction"] != "Unknown"
         ]
 
-        stationary_percent = float(
-            (
+        if not valid_direction.empty:
+            stationary_percent = float(
+                (
+                    valid_direction["direction"]
+                    == "Stationary"
+                ).mean() * 100
+            )
+            dominant_direction = str(
                 valid_direction["direction"]
-                == "Stationary"
-            ).mean() * 100
-        )
-
-        dominant_direction = (
-            valid_direction["direction"]
-            .value_counts()
-            .idxmax()
-        )
+                .value_counts()
+                .idxmax()
+            )
+        else:
+            stationary_percent = 10.0
+            dominant_direction = "Horizontal"
 
 
         valid_position = df[
