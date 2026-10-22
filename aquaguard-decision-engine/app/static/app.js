@@ -236,22 +236,57 @@ async function executeDecisionPipeline() {
   runBtn.innerHTML = '<span>⏳</span> EVALUATING...';
   runBtn.disabled = true;
 
+  const volVal = parseFloat(document.getElementById('input-volume').value) || 100;
+  const tempVal = parseFloat(document.getElementById('input-temp').value) || 25.0;
+  const phVal = parseFloat(document.getElementById('input-ph').value) || 7.0;
+  const tdsVal = parseFloat(document.getElementById('input-tds').value) || 150;
+
   const payload = {
+    scenario_id: 'demo_live_evaluation',
+    description: 'Live interactive evaluation from demo dashboard',
     aquarium: {
-      volume_liters: parseFloat(document.getElementById('input-volume').value)
+      volume_liters: volVal,
+      dimensions_cm: { l: 80, w: 35, h: 40 },
+      water_type: 'freshwater',
+      equipment: {
+        heater: true,
+        filter_type: 'canister',
+        aeration: true
+      }
     },
     telemetry: {
-      temperature_c: parseFloat(document.getElementById('input-temp').value),
-      ph: parseFloat(document.getElementById('input-ph').value),
-      tds_ppm: parseFloat(document.getElementById('input-tds').value)
+      temperature_c: tempVal,
+      ph: phVal,
+      tds_ppm: tdsVal,
+      diagnostics: {
+        fault_detected: false,
+        imputed: false
+      },
+      gatekeeper: {
+        heater_lockout: false,
+        ph_pump_lockout: false
+      }
     },
     fish: currentFishPopulation.map(f => ({
       species_id: f.species_id,
-      common_name: f.common_name,
-      male: f.male,
-      female: f.female,
-      lethargy_index_pct: f.lethargy_index_pct || 0
-    }))
+      common_name: f.common_name || f.species_id,
+      male: parseInt(f.male) || 0,
+      female: parseInt(f.female) || 0,
+      confidence: 0.95,
+      swimming_activity_pct: 75.0,
+      lethargy_index_pct: parseFloat(f.lethargy_index_pct) || 0.0,
+      surface_piping: 'None',
+      feeding_response: 'Active',
+      status: 'NORMAL_HEALTH'
+    })),
+    forecast: {
+      ammonia_spike_risk_pct: 2.0,
+      ammonia_status: 'STABLE',
+      whitespot_disease_risk_pct: 1.0,
+      disease_status: 'LOW RISK',
+      temperature_trend_c: tempVal,
+      forecast_horizon_hours: 12
+    }
   };
 
   try {
@@ -499,17 +534,59 @@ async function runWhatIfSimulation() {
     }
   });
 
+  const simVol = parseFloat(document.getElementById('sim-base-vol').value) || 100;
+  const simTemp = parseFloat(document.getElementById('sim-base-temp').value) || 25.0;
+  const simPh = parseFloat(document.getElementById('sim-base-ph').value) || 7.0;
+  const simTds = parseFloat(document.getElementById('sim-base-tds').value) || 150;
+
   const payload = {
     aquarium: {
-      volume_liters: parseFloat(document.getElementById('sim-base-vol').value)
+      volume_liters: simVol,
+      dimensions_cm: { l: 80, w: 35, h: 40 },
+      water_type: 'freshwater',
+      equipment: {
+        heater: true,
+        filter_type: 'canister',
+        aeration: true
+      }
     },
     telemetry: {
-      temperature_c: parseFloat(document.getElementById('sim-base-temp').value),
-      ph: parseFloat(document.getElementById('sim-base-ph').value),
-      tds_ppm: parseFloat(document.getElementById('sim-base-tds').value)
+      temperature_c: simTemp,
+      ph: simPh,
+      tds_ppm: simTds,
+      diagnostics: {
+        fault_detected: false,
+        imputed: false
+      },
+      gatekeeper: {
+        heater_lockout: false,
+        ph_pump_lockout: false
+      }
     },
-    current_population: baseFish,
-    proposed_population: Object.values(mergedMap)
+    current_population: baseFish.map(f => ({
+      species_id: f.species_id,
+      common_name: f.common_name || f.species_id,
+      male: parseInt(f.male) || 0,
+      female: parseInt(f.female) || 0,
+      confidence: 0.95,
+      swimming_activity_pct: 75.0,
+      lethargy_index_pct: 0.0,
+      surface_piping: 'None',
+      feeding_response: 'Active',
+      status: 'NORMAL_HEALTH'
+    })),
+    proposed_population: Object.values(mergedMap).map(f => ({
+      species_id: f.species_id,
+      common_name: f.common_name || f.species_id,
+      male: parseInt(f.male) || 0,
+      female: parseInt(f.female) || 0,
+      confidence: 0.95,
+      swimming_activity_pct: 75.0,
+      lethargy_index_pct: 0.0,
+      surface_piping: 'None',
+      feeding_response: 'Active',
+      status: 'NORMAL_HEALTH'
+    }))
   };
 
   try {
