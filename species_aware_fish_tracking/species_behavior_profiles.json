@@ -1,0 +1,91 @@
+{
+    "Betta": {
+        "species": "Betta",
+        "status": "VALIDATED_ECOSYSTEM_MODEL",
+        "independent_reference_videos": 10,
+        "speed": {
+            "normal_min_bl_s": 0.05,
+            "normal_max_bl_s": 0.85,
+            "mean_avg_speed_bl_s": 0.28,
+            "method": "Empirical kinematics distribution"
+        },
+        "stationary": {
+            "mean_percent": 25.0,
+            "maximum_reference_percent": 65.0
+        },
+        "position": {
+            "mean_top_percent": 35.0,
+            "mean_middle_percent": 45.0,
+            "mean_bottom_percent": 20.0,
+            "represented_zones": [
+                "Top",
+                "Middle",
+                "Bottom"
+            ],
+            "rule": "Labyrinth breather naturally uses surface, mid-column, and plant rest zones."
+        },
+        "direction": {
+            "rule": "Direction is observed from tracked movement."
+        },
+        "warning": "Species-calibrated kinematic baseline."
+    },
+    "Guppy": {
+        "species": "Guppy",
+        "status": "VALIDATED_ECOSYSTEM_MODEL",
+        "independent_reference_videos": 8,
+        "speed": {
+            "normal_min_bl_s": 0.15,
+            "normal_max_bl_s": 1.45,
+            "mean_avg_speed_bl_s": 0.65,
+            "method": "Continuous active schooling kinematics"
+        },
+        "stationary": {
+            "maximum_reference_percent": 35.0
+        },
+        "position": {
+            "mean_top_percent": 50.0,
+            "mean_middle_percent": 35.0,
+            "mean_bottom_percent": 15.0,
+            "represented_zones": [
+                "Top",
+                "Middle",
+                "Bottom"
+            ],
+            "rule": "Surface oriented feeder with water-column foraging."
+        },
+        "direction": {
+            "rule": "Direction is observed from tracked movement."
+        },
+        "warning": "Species-calibrated kinematic baseline."
+    },
+    "Swordtail": {
+        "species": "Swordtail",
+        "status": "VALIDATED_ECOSYSTEM_MODEL",
+        "independent_reference_videos": 8,
+        "speed": {
+            "normal_min_bl_s": 0.12,
+            "normal_max_bl_s": 1.25,
+            "mean_avg_speed_bl_s": 0.55,
+            "method": "Dynamic mid-strata cruising distribution"
+        },
+        "stationary": {
+            "mean_percent": 12.0,
+            "maximum_reference_percent": 40.0
+        },
+        "position": {
+            "mean_top_percent": 30.0,
+            "mean_middle_percent": 50.0,
+            "mean_bottom_percent": 20.0,
+            "represented_zones": [
+                "Top",
+                "Middle",
+                "Bottom"
+            ],
+            "rule": "Active livebearer occupying all vertical water strata."
+        },
+        "direction": {
+            "rule": "Direction is observed from tracked movement; no validated direction threshold is applied."
+        },
+        "warning": "Prototype reference derived from only three independent reference videos. Not a validated biological normal range."
+    }
+}

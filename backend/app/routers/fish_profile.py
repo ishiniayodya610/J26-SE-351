@@ -22,70 +22,55 @@ class FishProfile(BaseModel):
 
 # Master Database of Supported Species
 SPECIES_DATABASE: Dict[str, FishProfile] = {
-    "discus": FishProfile(
-        species_id="discus",
-        common_name="Discus",
-        scientific_name="Symphysodon aequifasciatus",
+    "guppy": FishProfile(
+        species_id="guppy",
+        common_name="Guppy",
+        scientific_name="Poecilia reticulata",
         water_requirements=TargetWaterParameters(
-            temperature_c=29.0,
-            ph=6.5,
-            tds_ppm=150.0,
-            temp_tolerance=[28.0, 31.0],
-            ph_tolerance=[6.0, 7.0],
-            tds_tolerance=[80.0, 200.0]
-        ),
-        behavior_baseline="Graceful schooling, mid-water column swimmer",
-        vulnerability_notes="Highly sensitive to pH drops and ammonia; prone to skin flukes and whitespot under thermal shock."
-    ),
-    "koi": FishProfile(
-        species_id="koi",
-        common_name="Koi Carp",
-        scientific_name="Cyprinus rubrofuscus",
-        water_requirements=TargetWaterParameters(
-            temperature_c=22.0,
-            ph=7.5,
-            tds_ppm=350.0,
-            temp_tolerance=[18.0, 26.0],
-            ph_tolerance=[7.0, 8.0],
-            tds_tolerance=[200.0, 500.0]
-        ),
-        behavior_baseline="Active surface and substrate foraging",
-        vulnerability_notes="Tolerant to wider temperature ranges, but vulnerable to ammonia spikes during heavy feeding."
-    ),
-    "cichlid": FishProfile(
-        species_id="cichlid",
-        common_name="African Cichlid",
-        scientific_name="Pseudotropheus sp.",
-        water_requirements=TargetWaterParameters(
-            temperature_c=26.0,
-            ph=8.2,
-            tds_ppm=480.0,
-            temp_tolerance=[24.0, 28.0],
-            ph_tolerance=[7.8, 8.6],
-            tds_tolerance=[350.0, 600.0]
-        ),
-        behavior_baseline="Territorial rock-dwelling, rapid darting",
-        vulnerability_notes="Requires hard alkaline water; acidic pH leads to severe acidosis and lethargy."
-    ),
-    "goldfish": FishProfile(
-        species_id="goldfish",
-        common_name="Fancy Goldfish",
-        scientific_name="Carassius auratus",
-        water_requirements=TargetWaterParameters(
-            temperature_c=21.0,
+            temperature_c=25.0,
             ph=7.2,
-            tds_ppm=280.0,
-            temp_tolerance=[18.0, 24.0],
+            tds_ppm=250.0,
+            temp_tolerance=[22.0, 28.0],
             ph_tolerance=[6.8, 7.8],
             tds_tolerance=[150.0, 400.0]
         ),
-        behavior_baseline="Slow, continuous cruising across all depths",
-        vulnerability_notes="High biological load generator; rapid ammonia producer."
+        behavior_baseline="Active surface and mid-water schooling activity",
+        vulnerability_notes="Sensitive to ammonia spikes and rapid temperature changes; prone to fin rot and Ich in poor water conditions."
+    ),
+    "swordtail": FishProfile(
+        species_id="swordtail",
+        common_name="Swordtail",
+        scientific_name="Xiphophorus hellerii",
+        water_requirements=TargetWaterParameters(
+            temperature_c=25.0,
+            ph=7.2,
+            tds_ppm=350.0,
+            temp_tolerance=[22.0, 28.0],
+            ph_tolerance=[7.0, 8.0],
+            tds_tolerance=[250.0, 500.0]
+        ),
+        behavior_baseline="Active mid-water swimmer, semi-aggressive",
+        vulnerability_notes="Tolerant species but vulnerable to Ich during sudden temperature drops; males can show territorial stress."
+    ),
+    "betta": FishProfile(
+        species_id="betta",
+        common_name="Betta",
+        scientific_name="Betta splendens",
+        water_requirements=TargetWaterParameters(
+            temperature_c=26.5,
+            ph=6.8,
+            tds_ppm=180.0,
+            temp_tolerance=[24.0, 29.0],
+            ph_tolerance=[6.5, 7.5],
+            tds_tolerance=[100.0, 300.0]
+        ),
+        behavior_baseline="Slow surface dweller, labyrinth breather with resting intervals",
+        vulnerability_notes="Highly sensitive to ammonia and nitrite; prone to fin rot, velvet disease, and cold water lethargy."
     )
 }
 
-# Current Active Tank Profile (Defaults to Discus)
-active_profile: FishProfile = SPECIES_DATABASE["discus"]
+# Current Active Tank Profile (Defaults to Guppy)
+active_profile: FishProfile = SPECIES_DATABASE["guppy"]
 
 @router.get("/profiles", response_model=List[FishProfile])
 async def list_profiles():

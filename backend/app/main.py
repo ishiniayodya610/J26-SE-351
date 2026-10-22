@@ -1,6 +1,31 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.app.routers import telemetry, fish_profile, comp2_vision, comp3_disease, comp4_xai
+try:
+    from backend.app.routers import (
+        telemetry,
+        fish_profile,
+        comp2_vision,
+        comp3_disease,
+        comp4_xai,
+        predictions,
+        aquio,
+        tank
+    )
+    from backend.app.services.aquio_bridge import aquio_bridge
+    from backend.app.services.database import db_manager
+except ImportError:
+    from app.routers import (
+        telemetry,
+        fish_profile,
+        comp2_vision,
+        comp3_disease,
+        comp4_xai,
+        predictions,
+        aquio,
+        tank
+    )
+    from app.services.aquio_bridge import aquio_bridge
+    from app.services.database import db_manager
 
 app = FastAPI(
     title="AquaGuard AI Central Gateway",
@@ -17,12 +42,27 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include All 4 Component Routers + Knowledge Base
+# Include All Component Routers + Prediction Router + Remote Aquio Bridge + Tank DB
 app.include_router(telemetry.router)
 app.include_router(fish_profile.router)
 app.include_router(comp2_vision.router)
 app.include_router(comp3_disease.router)
 app.include_router(comp4_xai.router)
+app.include_router(predictions.router)
+app.include_router(aquio.router)
+app.include_router(tank.router)
+
+@app.on_event("startup")
+async def startup_event():
+    # Attempt MongoDB connection if configured (or fallback to local SQLite)
+    await db_manager.connect_mongo()
+    # Start Aquio remote sensor bridge if enabled in .env
+    aquio_bridge.start()
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    # Gracefully stop remote bridge
+    aquio_bridge.stop()
 
 @app.get("/")
 async def root():
@@ -33,12 +73,19 @@ async def root():
             "comp_1_edge_tinyml": "READY (Edge Impulse C++ Binary Connected)",
             "comp_2_fish_vision": "READY (Hook Active)",
             "comp_3_disease_ammonia": "READY (Risk Synthesizer Active)",
-            "comp_4_xai_engine": "READY (Causality Synthesizer Active)"
+            "comp_4_xai_engine": "READY (Causality Synthesizer Active)",
+            "comp_3_predictions": "READY (Random Forest Inference Active)",
+            "remote_aquio_bridge": aquio_bridge.get_status()
         },
         "endpoints": {
             "swagger_docs": "/docs",
             "telemetry_ws": "/api/telemetry/ws",
             "telemetry_latest": "/api/telemetry/latest",
-            "fish_profiles": "/api/fish/profiles"
+            "fish_profiles": "/api/fish/profiles",
+            "predict_ammonia": "/predict/ammonia",
+            "predict_whitespot": "/predict/whitespot",
+            "aquio_bridge_status": "/api/aquio/status",
+            "aquio_sync_now": "/api/aquio/sync-now"
         }
     }
+

@@ -151,6 +151,13 @@ int main(int argc, char **argv) {
     // Gatekeeper Actuator Safety Interlocks
     bool heater_lockout = temp_fault;
     bool ph_pump_lockout = ph_fault;
+    bool thermal_runaway = false;
+
+    // Hard emergency physical ceiling: if temperature reaches 31.5C or rising despite lockout
+    if (curr_temp >= 31.5f) {
+        heater_lockout = true;
+        thermal_runaway = true;
+    }
 
     // Data Imputation: replace corrupted physical spikes with last verified safe baseline
     float clean_temp = temp_fault ? prev_temp : curr_temp;
@@ -201,7 +208,8 @@ int main(int argc, char **argv) {
 
     cout << "  \"gatekeeper\": {" << endl;
     cout << "    \"heater_lockout\": " << (heater_lockout ? "true" : "false") << "," << endl;
-    cout << "    \"ph_pump_lockout\": " << (ph_pump_lockout ? "true" : "false") << endl;
+    cout << "    \"ph_pump_lockout\": " << (ph_pump_lockout ? "true" : "false") << "," << endl;
+    cout << "    \"thermal_runaway\": " << (thermal_runaway ? "true" : "false") << endl;
     cout << "  }," << endl;
 
     cout << "  \"next_baseline\": {" << endl;
