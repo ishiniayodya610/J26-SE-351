@@ -44,6 +44,7 @@ BASE_WEIGHTS = HERE.parent / "aquaguard_yolo11n_best.pt"
 CLASS_NAMES = ["Betta", "Guppy", "Swordtail"]  # must match the existing model's index order
 VIDEO_EXT = {".mp4", ".mov", ".m4v", ".avi", ".mkv", ".webm"}
 PRELABEL_CONF = 0.30
+NO_FISH = "NONE"  # --species clip=NONE: clip contains no fish (hands, empty tank, room) -> background frames
 
 
 def _clip_id(path):
@@ -63,8 +64,11 @@ def _parse_species(pairs):
         if "=" not in p:
             sys.exit(f"--species expects clip=Species, got '{p}'")
         clip, sp = p.split("=", 1)
+        if sp == NO_FISH:
+            mapping[clip.strip()] = NO_FISH
+            continue
         if sp not in CLASS_NAMES:
-            sys.exit(f"Unknown species '{sp}'. Use one of {CLASS_NAMES}.")
+            sys.exit(f"Unknown species '{sp}'. Use one of {CLASS_NAMES} or {NO_FISH}.")
         mapping[clip.strip()] = CLASS_NAMES.index(sp)
     return mapping
 
@@ -84,7 +88,9 @@ def cmd_extract(args):
         sys.exit(f"No videos found in {videos_dir}")
 
     seen_sizes = {}
-    manifest = {}
+    manifest_path = Path(args.out) / "manifest.json"
+    # Merge: extracting new clips into an existing dataset must keep earlier clips' records.
+    manifest = json.loads(manifest_path.read_text()) if manifest_path.exists() else {}
     for clip in clips:
         size = clip.stat().st_size
         if size in seen_sizes:  # WhatsApp re-exports are byte-identical copies
@@ -106,21 +112,22 @@ def cmd_extract(args):
                 if prev is None or float(np.mean(np.abs(th - prev))) > args.min_diff:
                     prev = th
                     name = f"{cid}_{idx:06d}"
-                    lines = _prelabel(model, frame, forced)
+                    # No-fish clips: every box the model would draw is a false positive.
+                    lines = [] if forced == NO_FISH else _prelabel(model, frame, forced)
                     # In a known-species clip an empty frame means the model MISSED the fish;
                     # saving it as a negative would teach "fish = background". Skip it.
-                    if forced is None or lines:
+                    if forced in (None, NO_FISH) or lines:
                         cv2.imwrite(str(raw / "images" / f"{name}.jpg"), frame)
                         (raw / "labels" / f"{name}.txt").write_text("\n".join(lines) + ("\n" if lines else ""))
                         kept += 1
             idx += 1
         cap.release()
-        manifest[cid] = {"clip": clip.name, "frames": kept,
-                         "species": CLASS_NAMES[forced] if forced is not None else "MIXED (fix by hand)"}
+        label = (NO_FISH if forced == NO_FISH else CLASS_NAMES[forced]) if forced is not None else "MIXED (fix by hand)"
+        manifest[cid] = {"clip": clip.name, "frames": kept, "species": label}
         print(f"{clip.name}: {kept} frames, species={manifest[cid]['species']}")
 
     (raw / "classes.txt").write_text("\n".join(CLASS_NAMES) + "\n")
-    (Path(args.out) / "manifest.json").write_text(json.dumps(manifest, indent=2))
+    manifest_path.write_text(json.dumps(manifest, indent=2))
     print(f"\nPre-labelled frames in {raw}. Review them in CVAT/Roboflow (YOLO format) before 'split'.")
 
 
@@ -320,7 +327,7 @@ def main():
     e = sub.add_parser("extract", help="sample + pre-label frames from clips")
     e.add_argument("--videos", required=True)
     e.add_argument("--out", default="dataset")
-    e.add_argument("--species", nargs="*", help="clip.mp4=Betta|Guppy|Swordtail (omit for mixed tanks)")
+    e.add_argument("--species", nargs="*", help="clip.mp4=Betta|Guppy|Swordtail|NONE (NONE = no fish in clip; omit for mixed tanks)")
     e.add_argument("--every", type=float, default=0.5, help="seconds between sampled frames")
     e.add_argument("--max-per-clip", type=int, default=120)
     e.add_argument("--min-diff", type=float, default=6.0, help="near-duplicate threshold (0-255)")
