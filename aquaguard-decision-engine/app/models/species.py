@@ -10,15 +10,16 @@ from pydantic import BaseModel, Field
 # Phase 3: Vision / Behavioral Observation Model
 class FishBehavior(BaseModel):
     species_id: str
-    common_name: str
-    male: int
-    female: int
-    confidence: float
-    swimming_activity_pct: float
-    lethargy_index_pct: float
-    surface_piping: str
-    feeding_response: str
-    status: str
+    common_name: Optional[str] = ""
+    male: int = 0
+    female: int = 0
+    count: Optional[int] = None
+    confidence: float = 1.0
+    swimming_activity_pct: float = 100.0
+    lethargy_index_pct: float = 0.0
+    surface_piping: str = "normal"
+    feeding_response: str = "normal"
+    status: str = "healthy"
 
 
 # Phase 2: Species Biological Profile Models

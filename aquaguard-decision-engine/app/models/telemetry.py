@@ -3,6 +3,7 @@ Pydantic model representing IoT sensor telemetry, edge diagnostics, and gatekeep
 Phase 3 Data Input Layer.
 """
 
+from typing import Optional
 from pydantic import BaseModel
 
 
@@ -20,8 +21,8 @@ class Telemetry(BaseModel):
     temperature_c: float
     ph: float
     tds_ppm: float
-    diagnostics: Diagnostics
-    gatekeeper: Gatekeeper
+    diagnostics: Optional[Diagnostics] = None
+    gatekeeper: Optional[Gatekeeper] = None
 
 
 # Backwards compatibility alias

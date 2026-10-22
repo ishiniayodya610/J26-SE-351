@@ -16,5 +16,5 @@ class Equipment(BaseModel):
 class Aquarium(BaseModel):
     volume_liters: float
     dimensions_cm: Optional[Dict[str, float]] = None
-    water_type: str
+    water_type: str = "freshwater"
     equipment: Optional[Equipment] = None

@@ -22,14 +22,18 @@ class Forecast(BaseModel):
     forecast_horizon_hours: int
 
 
-# Phase 3: Comprehensive Evaluation Request Payload
+# Phase 16: Mode-Aware Evaluation Request Payload
 class EvaluationRequest(BaseModel):
-    scenario_id: str
-    description: Optional[str] = None
     aquarium: Aquarium
     telemetry: Telemetry
     fish: List[FishBehavior]
-    forecast: Forecast
+    tank_mode: str = Field(
+        default="ornamental",
+        description="Must be either 'ornamental' or 'breeder'.",
+    )
+    scenario_id: Optional[str] = None
+    description: Optional[str] = None
+    forecast: Optional[Forecast] = None
 
 
 class ScenariosPayload(BaseModel):

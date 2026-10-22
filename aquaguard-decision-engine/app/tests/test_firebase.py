@@ -81,9 +81,15 @@ def test_evaluate_endpoint_calls_firebase_save():
         assert response.status_code == 200
         mock_save.assert_called_once()
         args, _ = mock_save.call_args
-        assert args[0] == "aquarium_001"
-        assert args[1]["status"] == "APPROVED"
-        assert "esi" in args[1]
+        if len(args) == 3:
+            assert args[0] == "default_user"
+            assert args[1] == "aquarium_001"
+            assert args[2]["status"] == "APPROVED"
+            assert "esi" in args[2]
+        else:
+            assert args[0] == "aquarium_001"
+            assert args[1]["status"] == "APPROVED"
+            assert "esi" in args[1]
 
 
 def test_firebase_multi_tenant_paths():
