@@ -71,14 +71,19 @@ class AquioBridgeService:
                     self.refresh_token = token_data.get("refresh_token")
                     self.last_error = None
                     logger.info("[Aquio Bridge] Successfully authenticated with remote Aquio ESP32 backend!")
+                    print(f"\n\033[1;92m✅ [REMOTE ESP32 CLOUD] Connected & Authenticated to Aquio Hub!\033[0m")
+                    print(f"   ├── Endpoint: {self.base_url}")
+                    print(f"   └── Target Tank: #{self.tank_id} (Polling every {self.poll_interval}s)\n")
                     return True
                 else:
                     self.last_error = f"Login failed (HTTP {res.status_code}): {res.text}"
                     logger.warning(f"[Aquio Bridge] {self.last_error}")
+                    print(f"\033[1;91m❌ [REMOTE ESP32 CLOUD] Authentication Failed: {self.last_error}\033[0m")
                     return False
         except Exception as e:
             self.last_error = f"Connection error during login: {str(e)}"
             logger.error(f"[Aquio Bridge] {self.last_error}")
+            print(f"\033[1;91m❌ [REMOTE ESP32 CLOUD] Connection Error: {str(e)}\033[0m")
             return False
 
     async def fetch_remote_readings(self) -> Optional[Dict[str, float]]:
@@ -177,6 +182,19 @@ class AquioBridgeService:
             self.last_readings = {"temp": temp, "ph": ph, "tds": tds}
             self.last_error = None
 
+            # Prominent backend terminal log
+            temp_src = "Physical" if readings.get("temp") is not None else "Soft-Sensor"
+            ph_src = "Physical" if readings.get("ph") is not None else "Soft-Sensor"
+            tds_src = "Physical" if readings.get("tds") is not None else "Soft-Sensor"
+            print(
+                f"\033[1;96m📡 [REMOTE SENSORS -> TINYML #{self.sync_count}]\033[0m "
+                f"Tank #{self.tank_id} | "
+                f"\033[93mTemp: {temp:.1f}°C ({temp_src})\033[0m | "
+                f"\033[92mpH: {ph:.2f} ({ph_src})\033[0m | "
+                f"\033[94mTDS: {tds:.0f} ppm ({tds_src})\033[0m -> "
+                f"\033[95mStatus: {inference_result.get('system_status', 'OPTIMAL')}\033[0m"
+            )
+
             return {
                 "success": True,
                 "readings": self.last_readings,
@@ -204,12 +222,15 @@ class AquioBridgeService:
             return
         if not self.enabled:
             logger.info("[Aquio Bridge] AQUIO_ENABLED=false. Bridge idle (Waiting for user activation in .env).")
+            print("\033[93m⏸️  [REMOTE SENSOR BRIDGE] Inactive (Set AQUIO_ENABLED=true in .env to poll physical Tank #5)\033[0m")
             return
         if not self.is_configured():
             logger.info("[Aquio Bridge] AQUIO_ENABLED=true but credentials are placeholders. Please update .env.")
+            print("\033[91m⚠️  [REMOTE SENSOR BRIDGE] Credentials missing in .env! Update AQUIO_EMAIL & AQUIO_PASSWORD.\033[0m")
             return
 
         self.is_running = True
+        print(f"\033[1;92m🚀 [REMOTE SENSOR BRIDGE] Starting polling for Tank #{self.tank_id} every {self.poll_interval}s...\033[0m")
         self._task = asyncio.create_task(self._polling_loop())
 
     def stop(self):

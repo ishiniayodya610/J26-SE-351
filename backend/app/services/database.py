@@ -104,10 +104,12 @@ class DatabaseManager:
             return False
 
         try:
+            import certifi
             from motor.motor_asyncio import AsyncIOMotorClient
             self.mongo_client = AsyncIOMotorClient(
                 MONGODB_URI,
-                serverSelectionTimeoutMS=2000
+                tlsCAFile=certifi.where(),
+                serverSelectionTimeoutMS=4000
             )
             # Ping database to verify connection
             await self.mongo_client.admin.command('ping')
@@ -122,6 +124,10 @@ class DatabaseManager:
 
     async def get_tank_config(self, tank_id: int = 5) -> Dict[str, Any]:
         """Fetch tank config from active database engine."""
+        # 0. Connect if not yet connected
+        if self.engine == "sqlite" and MONGODB_URI and not self.mongo_client:
+            await self.connect_mongo()
+
         # 1. Try MongoDB if active
         if self.engine == "mongodb" and self.mongo_db is not None:
             try:
@@ -130,6 +136,12 @@ class DatabaseManager:
                     doc.pop("_id", None)
                     doc["db_engine"] = "mongodb"
                     return doc
+                else:
+                    # Seed initial config in MongoDB from default
+                    seed = {**DEFAULT_TANK_CONFIG, "tank_id": tank_id, "updated_at": datetime.utcnow().isoformat() + "Z"}
+                    await self.mongo_db.tank_config.insert_one({**seed})
+                    seed["db_engine"] = "mongodb"
+                    return seed
             except Exception as e:
                 logger.error("MongoDB read error: %s. Falling back to SQLite.", e)
 
@@ -166,6 +178,9 @@ class DatabaseManager:
         fish_count: int
     ) -> Dict[str, Any]:
         """Save updated tank config to active database."""
+        if self.engine == "sqlite" and MONGODB_URI and not self.mongo_client:
+            await self.connect_mongo()
+
         bioload = calculate_bioload(volume_liters, fish_count)
         now_iso = datetime.utcnow().isoformat() + "Z"
 
