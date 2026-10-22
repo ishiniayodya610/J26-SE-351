@@ -1,67 +1,2490 @@
 {
+  "dataset_name": "AquaGuard AI CSP 100-Scenario Benchmark",
+  "schema_version": "1.0.0",
+  "created_on": "2026-10-22",
+  "status": "RULE_REVIEWED_DRAFT_NOT_EXPERT_VALIDATED",
+  "purpose": "CSP implementation evaluation using the same basic structure as the supplied six-scenario benchmark.",
+  "label_policy": {
+    "PASS": "Scenario is inside the source-reviewed general-maintenance temperature and pH ranges for every selected species, has no included high-risk blocked pair, and is not designed as a capacity violation.",
+    "REJECTED": "Scenario is designed to trigger one documented project rule: volume/capacity policy, temperature outside a source-reviewed general-maintenance range, adult angelfish-neon predation policy, or conservative Betta-guppy conflict policy.",
+    "important_limitation": "A maintenance range is not a lethal limit. A species-pair warning is not proof that every individual pairing is biologically impossible. Volume labels depend on the project's explicit capacity heuristic. Pair and capacity rules require independent domain-expert review before the benchmark can be described as expert-validated.",
+    "tds_policy": "TDS readings are retained for input-schema compatibility, but the selected species-profile sources do not establish species-specific TDS limits. These values must not be represented as independently validated TDS limits or used to claim biological validation.",
+    "independence_policy": "Scenarios are synthetic software test cases. Several intentionally vary a small number of base cases to test rules; they are not 100 independent empirical observations."
+  },
+  "source_register": [
+    {
+      "source_id": "SF-GUPPY",
+      "title": "Seriously Fish \u2014 Poecilia reticulata (Guppy)",
+      "url": "https://www.seriouslyfish.com/species/poecilia-reticulata",
+      "accessed": "2026-10-22",
+      "supports": [
+        "temperature",
+        "pH",
+        "hardness_dGH",
+        "adult_size",
+        "aquarium_base",
+        "temperament",
+        "social_requirement",
+        "compatibility_notes"
+      ],
+      "limitations": "Does not provide species-specific TDS limits or numeric optimal temperature/pH subranges."
+    },
+    {
+      "source_id": "SF-SWORDTAIL",
+      "title": "Seriously Fish \u2014 Xiphophorus hellerii (Green Swordtail)",
+      "url": "https://seriouslyfish.com/species/xiphophorus-hellerii",
+      "accessed": "2026-10-22",
+      "supports": [
+        "temperature",
+        "pH",
+        "hardness_dGH",
+        "adult_size",
+        "aquarium_base",
+        "social_requirement"
+      ],
+      "limitations": "Does not provide species-specific TDS limits or numeric optimal temperature/pH subranges."
+    },
+    {
+      "source_id": "SF-BETTA",
+      "title": "Seriously Fish \u2014 Betta splendens (Siamese Fighting Fish)",
+      "url": "https://www.seriouslyfish.com/species/betta-splendens",
+      "accessed": "2026-10-22",
+      "supports": [
+        "temperature",
+        "pH",
+        "hardness_dGH",
+        "adult_size",
+        "aquarium_base",
+        "temperament",
+        "social_requirement",
+        "compatibility_notes"
+      ],
+      "limitations": "Tankmate compatibility is conditional; it does not validate every Betta-tankmate combination."
+    },
+    {
+      "source_id": "SF-NEON",
+      "title": "Seriously Fish \u2014 Paracheirodon innesi (Neon Tetra)",
+      "url": "https://www.seriouslyfish.com/species/paracheirodon-innesi",
+      "accessed": "2026-10-22",
+      "supports": [
+        "temperature",
+        "pH",
+        "hardness_dGH",
+        "adult_size",
+        "aquarium_base",
+        "temperament",
+        "social_requirement"
+      ],
+      "limitations": "Does not provide species-specific TDS limits or numeric optimal temperature/pH subranges."
+    },
+    {
+      "source_id": "SF-HARLEQUIN",
+      "title": "Seriously Fish \u2014 Trigonostigma heteromorpha (Harlequin)",
+      "url": "https://www.seriouslyfish.com/species/trigonostigma-heteromorpha",
+      "accessed": "2026-10-22",
+      "supports": [
+        "temperature",
+        "pH",
+        "hardness_dGH",
+        "adult_size",
+        "aquarium_base",
+        "temperament",
+        "social_requirement"
+      ],
+      "limitations": "Does not provide species-specific TDS limits or numeric optimal temperature/pH subranges."
+    },
+    {
+      "source_id": "SF-CORY",
+      "title": "Seriously Fish \u2014 Osteogaster aenea (Bronze Cory; historically Corydoras aeneus)",
+      "url": "https://www.seriouslyfish.com/species/osteogaster-aenea",
+      "accessed": "2026-10-22",
+      "supports": [
+        "temperature",
+        "pH",
+        "hardness_dGH",
+        "adult_size",
+        "aquarium_base",
+        "temperament",
+        "social_requirement"
+      ],
+      "limitations": "Profile notes uncertainty about the identity/origins of some commercially produced fish sold as C. aeneus. No TDS limit given."
+    },
+    {
+      "source_id": "SF-PLATY",
+      "title": "Seriously Fish \u2014 Xiphophorus maculatus (Platy)",
+      "url": "https://www.seriouslyfish.com/species/xiphophorus-maculatus",
+      "accessed": "2026-10-22",
+      "supports": [
+        "temperature",
+        "pH",
+        "hardness_dGH",
+        "adult_size",
+        "aquarium_base",
+        "temperament",
+        "compatibility_notes"
+      ],
+      "limitations": "Does not provide species-specific TDS limits or numeric optimal temperature/pH subranges."
+    },
+    {
+      "source_id": "SF-MOLLY",
+      "title": "Seriously Fish \u2014 Poecilia sphenops (Short-finned Molly/Black Molly)",
+      "url": "https://www.seriouslyfish.com/species/poecilia-sphenops",
+      "accessed": "2026-10-22",
+      "supports": [
+        "temperature",
+        "pH",
+        "hardness_dGH",
+        "adult_size",
+        "aquarium_base",
+        "temperament",
+        "maintenance_notes"
+      ],
+      "limitations": "Does not provide species-specific TDS limits or numeric optimal temperature/pH subranges."
+    },
+    {
+      "source_id": "SF-ANGEL",
+      "title": "Seriously Fish \u2014 Pterophyllum \"scalare\" (Angelfish)",
+      "url": "https://www.seriouslyfish.com/species/pterophyllum-scalare",
+      "accessed": "2026-10-22",
+      "supports": [
+        "temperature",
+        "pH",
+        "hardness_dGH",
+        "adult_size",
+        "aquarium_base",
+        "tank_height",
+        "predation_notes"
+      ],
+      "limitations": "The source uses Pterophyllum \"scalare\" and says authority is not recorded; taxonomic identity should be verified for the exact stock."
+    },
+    {
+      "source_id": "SF-DANIO",
+      "title": "Seriously Fish \u2014 Danio rerio (Zebra Danio)",
+      "url": "https://www.seriouslyfish.com/species/danio-rerio",
+      "accessed": "2026-10-22",
+      "supports": [
+        "temperature",
+        "pH",
+        "hardness_dGH",
+        "adult_size",
+        "aquarium_base",
+        "temperament",
+        "social_requirement",
+        "compatibility_notes"
+      ],
+      "limitations": "Does not provide species-specific TDS limits or numeric optimal temperature/pH subranges."
+    }
+  ],
+  "summary": {
+    "total_scenarios": 100,
+    "expected_pass": 40,
+    "expected_rejected": 60,
+    "scenario_type_counts": {
+      "valid_combination": 1,
+      "predator_prey": 10,
+      "tank_volume": 20,
+      "territorial_conflict": 10,
+      "temperature_violation": 20,
+      "valid_community": 29,
+      "valid_single_species": 10
+    },
+    "validation_checks_passed": [
+      "100 unique sequential IDs",
+      "all required fields present",
+      "all species IDs resolve in the source-reviewed knowledge base",
+      "all PASS temperature/pH values inside selected general-maintenance ranges",
+      "PASS cases avoid the two conservative blocked species pairs"
+    ]
+  },
   "benchmarks": [
     {
       "id": "BM-001",
       "type": "valid_combination",
       "expected_csp_status": "PASS",
-      "aquarium": { "volume_liters": 100 },
-      "telemetry": { "temperature_c": 25.0, "ph": 7.0, "tds_ppm": 150 },
+      "aquarium": {
+        "volume_liters": 100
+      },
+      "telemetry": {
+        "temperature_c": 25.0,
+        "ph": 7.0,
+        "tds_ppm": 150
+      },
       "fish": [
-        { "species_id": "poecilia_reticulata", "male": 2, "female": 4 },
-        { "species_id": "corydoras_aeneus", "male": 3, "female": 3 }
+        {
+          "species_id": "poecilia_reticulata",
+          "male": 2,
+          "female": 4
+        },
+        {
+          "species_id": "corydoras_aeneus",
+          "male": 3,
+          "female": 3
+        }
       ]
     },
     {
       "id": "BM-002",
       "type": "predator_prey",
       "expected_csp_status": "REJECTED",
-      "aquarium": { "volume_liters": 150 },
-      "telemetry": { "temperature_c": 26.0, "ph": 7.0, "tds_ppm": 150 },
+      "aquarium": {
+        "volume_liters": 150
+      },
+      "telemetry": {
+        "temperature_c": 26.0,
+        "ph": 7.0,
+        "tds_ppm": 150
+      },
       "fish": [
-        { "species_id": "pterophyllum_scalare", "male": 1, "female": 1 },
-        { "species_id": "paracheirodon_innesi", "male": 5, "female": 5 }
+        {
+          "species_id": "pterophyllum_scalare",
+          "male": 1,
+          "female": 1
+        },
+        {
+          "species_id": "paracheirodon_innesi",
+          "male": 5,
+          "female": 5
+        }
       ]
     },
     {
       "id": "BM-003",
       "type": "tank_volume",
       "expected_csp_status": "REJECTED",
-      "aquarium": { "volume_liters": 30 },
-      "telemetry": { "temperature_c": 24.0, "ph": 7.0, "tds_ppm": 150 },
+      "aquarium": {
+        "volume_liters": 30
+      },
+      "telemetry": {
+        "temperature_c": 24.0,
+        "ph": 7.0,
+        "tds_ppm": 150
+      },
       "fish": [
-        { "species_id": "corydoras_aeneus", "male": 20, "female": 20 }
+        {
+          "species_id": "corydoras_aeneus",
+          "male": 20,
+          "female": 20
+        }
       ]
     },
     {
       "id": "BM-004",
       "type": "territorial_conflict",
       "expected_csp_status": "REJECTED",
-      "aquarium": { "volume_liters": 100 },
-      "telemetry": { "temperature_c": 25.0, "ph": 7.0, "tds_ppm": 150 },
+      "aquarium": {
+        "volume_liters": 100
+      },
+      "telemetry": {
+        "temperature_c": 25.0,
+        "ph": 7.0,
+        "tds_ppm": 150
+      },
       "fish": [
-        { "species_id": "betta_splendens", "male": 1, "female": 0 },
-        { "species_id": "poecilia_reticulata", "male": 2, "female": 4 }
+        {
+          "species_id": "betta_splendens",
+          "male": 1,
+          "female": 0
+        },
+        {
+          "species_id": "poecilia_reticulata",
+          "male": 2,
+          "female": 4
+        }
       ]
     },
     {
       "id": "BM-005",
       "type": "temperature_violation",
       "expected_csp_status": "REJECTED",
-      "aquarium": { "volume_liters": 100 },
-      "telemetry": { "temperature_c": 33.0, "ph": 7.0, "tds_ppm": 150 },
+      "aquarium": {
+        "volume_liters": 100
+      },
+      "telemetry": {
+        "temperature_c": 33.0,
+        "ph": 7.0,
+        "tds_ppm": 150
+      },
       "fish": [
-        { "species_id": "paracheirodon_innesi", "male": 5, "female": 5 }
+        {
+          "species_id": "paracheirodon_innesi",
+          "male": 5,
+          "female": 5
+        }
       ]
     },
     {
       "id": "BM-006",
       "type": "valid_community",
       "expected_csp_status": "PASS",
-      "aquarium": { "volume_liters": 100 },
-      "telemetry": { "temperature_c": 24.5, "ph": 6.8, "tds_ppm": 120 },
+      "aquarium": {
+        "volume_liters": 100
+      },
+      "telemetry": {
+        "temperature_c": 24.5,
+        "ph": 6.8,
+        "tds_ppm": 120
+      },
       "fish": [
-        { "species_id": "corydoras_aeneus", "male": 2, "female": 4 },
-        { "species_id": "paracheirodon_innesi", "male": 5, "female": 5 }
+        {
+          "species_id": "corydoras_aeneus",
+          "male": 2,
+          "female": 4
+        },
+        {
+          "species_id": "paracheirodon_innesi",
+          "male": 5,
+          "female": 5
+        }
+      ]
+    },
+    {
+      "id": "BM-007",
+      "type": "valid_single_species",
+      "expected_csp_status": "PASS",
+      "aquarium": {
+        "volume_liters": 60
+      },
+      "telemetry": {
+        "temperature_c": 25.0,
+        "ph": 7.5,
+        "tds_ppm": 200
+      },
+      "fish": [
+        {
+          "species_id": "poecilia_reticulata",
+          "male": 2,
+          "female": 6
+        }
+      ]
+    },
+    {
+      "id": "BM-008",
+      "type": "valid_single_species",
+      "expected_csp_status": "PASS",
+      "aquarium": {
+        "volume_liters": 120
+      },
+      "telemetry": {
+        "temperature_c": 24.0,
+        "ph": 7.5,
+        "tds_ppm": 250
+      },
+      "fish": [
+        {
+          "species_id": "xiphophorus_hellerii",
+          "male": 2,
+          "female": 6
+        }
+      ]
+    },
+    {
+      "id": "BM-009",
+      "type": "valid_single_species",
+      "expected_csp_status": "PASS",
+      "aquarium": {
+        "volume_liters": 45
+      },
+      "telemetry": {
+        "temperature_c": 26.0,
+        "ph": 7.0,
+        "tds_ppm": 150
+      },
+      "fish": [
+        {
+          "species_id": "betta_splendens",
+          "male": 1,
+          "female": 0
+        }
+      ]
+    },
+    {
+      "id": "BM-010",
+      "type": "valid_single_species",
+      "expected_csp_status": "PASS",
+      "aquarium": {
+        "volume_liters": 60
+      },
+      "telemetry": {
+        "temperature_c": 23.0,
+        "ph": 6.5,
+        "tds_ppm": 75
+      },
+      "fish": [
+        {
+          "species_id": "paracheirodon_innesi",
+          "male": 5,
+          "female": 5
+        }
+      ]
+    },
+    {
+      "id": "BM-011",
+      "type": "valid_single_species",
+      "expected_csp_status": "PASS",
+      "aquarium": {
+        "volume_liters": 60
+      },
+      "telemetry": {
+        "temperature_c": 25.0,
+        "ph": 6.5,
+        "tds_ppm": 80
+      },
+      "fish": [
+        {
+          "species_id": "trigonostigma_heteromorpha",
+          "male": 4,
+          "female": 4
+        }
+      ]
+    },
+    {
+      "id": "BM-012",
+      "type": "valid_single_species",
+      "expected_csp_status": "PASS",
+      "aquarium": {
+        "volume_liters": 80
+      },
+      "telemetry": {
+        "temperature_c": 24.0,
+        "ph": 6.8,
+        "tds_ppm": 150
+      },
+      "fish": [
+        {
+          "species_id": "corydoras_aeneus",
+          "male": 3,
+          "female": 3
+        }
+      ]
+    },
+    {
+      "id": "BM-013",
+      "type": "valid_single_species",
+      "expected_csp_status": "PASS",
+      "aquarium": {
+        "volume_liters": 80
+      },
+      "telemetry": {
+        "temperature_c": 24.0,
+        "ph": 7.6,
+        "tds_ppm": 250
+      },
+      "fish": [
+        {
+          "species_id": "xiphophorus_maculatus",
+          "male": 2,
+          "female": 6
+        }
+      ]
+    },
+    {
+      "id": "BM-014",
+      "type": "valid_single_species",
+      "expected_csp_status": "PASS",
+      "aquarium": {
+        "volume_liters": 120
+      },
+      "telemetry": {
+        "temperature_c": 26.0,
+        "ph": 8.0,
+        "tds_ppm": 350
+      },
+      "fish": [
+        {
+          "species_id": "poecilia_sphenops",
+          "male": 2,
+          "female": 6
+        }
+      ]
+    },
+    {
+      "id": "BM-015",
+      "type": "valid_single_species",
+      "expected_csp_status": "PASS",
+      "aquarium": {
+        "volume_liters": 200
+      },
+      "telemetry": {
+        "temperature_c": 27.0,
+        "ph": 7.0,
+        "tds_ppm": 150
+      },
+      "fish": [
+        {
+          "species_id": "pterophyllum_scalare",
+          "male": 1,
+          "female": 1
+        }
+      ]
+    },
+    {
+      "id": "BM-016",
+      "type": "valid_single_species",
+      "expected_csp_status": "PASS",
+      "aquarium": {
+        "volume_liters": 100
+      },
+      "telemetry": {
+        "temperature_c": 22.0,
+        "ph": 7.0,
+        "tds_ppm": 150
+      },
+      "fish": [
+        {
+          "species_id": "danio_rerio",
+          "male": 4,
+          "female": 4
+        }
+      ]
+    },
+    {
+      "id": "BM-017",
+      "type": "valid_community",
+      "expected_csp_status": "PASS",
+      "aquarium": {
+        "volume_liters": 120
+      },
+      "telemetry": {
+        "temperature_c": 25.0,
+        "ph": 7.2,
+        "tds_ppm": 150
+      },
+      "fish": [
+        {
+          "species_id": "poecilia_reticulata",
+          "male": 2,
+          "female": 6
+        },
+        {
+          "species_id": "corydoras_aeneus",
+          "male": 3,
+          "female": 3
+        }
+      ]
+    },
+    {
+      "id": "BM-018",
+      "type": "valid_community",
+      "expected_csp_status": "PASS",
+      "aquarium": {
+        "volume_liters": 100
+      },
+      "telemetry": {
+        "temperature_c": 25.0,
+        "ph": 7.5,
+        "tds_ppm": 225
+      },
+      "fish": [
+        {
+          "species_id": "poecilia_reticulata",
+          "male": 2,
+          "female": 6
+        },
+        {
+          "species_id": "xiphophorus_maculatus",
+          "male": 2,
+          "female": 6
+        }
+      ]
+    },
+    {
+      "id": "BM-019",
+      "type": "valid_community",
+      "expected_csp_status": "PASS",
+      "aquarium": {
+        "volume_liters": 150
+      },
+      "telemetry": {
+        "temperature_c": 25.0,
+        "ph": 7.5,
+        "tds_ppm": 250
+      },
+      "fish": [
+        {
+          "species_id": "poecilia_reticulata",
+          "male": 2,
+          "female": 6
+        },
+        {
+          "species_id": "xiphophorus_hellerii",
+          "male": 2,
+          "female": 6
+        }
+      ]
+    },
+    {
+      "id": "BM-020",
+      "type": "valid_community",
+      "expected_csp_status": "PASS",
+      "aquarium": {
+        "volume_liters": 150
+      },
+      "telemetry": {
+        "temperature_c": 24.0,
+        "ph": 7.6,
+        "tds_ppm": 250
+      },
+      "fish": [
+        {
+          "species_id": "xiphophorus_hellerii",
+          "male": 2,
+          "female": 6
+        },
+        {
+          "species_id": "xiphophorus_maculatus",
+          "male": 2,
+          "female": 6
+        }
+      ]
+    },
+    {
+      "id": "BM-021",
+      "type": "valid_community",
+      "expected_csp_status": "PASS",
+      "aquarium": {
+        "volume_liters": 180
+      },
+      "telemetry": {
+        "temperature_c": 25.5,
+        "ph": 7.8,
+        "tds_ppm": 320
+      },
+      "fish": [
+        {
+          "species_id": "xiphophorus_hellerii",
+          "male": 2,
+          "female": 6
+        },
+        {
+          "species_id": "poecilia_sphenops",
+          "male": 2,
+          "female": 6
+        }
+      ]
+    },
+    {
+      "id": "BM-022",
+      "type": "valid_community",
+      "expected_csp_status": "PASS",
+      "aquarium": {
+        "volume_liters": 150
+      },
+      "telemetry": {
+        "temperature_c": 25.0,
+        "ph": 7.8,
+        "tds_ppm": 320
+      },
+      "fish": [
+        {
+          "species_id": "xiphophorus_maculatus",
+          "male": 2,
+          "female": 6
+        },
+        {
+          "species_id": "poecilia_sphenops",
+          "male": 2,
+          "female": 6
+        }
+      ]
+    },
+    {
+      "id": "BM-023",
+      "type": "valid_community",
+      "expected_csp_status": "PASS",
+      "aquarium": {
+        "volume_liters": 100
+      },
+      "telemetry": {
+        "temperature_c": 24.0,
+        "ph": 6.5,
+        "tds_ppm": 75
+      },
+      "fish": [
+        {
+          "species_id": "paracheirodon_innesi",
+          "male": 5,
+          "female": 5
+        },
+        {
+          "species_id": "trigonostigma_heteromorpha",
+          "male": 4,
+          "female": 4
+        }
+      ]
+    },
+    {
+      "id": "BM-024",
+      "type": "valid_community",
+      "expected_csp_status": "PASS",
+      "aquarium": {
+        "volume_liters": 120
+      },
+      "telemetry": {
+        "temperature_c": 24.0,
+        "ph": 6.7,
+        "tds_ppm": 100
+      },
+      "fish": [
+        {
+          "species_id": "paracheirodon_innesi",
+          "male": 5,
+          "female": 5
+        },
+        {
+          "species_id": "corydoras_aeneus",
+          "male": 3,
+          "female": 3
+        }
+      ]
+    },
+    {
+      "id": "BM-025",
+      "type": "valid_community",
+      "expected_csp_status": "PASS",
+      "aquarium": {
+        "volume_liters": 120
+      },
+      "telemetry": {
+        "temperature_c": 24.0,
+        "ph": 6.8,
+        "tds_ppm": 110
+      },
+      "fish": [
+        {
+          "species_id": "trigonostigma_heteromorpha",
+          "male": 4,
+          "female": 4
+        },
+        {
+          "species_id": "corydoras_aeneus",
+          "male": 3,
+          "female": 3
+        }
+      ]
+    },
+    {
+      "id": "BM-026",
+      "type": "valid_community",
+      "expected_csp_status": "PASS",
+      "aquarium": {
+        "volume_liters": 120
+      },
+      "telemetry": {
+        "temperature_c": 23.0,
+        "ph": 7.0,
+        "tds_ppm": 150
+      },
+      "fish": [
+        {
+          "species_id": "danio_rerio",
+          "male": 4,
+          "female": 4
+        },
+        {
+          "species_id": "corydoras_aeneus",
+          "male": 3,
+          "female": 3
+        }
+      ]
+    },
+    {
+      "id": "BM-027",
+      "type": "valid_community",
+      "expected_csp_status": "PASS",
+      "aquarium": {
+        "volume_liters": 120
+      },
+      "telemetry": {
+        "temperature_c": 23.0,
+        "ph": 6.8,
+        "tds_ppm": 100
+      },
+      "fish": [
+        {
+          "species_id": "danio_rerio",
+          "male": 4,
+          "female": 4
+        },
+        {
+          "species_id": "trigonostigma_heteromorpha",
+          "male": 4,
+          "female": 4
+        }
+      ]
+    },
+    {
+      "id": "BM-028",
+      "type": "valid_community",
+      "expected_csp_status": "PASS",
+      "aquarium": {
+        "volume_liters": 120
+      },
+      "telemetry": {
+        "temperature_c": 24.0,
+        "ph": 7.3,
+        "tds_ppm": 180
+      },
+      "fish": [
+        {
+          "species_id": "corydoras_aeneus",
+          "male": 3,
+          "female": 3
+        },
+        {
+          "species_id": "xiphophorus_maculatus",
+          "male": 2,
+          "female": 6
+        }
+      ]
+    },
+    {
+      "id": "BM-029",
+      "type": "valid_community",
+      "expected_csp_status": "PASS",
+      "aquarium": {
+        "volume_liters": 180
+      },
+      "telemetry": {
+        "temperature_c": 26.0,
+        "ph": 7.8,
+        "tds_ppm": 300
+      },
+      "fish": [
+        {
+          "species_id": "poecilia_reticulata",
+          "male": 2,
+          "female": 6
+        },
+        {
+          "species_id": "poecilia_sphenops",
+          "male": 2,
+          "female": 6
+        }
+      ]
+    },
+    {
+      "id": "BM-030",
+      "type": "valid_community",
+      "expected_csp_status": "PASS",
+      "aquarium": {
+        "volume_liters": 120
+      },
+      "telemetry": {
+        "temperature_c": 24.0,
+        "ph": 7.3,
+        "tds_ppm": 200
+      },
+      "fish": [
+        {
+          "species_id": "poecilia_reticulata",
+          "male": 2,
+          "female": 5
+        },
+        {
+          "species_id": "xiphophorus_maculatus",
+          "male": 2,
+          "female": 6
+        }
+      ]
+    },
+    {
+      "id": "BM-031",
+      "type": "valid_community",
+      "expected_csp_status": "PASS",
+      "aquarium": {
+        "volume_liters": 160
+      },
+      "telemetry": {
+        "temperature_c": 25.0,
+        "ph": 7.8,
+        "tds_ppm": 300
+      },
+      "fish": [
+        {
+          "species_id": "xiphophorus_hellerii",
+          "male": 2,
+          "female": 6
+        },
+        {
+          "species_id": "xiphophorus_maculatus",
+          "male": 2,
+          "female": 6
+        }
+      ]
+    },
+    {
+      "id": "BM-032",
+      "type": "valid_community",
+      "expected_csp_status": "PASS",
+      "aquarium": {
+        "volume_liters": 100
+      },
+      "telemetry": {
+        "temperature_c": 22.5,
+        "ph": 6.4,
+        "tds_ppm": 65
+      },
+      "fish": [
+        {
+          "species_id": "paracheirodon_innesi",
+          "male": 5,
+          "female": 5
+        },
+        {
+          "species_id": "trigonostigma_heteromorpha",
+          "male": 4,
+          "female": 4
+        }
+      ]
+    },
+    {
+      "id": "BM-033",
+      "type": "valid_community",
+      "expected_csp_status": "PASS",
+      "aquarium": {
+        "volume_liters": 180
+      },
+      "telemetry": {
+        "temperature_c": 25.5,
+        "ph": 8.0,
+        "tds_ppm": 330
+      },
+      "fish": [
+        {
+          "species_id": "poecilia_sphenops",
+          "male": 2,
+          "female": 6
+        },
+        {
+          "species_id": "xiphophorus_maculatus",
+          "male": 2,
+          "female": 6
+        }
+      ]
+    },
+    {
+      "id": "BM-034",
+      "type": "valid_community",
+      "expected_csp_status": "PASS",
+      "aquarium": {
+        "volume_liters": 120
+      },
+      "telemetry": {
+        "temperature_c": 22.5,
+        "ph": 7.0,
+        "tds_ppm": 150
+      },
+      "fish": [
+        {
+          "species_id": "danio_rerio",
+          "male": 4,
+          "female": 4
+        },
+        {
+          "species_id": "corydoras_aeneus",
+          "male": 3,
+          "female": 3
+        }
+      ]
+    },
+    {
+      "id": "BM-035",
+      "type": "valid_community",
+      "expected_csp_status": "PASS",
+      "aquarium": {
+        "volume_liters": 120
+      },
+      "telemetry": {
+        "temperature_c": 23.5,
+        "ph": 7.0,
+        "tds_ppm": 160
+      },
+      "fish": [
+        {
+          "species_id": "poecilia_reticulata",
+          "male": 2,
+          "female": 6
+        },
+        {
+          "species_id": "corydoras_aeneus",
+          "male": 3,
+          "female": 3
+        }
+      ]
+    },
+    {
+      "id": "BM-036",
+      "type": "valid_community",
+      "expected_csp_status": "PASS",
+      "aquarium": {
+        "volume_liters": 180
+      },
+      "telemetry": {
+        "temperature_c": 26.0,
+        "ph": 7.8,
+        "tds_ppm": 350
+      },
+      "fish": [
+        {
+          "species_id": "xiphophorus_hellerii",
+          "male": 2,
+          "female": 6
+        },
+        {
+          "species_id": "poecilia_sphenops",
+          "male": 2,
+          "female": 6
+        }
+      ]
+    },
+    {
+      "id": "BM-037",
+      "type": "valid_community",
+      "expected_csp_status": "PASS",
+      "aquarium": {
+        "volume_liters": 180
+      },
+      "telemetry": {
+        "temperature_c": 25.0,
+        "ph": 7.2,
+        "tds_ppm": 200
+      },
+      "fish": [
+        {
+          "species_id": "poecilia_reticulata",
+          "male": 2,
+          "female": 6
+        },
+        {
+          "species_id": "corydoras_aeneus",
+          "male": 3,
+          "female": 3
+        },
+        {
+          "species_id": "xiphophorus_maculatus",
+          "male": 2,
+          "female": 6
+        }
+      ]
+    },
+    {
+      "id": "BM-038",
+      "type": "valid_community",
+      "expected_csp_status": "PASS",
+      "aquarium": {
+        "volume_liters": 200
+      },
+      "telemetry": {
+        "temperature_c": 25.0,
+        "ph": 7.5,
+        "tds_ppm": 250
+      },
+      "fish": [
+        {
+          "species_id": "poecilia_reticulata",
+          "male": 2,
+          "female": 6
+        },
+        {
+          "species_id": "xiphophorus_hellerii",
+          "male": 2,
+          "female": 6
+        },
+        {
+          "species_id": "xiphophorus_maculatus",
+          "male": 2,
+          "female": 6
+        }
+      ]
+    },
+    {
+      "id": "BM-039",
+      "type": "valid_community",
+      "expected_csp_status": "PASS",
+      "aquarium": {
+        "volume_liters": 150
+      },
+      "telemetry": {
+        "temperature_c": 23.5,
+        "ph": 6.5,
+        "tds_ppm": 90
+      },
+      "fish": [
+        {
+          "species_id": "paracheirodon_innesi",
+          "male": 5,
+          "female": 5
+        },
+        {
+          "species_id": "trigonostigma_heteromorpha",
+          "male": 4,
+          "female": 4
+        },
+        {
+          "species_id": "corydoras_aeneus",
+          "male": 3,
+          "female": 3
+        }
+      ]
+    },
+    {
+      "id": "BM-040",
+      "type": "valid_community",
+      "expected_csp_status": "PASS",
+      "aquarium": {
+        "volume_liters": 220
+      },
+      "telemetry": {
+        "temperature_c": 25.0,
+        "ph": 7.8,
+        "tds_ppm": 320
+      },
+      "fish": [
+        {
+          "species_id": "xiphophorus_hellerii",
+          "male": 2,
+          "female": 6
+        },
+        {
+          "species_id": "xiphophorus_maculatus",
+          "male": 2,
+          "female": 6
+        },
+        {
+          "species_id": "poecilia_sphenops",
+          "male": 2,
+          "female": 6
+        }
+      ]
+    },
+    {
+      "id": "BM-041",
+      "type": "valid_community",
+      "expected_csp_status": "PASS",
+      "aquarium": {
+        "volume_liters": 180
+      },
+      "telemetry": {
+        "temperature_c": 23.0,
+        "ph": 6.8,
+        "tds_ppm": 110
+      },
+      "fish": [
+        {
+          "species_id": "danio_rerio",
+          "male": 4,
+          "female": 4
+        },
+        {
+          "species_id": "corydoras_aeneus",
+          "male": 3,
+          "female": 3
+        },
+        {
+          "species_id": "trigonostigma_heteromorpha",
+          "male": 4,
+          "female": 4
+        }
+      ]
+    },
+    {
+      "id": "BM-042",
+      "type": "valid_community",
+      "expected_csp_status": "PASS",
+      "aquarium": {
+        "volume_liters": 220
+      },
+      "telemetry": {
+        "temperature_c": 25.0,
+        "ph": 7.8,
+        "tds_ppm": 300
+      },
+      "fish": [
+        {
+          "species_id": "poecilia_reticulata",
+          "male": 2,
+          "female": 6
+        },
+        {
+          "species_id": "xiphophorus_hellerii",
+          "male": 2,
+          "female": 6
+        },
+        {
+          "species_id": "poecilia_sphenops",
+          "male": 2,
+          "female": 6
+        }
+      ]
+    },
+    {
+      "id": "BM-043",
+      "type": "valid_community",
+      "expected_csp_status": "PASS",
+      "aquarium": {
+        "volume_liters": 180
+      },
+      "telemetry": {
+        "temperature_c": 23.0,
+        "ph": 6.8,
+        "tds_ppm": 100
+      },
+      "fish": [
+        {
+          "species_id": "paracheirodon_innesi",
+          "male": 5,
+          "female": 5
+        },
+        {
+          "species_id": "trigonostigma_heteromorpha",
+          "male": 4,
+          "female": 4
+        },
+        {
+          "species_id": "danio_rerio",
+          "male": 4,
+          "female": 4
+        }
+      ]
+    },
+    {
+      "id": "BM-044",
+      "type": "valid_community",
+      "expected_csp_status": "PASS",
+      "aquarium": {
+        "volume_liters": 200
+      },
+      "telemetry": {
+        "temperature_c": 24.5,
+        "ph": 7.3,
+        "tds_ppm": 200
+      },
+      "fish": [
+        {
+          "species_id": "corydoras_aeneus",
+          "male": 3,
+          "female": 3
+        },
+        {
+          "species_id": "xiphophorus_maculatus",
+          "male": 2,
+          "female": 6
+        },
+        {
+          "species_id": "xiphophorus_hellerii",
+          "male": 2,
+          "female": 6
+        }
+      ]
+    },
+    {
+      "id": "BM-045",
+      "type": "tank_volume",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 25
+      },
+      "telemetry": {
+        "temperature_c": 25.0,
+        "ph": 7.5,
+        "tds_ppm": 200
+      },
+      "fish": [
+        {
+          "species_id": "poecilia_reticulata",
+          "male": 8,
+          "female": 8
+        }
+      ]
+    },
+    {
+      "id": "BM-046",
+      "type": "tank_volume",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 30
+      },
+      "telemetry": {
+        "temperature_c": 24.0,
+        "ph": 7.5,
+        "tds_ppm": 250
+      },
+      "fish": [
+        {
+          "species_id": "xiphophorus_hellerii",
+          "male": 4,
+          "female": 4
+        }
+      ]
+    },
+    {
+      "id": "BM-047",
+      "type": "tank_volume",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 5
+      },
+      "telemetry": {
+        "temperature_c": 26.0,
+        "ph": 7.0,
+        "tds_ppm": 150
+      },
+      "fish": [
+        {
+          "species_id": "betta_splendens",
+          "male": 1,
+          "female": 0
+        }
+      ]
+    },
+    {
+      "id": "BM-048",
+      "type": "tank_volume",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 30
+      },
+      "telemetry": {
+        "temperature_c": 23.0,
+        "ph": 6.5,
+        "tds_ppm": 75
+      },
+      "fish": [
+        {
+          "species_id": "paracheirodon_innesi",
+          "male": 10,
+          "female": 10
+        }
+      ]
+    },
+    {
+      "id": "BM-049",
+      "type": "tank_volume",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 30
+      },
+      "telemetry": {
+        "temperature_c": 25.0,
+        "ph": 6.5,
+        "tds_ppm": 80
+      },
+      "fish": [
+        {
+          "species_id": "trigonostigma_heteromorpha",
+          "male": 8,
+          "female": 8
+        }
+      ]
+    },
+    {
+      "id": "BM-050",
+      "type": "tank_volume",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 30
+      },
+      "telemetry": {
+        "temperature_c": 24.0,
+        "ph": 6.8,
+        "tds_ppm": 150
+      },
+      "fish": [
+        {
+          "species_id": "corydoras_aeneus",
+          "male": 10,
+          "female": 10
+        }
+      ]
+    },
+    {
+      "id": "BM-051",
+      "type": "tank_volume",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 30
+      },
+      "telemetry": {
+        "temperature_c": 24.0,
+        "ph": 7.6,
+        "tds_ppm": 250
+      },
+      "fish": [
+        {
+          "species_id": "xiphophorus_maculatus",
+          "male": 6,
+          "female": 6
+        }
+      ]
+    },
+    {
+      "id": "BM-052",
+      "type": "tank_volume",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 40
+      },
+      "telemetry": {
+        "temperature_c": 26.0,
+        "ph": 8.0,
+        "tds_ppm": 350
+      },
+      "fish": [
+        {
+          "species_id": "poecilia_sphenops",
+          "male": 4,
+          "female": 4
+        }
+      ]
+    },
+    {
+      "id": "BM-053",
+      "type": "tank_volume",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 50
+      },
+      "telemetry": {
+        "temperature_c": 27.0,
+        "ph": 7.0,
+        "tds_ppm": 150
+      },
+      "fish": [
+        {
+          "species_id": "pterophyllum_scalare",
+          "male": 2,
+          "female": 2
+        }
+      ]
+    },
+    {
+      "id": "BM-054",
+      "type": "tank_volume",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 30
+      },
+      "telemetry": {
+        "temperature_c": 22.0,
+        "ph": 7.0,
+        "tds_ppm": 150
+      },
+      "fish": [
+        {
+          "species_id": "danio_rerio",
+          "male": 10,
+          "female": 10
+        }
+      ]
+    },
+    {
+      "id": "BM-055",
+      "type": "tank_volume",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 40
+      },
+      "telemetry": {
+        "temperature_c": 24.0,
+        "ph": 6.8,
+        "tds_ppm": 150
+      },
+      "fish": [
+        {
+          "species_id": "corydoras_aeneus",
+          "male": 8,
+          "female": 8
+        }
+      ]
+    },
+    {
+      "id": "BM-056",
+      "type": "tank_volume",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 30
+      },
+      "telemetry": {
+        "temperature_c": 25.0,
+        "ph": 7.5,
+        "tds_ppm": 200
+      },
+      "fish": [
+        {
+          "species_id": "poecilia_reticulata",
+          "male": 10,
+          "female": 10
+        }
+      ]
+    },
+    {
+      "id": "BM-057",
+      "type": "tank_volume",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 35
+      },
+      "telemetry": {
+        "temperature_c": 24.0,
+        "ph": 7.5,
+        "tds_ppm": 250
+      },
+      "fish": [
+        {
+          "species_id": "xiphophorus_hellerii",
+          "male": 3,
+          "female": 6
+        }
+      ]
+    },
+    {
+      "id": "BM-058",
+      "type": "tank_volume",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 25
+      },
+      "telemetry": {
+        "temperature_c": 23.0,
+        "ph": 6.5,
+        "tds_ppm": 75
+      },
+      "fish": [
+        {
+          "species_id": "paracheirodon_innesi",
+          "male": 8,
+          "female": 8
+        }
+      ]
+    },
+    {
+      "id": "BM-059",
+      "type": "tank_volume",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 25
+      },
+      "telemetry": {
+        "temperature_c": 25.0,
+        "ph": 6.5,
+        "tds_ppm": 80
+      },
+      "fish": [
+        {
+          "species_id": "trigonostigma_heteromorpha",
+          "male": 6,
+          "female": 6
+        }
+      ]
+    },
+    {
+      "id": "BM-060",
+      "type": "tank_volume",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 30
+      },
+      "telemetry": {
+        "temperature_c": 24.0,
+        "ph": 7.6,
+        "tds_ppm": 250
+      },
+      "fish": [
+        {
+          "species_id": "xiphophorus_maculatus",
+          "male": 8,
+          "female": 4
+        }
+      ]
+    },
+    {
+      "id": "BM-061",
+      "type": "tank_volume",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 30
+      },
+      "telemetry": {
+        "temperature_c": 26.0,
+        "ph": 8.0,
+        "tds_ppm": 350
+      },
+      "fish": [
+        {
+          "species_id": "poecilia_sphenops",
+          "male": 3,
+          "female": 3
+        }
+      ]
+    },
+    {
+      "id": "BM-062",
+      "type": "tank_volume",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 60
+      },
+      "telemetry": {
+        "temperature_c": 27.0,
+        "ph": 7.0,
+        "tds_ppm": 150
+      },
+      "fish": [
+        {
+          "species_id": "pterophyllum_scalare",
+          "male": 3,
+          "female": 2
+        }
+      ]
+    },
+    {
+      "id": "BM-063",
+      "type": "tank_volume",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 35
+      },
+      "telemetry": {
+        "temperature_c": 22.0,
+        "ph": 7.0,
+        "tds_ppm": 150
+      },
+      "fish": [
+        {
+          "species_id": "danio_rerio",
+          "male": 8,
+          "female": 8
+        }
+      ]
+    },
+    {
+      "id": "BM-064",
+      "type": "temperature_violation",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 100
+      },
+      "telemetry": {
+        "temperature_c": 15.0,
+        "ph": 7.5,
+        "tds_ppm": 200
+      },
+      "fish": [
+        {
+          "species_id": "poecilia_reticulata",
+          "male": 2,
+          "female": 6
+        }
+      ]
+    },
+    {
+      "id": "BM-065",
+      "type": "temperature_violation",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 120
+      },
+      "telemetry": {
+        "temperature_c": 31.0,
+        "ph": 7.5,
+        "tds_ppm": 250
+      },
+      "fish": [
+        {
+          "species_id": "xiphophorus_hellerii",
+          "male": 2,
+          "female": 6
+        }
+      ]
+    },
+    {
+      "id": "BM-066",
+      "type": "temperature_violation",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 100
+      },
+      "telemetry": {
+        "temperature_c": 20.0,
+        "ph": 7.0,
+        "tds_ppm": 150
+      },
+      "fish": [
+        {
+          "species_id": "betta_splendens",
+          "male": 1,
+          "female": 0
+        }
+      ]
+    },
+    {
+      "id": "BM-067",
+      "type": "temperature_violation",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 60
+      },
+      "telemetry": {
+        "temperature_c": 18.0,
+        "ph": 6.5,
+        "tds_ppm": 75
+      },
+      "fish": [
+        {
+          "species_id": "paracheirodon_innesi",
+          "male": 5,
+          "female": 5
+        }
+      ]
+    },
+    {
+      "id": "BM-068",
+      "type": "temperature_violation",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 60
+      },
+      "telemetry": {
+        "temperature_c": 18.0,
+        "ph": 6.5,
+        "tds_ppm": 80
+      },
+      "fish": [
+        {
+          "species_id": "trigonostigma_heteromorpha",
+          "male": 4,
+          "female": 4
+        }
+      ]
+    },
+    {
+      "id": "BM-069",
+      "type": "temperature_violation",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 100
+      },
+      "telemetry": {
+        "temperature_c": 18.0,
+        "ph": 6.8,
+        "tds_ppm": 150
+      },
+      "fish": [
+        {
+          "species_id": "corydoras_aeneus",
+          "male": 3,
+          "female": 3
+        }
+      ]
+    },
+    {
+      "id": "BM-070",
+      "type": "temperature_violation",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 100
+      },
+      "telemetry": {
+        "temperature_c": 18.0,
+        "ph": 7.6,
+        "tds_ppm": 250
+      },
+      "fish": [
+        {
+          "species_id": "xiphophorus_maculatus",
+          "male": 2,
+          "female": 6
+        }
+      ]
+    },
+    {
+      "id": "BM-071",
+      "type": "temperature_violation",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 120
+      },
+      "telemetry": {
+        "temperature_c": 18.0,
+        "ph": 8.0,
+        "tds_ppm": 350
+      },
+      "fish": [
+        {
+          "species_id": "poecilia_sphenops",
+          "male": 2,
+          "female": 6
+        }
+      ]
+    },
+    {
+      "id": "BM-072",
+      "type": "temperature_violation",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 200
+      },
+      "telemetry": {
+        "temperature_c": 20.0,
+        "ph": 7.0,
+        "tds_ppm": 150
+      },
+      "fish": [
+        {
+          "species_id": "pterophyllum_scalare",
+          "male": 1,
+          "female": 1
+        }
+      ]
+    },
+    {
+      "id": "BM-073",
+      "type": "temperature_violation",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 100
+      },
+      "telemetry": {
+        "temperature_c": 30.0,
+        "ph": 7.0,
+        "tds_ppm": 150
+      },
+      "fish": [
+        {
+          "species_id": "danio_rerio",
+          "male": 4,
+          "female": 4
+        }
+      ]
+    },
+    {
+      "id": "BM-074",
+      "type": "temperature_violation",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 100
+      },
+      "telemetry": {
+        "temperature_c": 33.0,
+        "ph": 7.5,
+        "tds_ppm": 200
+      },
+      "fish": [
+        {
+          "species_id": "poecilia_reticulata",
+          "male": 2,
+          "female": 6
+        }
+      ]
+    },
+    {
+      "id": "BM-075",
+      "type": "temperature_violation",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 120
+      },
+      "telemetry": {
+        "temperature_c": 15.0,
+        "ph": 7.5,
+        "tds_ppm": 250
+      },
+      "fish": [
+        {
+          "species_id": "xiphophorus_hellerii",
+          "male": 2,
+          "female": 6
+        }
+      ]
+    },
+    {
+      "id": "BM-076",
+      "type": "temperature_violation",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 100
+      },
+      "telemetry": {
+        "temperature_c": 33.0,
+        "ph": 7.0,
+        "tds_ppm": 150
+      },
+      "fish": [
+        {
+          "species_id": "betta_splendens",
+          "male": 1,
+          "female": 0
+        }
+      ]
+    },
+    {
+      "id": "BM-077",
+      "type": "temperature_violation",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 60
+      },
+      "telemetry": {
+        "temperature_c": 30.0,
+        "ph": 6.5,
+        "tds_ppm": 75
+      },
+      "fish": [
+        {
+          "species_id": "paracheirodon_innesi",
+          "male": 5,
+          "female": 5
+        }
+      ]
+    },
+    {
+      "id": "BM-078",
+      "type": "temperature_violation",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 60
+      },
+      "telemetry": {
+        "temperature_c": 31.0,
+        "ph": 6.5,
+        "tds_ppm": 80
+      },
+      "fish": [
+        {
+          "species_id": "trigonostigma_heteromorpha",
+          "male": 4,
+          "female": 4
+        }
+      ]
+    },
+    {
+      "id": "BM-079",
+      "type": "temperature_violation",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 100
+      },
+      "telemetry": {
+        "temperature_c": 30.0,
+        "ph": 6.8,
+        "tds_ppm": 150
+      },
+      "fish": [
+        {
+          "species_id": "corydoras_aeneus",
+          "male": 3,
+          "female": 3
+        }
+      ]
+    },
+    {
+      "id": "BM-080",
+      "type": "temperature_violation",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 100
+      },
+      "telemetry": {
+        "temperature_c": 33.0,
+        "ph": 7.6,
+        "tds_ppm": 250
+      },
+      "fish": [
+        {
+          "species_id": "xiphophorus_maculatus",
+          "male": 2,
+          "female": 6
+        }
+      ]
+    },
+    {
+      "id": "BM-081",
+      "type": "temperature_violation",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 120
+      },
+      "telemetry": {
+        "temperature_c": 33.0,
+        "ph": 8.0,
+        "tds_ppm": 350
+      },
+      "fish": [
+        {
+          "species_id": "poecilia_sphenops",
+          "male": 2,
+          "female": 6
+        }
+      ]
+    },
+    {
+      "id": "BM-082",
+      "type": "temperature_violation",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 200
+      },
+      "telemetry": {
+        "temperature_c": 33.0,
+        "ph": 7.0,
+        "tds_ppm": 150
+      },
+      "fish": [
+        {
+          "species_id": "pterophyllum_scalare",
+          "male": 1,
+          "female": 1
+        }
+      ]
+    },
+    {
+      "id": "BM-083",
+      "type": "predator_prey",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 150
+      },
+      "telemetry": {
+        "temperature_c": 24.0,
+        "ph": 6.5,
+        "tds_ppm": 100
+      },
+      "fish": [
+        {
+          "species_id": "pterophyllum_scalare",
+          "male": 1,
+          "female": 1
+        },
+        {
+          "species_id": "paracheirodon_innesi",
+          "male": 5,
+          "female": 5
+        }
+      ]
+    },
+    {
+      "id": "BM-084",
+      "type": "predator_prey",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 180
+      },
+      "telemetry": {
+        "temperature_c": 24.5,
+        "ph": 6.8,
+        "tds_ppm": 110
+      },
+      "fish": [
+        {
+          "species_id": "pterophyllum_scalare",
+          "male": 1,
+          "female": 1
+        },
+        {
+          "species_id": "paracheirodon_innesi",
+          "male": 6,
+          "female": 6
+        }
+      ]
+    },
+    {
+      "id": "BM-085",
+      "type": "predator_prey",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 200
+      },
+      "telemetry": {
+        "temperature_c": 25.0,
+        "ph": 6.8,
+        "tds_ppm": 120
+      },
+      "fish": [
+        {
+          "species_id": "pterophyllum_scalare",
+          "male": 2,
+          "female": 2
+        },
+        {
+          "species_id": "paracheirodon_innesi",
+          "male": 6,
+          "female": 6
+        }
+      ]
+    },
+    {
+      "id": "BM-086",
+      "type": "predator_prey",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 220
+      },
+      "telemetry": {
+        "temperature_c": 24.5,
+        "ph": 7.0,
+        "tds_ppm": 120
+      },
+      "fish": [
+        {
+          "species_id": "pterophyllum_scalare",
+          "male": 1,
+          "female": 1
+        },
+        {
+          "species_id": "paracheirodon_innesi",
+          "male": 8,
+          "female": 8
+        }
+      ]
+    },
+    {
+      "id": "BM-087",
+      "type": "predator_prey",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 250
+      },
+      "telemetry": {
+        "temperature_c": 25.0,
+        "ph": 6.7,
+        "tds_ppm": 100
+      },
+      "fish": [
+        {
+          "species_id": "pterophyllum_scalare",
+          "male": 2,
+          "female": 2
+        },
+        {
+          "species_id": "paracheirodon_innesi",
+          "male": 10,
+          "female": 10
+        }
+      ]
+    },
+    {
+      "id": "BM-088",
+      "type": "predator_prey",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 180
+      },
+      "telemetry": {
+        "temperature_c": 24.0,
+        "ph": 6.5,
+        "tds_ppm": 90
+      },
+      "fish": [
+        {
+          "species_id": "pterophyllum_scalare",
+          "male": 1,
+          "female": 1
+        },
+        {
+          "species_id": "paracheirodon_innesi",
+          "male": 5,
+          "female": 7
+        }
+      ]
+    },
+    {
+      "id": "BM-089",
+      "type": "predator_prey",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 200
+      },
+      "telemetry": {
+        "temperature_c": 24.5,
+        "ph": 6.9,
+        "tds_ppm": 110
+      },
+      "fish": [
+        {
+          "species_id": "pterophyllum_scalare",
+          "male": 1,
+          "female": 2
+        },
+        {
+          "species_id": "paracheirodon_innesi",
+          "male": 7,
+          "female": 7
+        }
+      ]
+    },
+    {
+      "id": "BM-090",
+      "type": "predator_prey",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 240
+      },
+      "telemetry": {
+        "temperature_c": 25.0,
+        "ph": 7.0,
+        "tds_ppm": 120
+      },
+      "fish": [
+        {
+          "species_id": "pterophyllum_scalare",
+          "male": 2,
+          "female": 1
+        },
+        {
+          "species_id": "paracheirodon_innesi",
+          "male": 8,
+          "female": 10
+        }
+      ]
+    },
+    {
+      "id": "BM-091",
+      "type": "predator_prey",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 180
+      },
+      "telemetry": {
+        "temperature_c": 24.5,
+        "ph": 6.8,
+        "tds_ppm": 100
+      },
+      "fish": [
+        {
+          "species_id": "pterophyllum_scalare",
+          "male": 1,
+          "female": 1
+        },
+        {
+          "species_id": "paracheirodon_innesi",
+          "male": 6,
+          "female": 8
+        }
+      ]
+    },
+    {
+      "id": "BM-092",
+      "type": "territorial_conflict",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 100
+      },
+      "telemetry": {
+        "temperature_c": 25.0,
+        "ph": 7.0,
+        "tds_ppm": 150
+      },
+      "fish": [
+        {
+          "species_id": "betta_splendens",
+          "male": 1,
+          "female": 0
+        },
+        {
+          "species_id": "poecilia_reticulata",
+          "male": 1,
+          "female": 3
+        }
+      ]
+    },
+    {
+      "id": "BM-093",
+      "type": "territorial_conflict",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 120
+      },
+      "telemetry": {
+        "temperature_c": 25.5,
+        "ph": 7.1,
+        "tds_ppm": 160
+      },
+      "fish": [
+        {
+          "species_id": "betta_splendens",
+          "male": 1,
+          "female": 0
+        },
+        {
+          "species_id": "poecilia_reticulata",
+          "male": 1,
+          "female": 4
+        }
+      ]
+    },
+    {
+      "id": "BM-094",
+      "type": "territorial_conflict",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 120
+      },
+      "telemetry": {
+        "temperature_c": 26.0,
+        "ph": 7.2,
+        "tds_ppm": 170
+      },
+      "fish": [
+        {
+          "species_id": "betta_splendens",
+          "male": 1,
+          "female": 0
+        },
+        {
+          "species_id": "poecilia_reticulata",
+          "male": 2,
+          "female": 6
+        }
+      ]
+    },
+    {
+      "id": "BM-095",
+      "type": "territorial_conflict",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 150
+      },
+      "telemetry": {
+        "temperature_c": 26.0,
+        "ph": 7.0,
+        "tds_ppm": 180
+      },
+      "fish": [
+        {
+          "species_id": "betta_splendens",
+          "male": 1,
+          "female": 0
+        },
+        {
+          "species_id": "poecilia_reticulata",
+          "male": 3,
+          "female": 6
+        }
+      ]
+    },
+    {
+      "id": "BM-096",
+      "type": "territorial_conflict",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 150
+      },
+      "telemetry": {
+        "temperature_c": 27.0,
+        "ph": 7.3,
+        "tds_ppm": 200
+      },
+      "fish": [
+        {
+          "species_id": "betta_splendens",
+          "male": 1,
+          "female": 0
+        },
+        {
+          "species_id": "poecilia_reticulata",
+          "male": 2,
+          "female": 8
+        }
+      ]
+    },
+    {
+      "id": "BM-097",
+      "type": "territorial_conflict",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 100
+      },
+      "telemetry": {
+        "temperature_c": 25.5,
+        "ph": 7.0,
+        "tds_ppm": 150
+      },
+      "fish": [
+        {
+          "species_id": "betta_splendens",
+          "male": 1,
+          "female": 0
+        },
+        {
+          "species_id": "poecilia_reticulata",
+          "male": 1,
+          "female": 5
+        }
+      ]
+    },
+    {
+      "id": "BM-098",
+      "type": "territorial_conflict",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 120
+      },
+      "telemetry": {
+        "temperature_c": 26.5,
+        "ph": 7.2,
+        "tds_ppm": 180
+      },
+      "fish": [
+        {
+          "species_id": "betta_splendens",
+          "male": 1,
+          "female": 0
+        },
+        {
+          "species_id": "poecilia_reticulata",
+          "male": 3,
+          "female": 9
+        }
+      ]
+    },
+    {
+      "id": "BM-099",
+      "type": "territorial_conflict",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 150
+      },
+      "telemetry": {
+        "temperature_c": 25.0,
+        "ph": 7.1,
+        "tds_ppm": 170
+      },
+      "fish": [
+        {
+          "species_id": "betta_splendens",
+          "male": 1,
+          "female": 0
+        },
+        {
+          "species_id": "poecilia_reticulata",
+          "male": 2,
+          "female": 5
+        }
+      ]
+    },
+    {
+      "id": "BM-100",
+      "type": "territorial_conflict",
+      "expected_csp_status": "REJECTED",
+      "aquarium": {
+        "volume_liters": 120
+      },
+      "telemetry": {
+        "temperature_c": 27.0,
+        "ph": 7.0,
+        "tds_ppm": 200
+      },
+      "fish": [
+        {
+          "species_id": "betta_splendens",
+          "male": 1,
+          "female": 0
+        },
+        {
+          "species_id": "poecilia_reticulata",
+          "male": 4,
+          "female": 8
+        }
       ]
     }
   ]
