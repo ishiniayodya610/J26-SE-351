@@ -8,7 +8,9 @@ try:
         comp3_disease,
         comp4_xai,
         predictions,
+        aquio
     )
+    from backend.app.services.aquio_bridge import aquio_bridge
 except ImportError:
     from app.routers import (
         telemetry,
@@ -17,16 +19,9 @@ except ImportError:
         comp3_disease,
         comp4_xai,
         predictions,
+        aquio
     )
-from backend.app.routers import (
-    telemetry, 
-    fish_profile, 
-    comp2_vision, 
-    comp3_disease, 
-    comp4_xai,
-    aquio
-)
-from backend.app.services.aquio_bridge import aquio_bridge
+    from app.services.aquio_bridge import aquio_bridge
 
 app = FastAPI(
     title="AquaGuard AI Central Gateway",
@@ -43,8 +38,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include All Component Routers + Prediction Router
-# Include All Component Routers + Knowledge Base + Remote Aquio Bridge
+# Include All Component Routers + Prediction Router + Remote Aquio Bridge
 app.include_router(telemetry.router)
 app.include_router(fish_profile.router)
 app.include_router(comp2_vision.router)
@@ -73,7 +67,7 @@ async def root():
             "comp_2_fish_vision": "READY (Hook Active)",
             "comp_3_disease_ammonia": "READY (Risk Synthesizer Active)",
             "comp_4_xai_engine": "READY (Causality Synthesizer Active)",
-            "comp_3_predictions": "READY (Random Forest Inference Active)"
+            "comp_3_predictions": "READY (Random Forest Inference Active)",
             "remote_aquio_bridge": aquio_bridge.get_status()
         },
         "endpoints": {
@@ -82,7 +76,7 @@ async def root():
             "telemetry_latest": "/api/telemetry/latest",
             "fish_profiles": "/api/fish/profiles",
             "predict_ammonia": "/predict/ammonia",
-            "predict_whitespot": "/predict/whitespot"
+            "predict_whitespot": "/predict/whitespot",
             "aquio_bridge_status": "/api/aquio/status",
             "aquio_sync_now": "/api/aquio/sync-now"
         }
