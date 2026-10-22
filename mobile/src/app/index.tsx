@@ -293,7 +293,10 @@ export default function TankHealthScreen() {
       </View>
 
       {/* Hardware Actuator Safety Status */}
-      <Text style={styles.sectionTitle}>Edge Actuator Interlocks</Text>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+        <Text style={styles.sectionTitle}>Edge Actuator Interlocks</Text>
+        <Text style={{ fontSize: 10, color: '#00E5FF', fontWeight: '600' }}>● HARDWARE SYNCED (ESP32)</Text>
+      </View>
       <View style={styles.actuatorRow}>
         <View style={[styles.actuatorCard, isThermalRunaway ? styles.actuatorRunaway : (heaterLocked ? styles.actuatorLocked : styles.actuatorOk)]}>
           <Flame size={20} color={isThermalRunaway ? "#FF1744" : (heaterLocked ? "#FFB300" : "#00E676")} />
@@ -301,6 +304,9 @@ export default function TankHealthScreen() {
             <Text style={styles.actuatorName}>Heater Relay</Text>
             <Text style={[styles.actuatorState, (isThermalRunaway || heaterLocked) ? styles.textAlert : styles.textOk]}>
               {isThermalRunaway ? "🚨 WELDED (OFF CMD)" : (heaterLocked ? "LOCKED (SAFETY)" : "ENGAGED")}
+            </Text>
+            <Text style={{ fontSize: 10, color: '#64748B', marginTop: 2 }}>
+              ESP32 Relay #1: {(isThermalRunaway || heaterLocked) ? "🔴 Cutoff (LED OFF)" : "🟢 Powered (LED ON)"}
             </Text>
           </View>
         </View>
@@ -311,6 +317,9 @@ export default function TankHealthScreen() {
             <Text style={styles.actuatorName}>pH Dosing Pump</Text>
             <Text style={[styles.actuatorState, pumpLocked ? styles.textAlert : styles.textOk]}>
               {pumpLocked ? "LOCKED (SAFETY)" : "ENGAGED"}
+            </Text>
+            <Text style={{ fontSize: 10, color: '#64748B', marginTop: 2 }}>
+              ESP32 Relay #2: {pumpLocked ? "🔴 Cutoff (LED OFF)" : "🟢 Powered (LED ON)"}
             </Text>
           </View>
         </View>

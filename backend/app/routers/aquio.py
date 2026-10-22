@@ -56,3 +56,33 @@ async def update_bridge_configuration(payload: AquioConfigPayload):
         "status": "UPDATED",
         "configuration": aquio_bridge.get_status()
     }
+
+@router.get("/relays")
+async def get_hardware_relays():
+    """Returns the live hardware states of the Heater and pH Pump relays on the remote ESP32."""
+    status = aquio_bridge.get_status()
+    return status.get("relays", {})
+
+@router.post("/relays/{relay_name}/toggle")
+async def toggle_hardware_relay(relay_name: str, state: Optional[bool] = None):
+    """
+    Manually overrides the remote ESP32 hardware relay for demonstrations.
+    relay_name: 'heater' or 'ph_pump'
+    state: optional boolean; if omitted, toggles the current state.
+    """
+    if relay_name not in ["heater", "ph_pump"]:
+        raise HTTPException(status_code=400, detail="Invalid relay name. Must be 'heater' or 'ph_pump'.")
+
+    current_state = aquio_bridge.heater_relay_state if relay_name == "heater" else aquio_bridge.ph_pump_relay_state
+    target_state = not current_state if state is None else state
+
+    success = await aquio_bridge.command_hardware_relay(relay_name, target_state)
+    if not success:
+        raise HTTPException(status_code=500, detail=f"Failed to command physical {relay_name} relay on remote ESP32.")
+
+    return {
+        "relay": relay_name,
+        "state": target_state,
+        "status": "COMMAND_PUBLISHED",
+        "device": f"ESP32 Tank #{aquio_bridge.tank_id}"
+    }

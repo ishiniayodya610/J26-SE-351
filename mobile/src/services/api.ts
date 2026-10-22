@@ -413,6 +413,21 @@ export const api = {
     if (!res.ok) throw new Error('Failed to update tank configuration');
     return res.json();
   },
+
+  async getHardwareRelays(): Promise<any> {
+    const res = await fetch(`${API_BASE_URL}/api/aquio/relays`);
+    if (!res.ok) throw new Error('Failed to fetch hardware relays');
+    return res.json();
+  },
+
+  async toggleHardwareRelay(relayName: 'heater' | 'ph_pump', state?: boolean): Promise<any> {
+    const url = state !== undefined 
+      ? `${API_BASE_URL}/api/aquio/relays/${relayName}/toggle?state=${state}`
+      : `${API_BASE_URL}/api/aquio/relays/${relayName}/toggle`;
+    const res = await fetch(url, { method: 'POST' });
+    if (!res.ok) throw new Error(`Failed to toggle ${relayName} relay`);
+    return res.json();
+  },
 };
 
 export interface TankConfig {

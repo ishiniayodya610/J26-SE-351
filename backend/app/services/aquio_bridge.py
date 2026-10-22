@@ -42,6 +42,12 @@ class AquioBridgeService:
         self.sync_count: int = 0
         self.last_readings: Dict[str, Any] = {}
 
+        # Actuator relay tracking (mapped to Aquio Actuator #8 and #9 on Hub #10)
+        self.last_heater_locked: Optional[bool] = None
+        self.last_ph_pump_locked: Optional[bool] = None
+        self.heater_relay_state: bool = True
+        self.ph_pump_relay_state: bool = True
+
     def is_configured(self) -> bool:
         """Checks if real credentials have been provided in .env"""
         return bool(self.email and self.password and self.email != "your_email@example.com")
@@ -241,6 +247,63 @@ class AquioBridgeService:
             self._task = None
         logger.info("[Aquio Bridge] Remote sensor ingest stopped.")
 
+    async def command_hardware_relay(self, relay_name: str, state: bool) -> bool:
+        """
+        Commands the remote ESP32 hardware relay through the Aquio Cloud API.
+        relay_name: 'heater' (maps to actuator 8) or 'ph_pump' (maps to actuator 9)
+        state: True = Relay Energized / Normal, False = Relay De-energized / Cutoff
+        """
+        if not self.access_token:
+            await self.login()
+        if not self.access_token:
+            return False
+
+        # Physical mapping to Tank #5 actuators
+        actuator_type = "solenoid_in" if relay_name == "heater" else "solenoid_out"
+        url = f"{self.base_url}/tanks/{self.tank_id}/actuators/{actuator_type}/command"
+        headers = {"Authorization": f"Bearer {self.access_token}"}
+
+        try:
+            async with httpx.AsyncClient(timeout=6.0) as client:
+                res = await client.post(url, headers=headers, json={"state": state})
+                if res.status_code == 200:
+                    if relay_name == "heater":
+                        self.heater_relay_state = state
+                    else:
+                        self.ph_pump_relay_state = state
+                    return True
+                else:
+                    logger.warning(f"[Aquio Bridge] Relay command failed ({res.status_code}): {res.text}")
+                    return False
+        except Exception as e:
+            logger.error(f"[Aquio Bridge] Relay command network error: {e}")
+            return False
+
+    async def sync_hardware_actuators(self, heater_locked: bool, ph_pump_locked: bool):
+        """
+        Automatically called by the TinyML Gatekeeper when inference completes.
+        Synchronizes physical ESP32 relays based on TinyML safety lockouts.
+        """
+        # Physical Relay Convention: Safe/Normal = True (Energized), Locked = False (Cutoff)
+        target_heater_state = not heater_locked
+        target_ph_pump_state = not ph_pump_locked
+
+        # 1. Sync Heater Relay if state changed
+        if self.last_heater_locked != heater_locked:
+            self.last_heater_locked = heater_locked
+            success = await self.command_hardware_relay("heater", target_heater_state)
+            state_str = "\033[1;91m🔴 LOCKED / CUT (RELAY DE-ENERGIZED)\033[0m" if heater_locked else "\033[1;92m🟢 ACTIVE (RELAY ENERGIZED)\033[0m"
+            print(f"\n\033[1;95m⚡ [TINYML HARDWARE RELAY SYNC]\033[0m Physical Heater Relay -> {state_str}")
+            print(f"   └── Remote ESP32 Tank #{self.tank_id} Channel 1 (Success: {success})\n")
+
+        # 2. Sync pH Pump Relay if state changed
+        if self.last_ph_pump_locked != ph_pump_locked:
+            self.last_ph_pump_locked = ph_pump_locked
+            success = await self.command_hardware_relay("ph_pump", target_ph_pump_state)
+            state_str = "\033[1;91m🔴 LOCKED / CUT (RELAY DE-ENERGIZED)\033[0m" if ph_pump_locked else "\033[1;92m🟢 ACTIVE (RELAY ENERGIZED)\033[0m"
+            print(f"\n\033[1;95m⚡ [TINYML HARDWARE RELAY SYNC]\033[0m Physical pH Dosing Pump Relay -> {state_str}")
+            print(f"   └── Remote ESP32 Tank #{self.tank_id} Channel 2 (Success: {success})\n")
+
     def get_status(self) -> Dict[str, Any]:
         """Returns the current operational status of the bridge."""
         return {
@@ -255,6 +318,22 @@ class AquioBridgeService:
             "last_sync_time": self.last_sync_time,
             "last_readings": self.last_readings,
             "last_error": self.last_error,
+            "relays": {
+                "heater": {
+                    "name": "AC Heater Power Relay",
+                    "channel": 1,
+                    "aquio_actuator_id": 8,
+                    "state": self.heater_relay_state,
+                    "locked": self.last_heater_locked if self.last_heater_locked is not None else False
+                },
+                "ph_pump": {
+                    "name": "pH Dosing Pump Relay",
+                    "channel": 2,
+                    "aquio_actuator_id": 9,
+                    "state": self.ph_pump_relay_state,
+                    "locked": self.last_ph_pump_locked if self.last_ph_pump_locked is not None else False
+                }
+            }
         }
 
 # Global singleton instance
