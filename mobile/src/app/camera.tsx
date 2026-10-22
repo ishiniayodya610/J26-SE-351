@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   Alert,
   Platform,
-  Linking
+  Linking 
 } from 'react-native';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
@@ -35,6 +35,9 @@ import {
 } from 'lucide-react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import { api, BehaviorData, VideoAnalysisData } from '@/services/api';
+import { LiveTrackingView } from '@/components/vision/LiveTrackingView';
+import { VisionMonitor } from '@/components/vision/VisionMonitor';
+import fixtureV2 from '@/features/vision/__fixtures__/analyze-video-v2.json';
 import { triggerAnomalyHaptic, triggerResolvedHaptic, triggerSelectionHaptic } from '@/services/haptics';
 
 export interface LiveTargetData {
@@ -169,6 +172,7 @@ export default function CameraVisionScreen() {
   const [analyzing, setAnalyzing] = useState(false);
   const [videoResult, setVideoResult] = useState<VideoAnalysisData | null>(null);
   const [activeVideoUri, setActiveVideoUri] = useState<string | null>(null);
+  const [liveTracking, setLiveTracking] = useState(false);
 
   // Hybrid 60 FPS Viewfinder & Multi-Fish Target Lock State
   const [autoRadar, setAutoRadar] = useState(false);
@@ -585,7 +589,17 @@ export default function CameraVisionScreen() {
         </TouchableOpacity>
       </View>
 
-      {mode === 'handheld' ? (
+      <TouchableOpacity
+        style={[styles.btnSecondary, { alignSelf: 'flex-start', marginBottom: 12 }, liveTracking && { backgroundColor: 'rgba(255,23,68,0.2)' }]}
+        onPress={() => setLiveTracking((v) => !v)}
+      >
+        <Radio size={14} color={liveTracking ? '#FF1744' : '#00E5FF'} />
+        <Text style={styles.btnSecondaryText}>{liveTracking ? 'Stop Live Tracking' : 'Live Tracking'}</Text>
+      </TouchableOpacity>
+
+      {liveTracking ? (
+        <LiveTrackingView active={liveTracking} />
+      ) : mode === 'handheld' ? (
         /* LIVE CAMERA VIEWFINDER & BEHAVIOR SCANNER */
         <View>
           <View style={styles.viewfinderCard}>
@@ -820,6 +834,20 @@ export default function CameraVisionScreen() {
                 <VideoIcon size={14} color="#00E5FF" />
                 <Text style={styles.btnSecondaryText}>Open Camera</Text>
               </TouchableOpacity>
+
+              {__DEV__ && (
+                <TouchableOpacity
+                  style={styles.btnSecondary}
+                  onPress={() => {
+                    setActiveVideoUri(null);
+                    setVideoResult(fixtureV2.data as unknown as VideoAnalysisData);
+                  }}
+                  disabled={analyzing || isRecording}
+                >
+                  <Film size={14} color="#00E5FF" />
+                  <Text style={styles.btnSecondaryText}>Load Fixture</Text>
+                </TouchableOpacity>
+              )}
             </View>
 
 
@@ -833,7 +861,10 @@ export default function CameraVisionScreen() {
           </View>
 
           {/* Video Analysis Result Card */}
-          {videoResult && (
+          {videoResult && videoResult.tracks && videoResult.tracks.length > 0 && (
+            <VisionMonitor data={videoResult} localUri={activeVideoUri} />
+          )}
+          {videoResult && !(videoResult.tracks && videoResult.tracks.length > 0) && (
             <View style={styles.resultCard}>
               <View style={styles.resultHeader}>
                 <CheckCircle2 color="#00E676" size={24} />
