@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AquaGuard AI — Decision Engine Interactive Showcase</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐠</text></svg>">
+</head>
+<body>
+
+  <!-- Top App Bar -->
+  <header class="app-header">
+    <div class="brand-container">
+      <div class="brand-icon">🐠</div>
+      <div>
+        <h1 class="brand-title">AquaGuard AI Decision Engine</h1>
+        <p class="brand-subtitle">Hybrid CSP-Fuzzy Population Optimizer & XAI System</p>
+      </div>
+    </div>
+    <div class="header-status-pills">
+      <div class="status-pill" id="api-status-badge">
+        <span class="pulse-dot"></span>
+        <span id="api-status-text">Engine Online (Port 8000)</span>
+      </div>
+      <div class="status-pill" style="border-color: rgba(56, 189, 248, 0.4); color: var(--primary-cyan); background: rgba(56, 189, 248, 0.1);">
+        <span>KB Schema v2.0.0</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <nav class="nav-tabs-wrapper">
+    <div class="nav-tabs">
+      <button class="nav-tab-btn active" id="tab-btn-evaluate" onclick="switchTab('tab-evaluate')">
+        <span>⚡</span> Live Decision Pipeline
+      </button>
+      <button class="nav-tab-btn" id="tab-btn-whatif" onclick="switchTab('tab-whatif')">
+        <span>🔮</span> What-If Simulation Lab
+      </button>
+      <button class="nav-tab-btn" id="tab-btn-benchmark" onclick="switchTab('tab-benchmark')">
+        <span>📊</span> 100-Scenario Benchmark
+      </button>
+      <button class="nav-tab-btn" id="tab-btn-catalog" onclick="switchTab('tab-catalog')">
+        <span>📖</span> Species Catalog (v2.0.0)
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main Content Areas -->
+  <main class="main-content">
+
+    <!-- TAB 1: LIVE DECISION PIPELINE -->
+    <section id="tab-evaluate" class="tab-panel active">
+      <!-- Quick Presets -->
+      <div class="presets-bar">
+        <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase;">Quick Presets:</span>
+        <button class="preset-chip" onclick="loadPreset('peaceful')">🟢 Peaceful Community (Cory + Neon)</button>
+        <button class="preset-chip" onclick="loadPreset('predator')">🔴 Predator Conflict (Angel + Neon)</button>
+        <button class="preset-chip" onclick="loadPreset('overstock')">🔴 Overstock Bioload (60 Cory in 25L)</button>
+        <button class="preset-chip" onclick="loadPreset('temp_violation')">🔴 Temp Shock (33°C Violation)</button>
+        <button class="preset-chip" onclick="loadPreset('harem')">🟡 Livebearer Harem (Guppy + Platy)</button>
+        <button class="preset-chip" onclick="loadPreset('betta')">🔵 Solitary Betta Tank</button>
+      </div>
+
+      <div class="engine-grid">
+        <!-- Left: Input Control Panel -->
+        <div class="glass-panel">
+          <h2 class="section-title"><span>⚙️</span> Aquarium & Telemetry Parameters</h2>
+
+          <!-- Tank Volume -->
+          <div class="form-group">
+            <div class="form-label">
+              <span>Aquarium Volume</span>
+              <span class="form-val-display" id="volume-val-display">100 Liters</span>
+            </div>
+            <input type="range" class="range-slider" id="input-volume" min="10" max="350" step="5" value="100" oninput="updateVolumeDisplay()">
+          </div>
+
+          <!-- Temperature -->
+          <div class="form-group">
+            <div class="form-label">
+              <span>Water Temperature</span>
+              <span class="form-val-display" id="temp-val-display">25.0 °C</span>
+            </div>
+            <input type="range" class="range-slider" id="input-temp" min="14.0" max="35.0" step="0.5" value="25.0" oninput="updateTempDisplay()">
+          </div>
+
+          <!-- pH Level -->
+          <div class="form-group">
+            <div class="form-label">
+              <span>Water pH Level</span>
+              <span class="form-val-display" id="ph-val-display">7.0</span>
+            </div>
+            <input type="range" class="range-slider" id="input-ph" min="4.5" max="9.0" step="0.1" value="7.0" oninput="updatePhDisplay()">
+          </div>
+
+          <!-- TDS ppm -->
+          <div class="form-group">
+            <div class="form-label">
+              <span>Total Dissolved Solids (TDS)</span>
+              <span class="form-val-display" id="tds-val-display">150 ppm</span>
+            </div>
+            <input type="range" class="range-slider" id="input-tds" min="20" max="550" step="10" value="150" oninput="updateTdsDisplay()">
+          </div>
+
+          <!-- Population Builder -->
+          <div class="population-builder-card">
+            <div class="form-label">
+              <span>Current Aquarium Fish Population</span>
+              <span style="font-size: 0.75rem; color: var(--text-dim);" id="population-count-badge">0 Species</span>
+            </div>
+
+            <div class="species-adder">
+              <select id="species-selector" class="input-select">
+                <option value="" disabled selected>Select species to add...</option>
+              </select>
+              <button class="btn-secondary" onclick="addSpeciesFromSelector()">+ Add</button>
+            </div>
+
+            <div id="active-fish-list">
+              <!-- Dynamically populated fish rows -->
+            </div>
+          </div>
+
+          <div class="evaluate-action-container">
+            <button class="btn-primary btn-evaluate-lg" id="btn-run-pipeline" onclick="executeDecisionPipeline()">
+              <span>🚀</span> EXECUTE 4-STAGE PIPELINE
+            </button>
+          </div>
+        </div>
+
+        <!-- Right: 4-Stage Visual Execution Pipeline -->
+        <div class="pipeline-flow">
+
+          <!-- STAGE 1: CSP GATEKEEPER -->
+          <div class="glass-panel stage-card" id="stage-1-card">
+            <span class="stage-badge" id="csp-status-badge">Awaiting Input</span>
+            <h2 class="section-title"><span>🛡️</span> Stage 1: CSP Gatekeeper (Hard Constraints)</h2>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+              Enforces fatal biological invariants: Predator/Prey pairings, bioload volume capacity limits, and thermal tolerances.
+            </p>
+            <div id="csp-output-content">
+              <p style="color: var(--text-dim); font-size: 0.9rem;">Click "Execute 4-Stage Pipeline" to evaluate hard constraints.</p>
+            </div>
+          </div>
+
+          <!-- STAGE 2: FUZZY STABILITY ENGINE -->
+          <div class="glass-panel stage-card" id="stage-2-card">
+            <span class="stage-badge info" id="fuzzy-status-badge">Fuzzy FIS</span>
+            <h2 class="section-title"><span>🌊</span> Stage 2: Fuzzy Stability Engine (ESI)</h2>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+              Mamdani Fuzzy Inference System evaluating multivariate water chemistry and derived aggression into an Ecosystem Stability Index.
+            </p>
+
+            <div class="gauge-container">
+              <svg class="gauge-svg" viewBox="0 0 200 120">
+                <path class="gauge-bg-path" d="M 20 100 A 80 80 0 0 1 180 100" />
+                <path class="gauge-fill-path" id="esi-gauge-fill" d="M 20 100 A 80 80 0 0 1 180 100" stroke-dasharray="251.2" stroke-dashoffset="251.2" />
+              </svg>
+              <div class="gauge-score-text" id="esi-score-val">--</div>
+              <div class="gauge-category-pill" id="esi-category-pill" style="background: rgba(255, 255, 255, 0.08); color: var(--text-muted);">
+                STANDBY
+              </div>
+            </div>
+
+            <div class="antecedents-grid">
+              <div class="antecedent-card">
+                <div class="antecedent-label">Temp Antecedent</div>
+                <div class="antecedent-value" id="ant-temp-val">--</div>
+              </div>
+              <div class="antecedent-card">
+                <div class="antecedent-label">pH Antecedent</div>
+                <div class="antecedent-value" id="ant-ph-val">--</div>
+              </div>
+              <div class="antecedent-card">
+                <div class="antecedent-label">TDS Antecedent</div>
+                <div class="antecedent-value" id="ant-tds-val">--</div>
+              </div>
+              <div class="antecedent-card">
+                <div class="antecedent-label">Max Aggression</div>
+                <div class="antecedent-value" id="ant-agg-val">--</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- STAGE 3: GENETIC ALGORITHM POPULATION OPTIMIZER -->
+          <div class="glass-panel stage-card" id="stage-3-card">
+            <span class="stage-badge info">DEAP GA</span>
+            <h2 class="section-title"><span>🧬</span> Stage 3: Dynamic Population Optimizer</h2>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+              Multi-objective genetic algorithm balancing ESI score, species breeding sex ratios, and carrying capacity bioload penalties.
+            </p>
+            <div id="optimizer-output-content">
+              <p style="color: var(--text-dim); font-size: 0.9rem;">Optimized population breakdown will appear here upon evaluation approval.</p>
+            </div>
+          </div>
+
+          <!-- STAGE 4: EXPLAINABLE AI (XAI) REASONING -->
+          <div class="glass-panel stage-card" id="stage-4-card">
+            <span class="stage-badge info">XAI Engine</span>
+            <h2 class="section-title"><span>💡</span> Stage 4: Explainable AI (XAI) Traces</h2>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+              Deterministic natural language reasoning explaining biological rejections and actionable husbandry interventions.
+            </p>
+            <div id="xai-output-content">
+              <p style="color: var(--text-dim); font-size: 0.9rem;">Awaiting pipeline execution.</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: WHAT-IF SIMULATION LAB -->
+    <section id="tab-whatif" class="tab-panel">
+      <div class="glass-panel" style="margin-bottom: 2rem;">
+        <h2 class="section-title"><span>🔮</span> Counterfactual Population & Parameter Shift Sandbox</h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">
+          Test hypothetical population additions or environmental shifts without risking live aquatic life.
+          The engine computes baseline vs proposed state delta in stability (ESI) and provides comparative XAI guidance.
+        </p>
+      </div>
+
+      <div class="what-if-split">
+        <!-- Left: Current Tank -->
+        <div class="glass-panel">
+          <h3 class="section-title" style="font-size: 1.05rem; color: var(--primary-cyan);">1️⃣ Current Baseline Tank</h3>
+          <div class="form-group">
+            <label class="form-label">Tank Volume (L): <span id="sim-vol-val">100L</span></label>
+            <input type="number" id="sim-base-vol" class="input-number" value="100">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Temperature (°C):</label>
+            <input type="number" id="sim-base-temp" class="input-number" step="0.5" value="25.0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Water pH:</label>
+            <input type="number" id="sim-base-ph" class="input-number" step="0.1" value="7.0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Water TDS (ppm):</label>
+            <input type="number" id="sim-base-tds" class="input-number" step="5" value="150">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Current Fish:</label>
+            <div id="sim-current-fish-list" style="margin-top: 0.5rem;">
+              <!-- Current fish cards -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Proposed Tank -->
+        <div class="glass-panel">
+          <h3 class="section-title" style="font-size: 1.05rem; color: var(--accent-teal);">2️⃣ Proposed Population Addition</h3>
+          <div class="form-group">
+            <label class="form-label">Select Species to Introduce:</label>
+            <div class="species-adder">
+              <select id="sim-species-selector" class="input-select"></select>
+              <button class="btn-secondary" onclick="addProposedFishRow()">+ Add</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <div id="sim-proposed-fish-list" style="margin-top: 0.5rem;">
+              <!-- Proposed fish cards -->
+            </div>
+          </div>
+
+          <div style="margin-top: 1.5rem;">
+            <button class="btn-primary" style="width: 100%; padding: 1rem;" onclick="runWhatIfSimulation()">
+              <span>🔮</span> RUN WHAT-IF SIMULATION
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Simulation Result Output -->
+      <div id="simulation-result-wrapper" style="margin-top: 2rem; display: none;">
+        <div class="delta-banner" id="sim-delta-banner">
+          <div>
+            <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px;" id="sim-impact-tag">STABILITY IMPACT</div>
+            <div class="delta-val" id="sim-delta-val">+0.00</div>
+          </div>
+          <div style="text-align: right;">
+            <span style="font-size: 0.85rem; color: var(--text-dim);">Before: <strong id="sim-esi-before" style="color: #fff;">0.00</strong></span>
+            <span style="font-size: 1rem; color: var(--text-dim); margin: 0 0.5rem;">➔</span>
+            <span style="font-size: 0.85rem; color: var(--text-dim);">After: <strong id="sim-esi-after" style="color: var(--accent-teal);">0.00</strong></span>
+          </div>
+        </div>
+
+        <div class="glass-panel">
+          <h3 class="section-title"><span>🤖</span> Simulation Explanation & Recommendation</h3>
+          <p id="sim-explanation-text" style="font-size: 1rem; color: var(--text-main); margin-bottom: 0.5rem;"></p>
+          <div class="xai-callout" id="sim-rec-callout">
+            <div class="xai-title">Husbandry Recommendation</div>
+            <div class="xai-desc" id="sim-recommendation-text"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: 100-SCENARIO BENCHMARK SUITE -->
+    <section id="tab-benchmark" class="tab-panel">
+      <div class="glass-panel" style="margin-bottom: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <h2 class="section-title" style="margin-bottom: 0.25rem;"><span>📊</span> CSP Gatekeeper 100-Scenario Benchmark Suite</h2>
+            <p style="color: var(--text-muted); font-size: 0.88rem;">
+              Rigorous empirical evaluation against 100 synthetic scenarios testing Predator/Prey, Tank Volume, Territorial Conflict, and Temperature limits.
+            </p>
+          </div>
+          <button class="btn-primary" id="btn-run-benchmarks" onclick="executeBenchmarkSuite()">
+            <span>▶</span> RUN 100 BENCHMARK SCENARIOS
+          </button>
+        </div>
+      </div>
+
+      <!-- KPI Metric Cards -->
+      <div class="benchmark-header-grid">
+        <div class="metric-card accuracy">
+          <div class="metric-label">System Accuracy</div>
+          <div class="metric-num" id="bm-accuracy-val">100.0%</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">True Positives (TP)</div>
+          <div class="metric-num" style="color: var(--accent-teal);" id="bm-tp-val">--</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">True Negatives (TN)</div>
+          <div class="metric-num" style="color: var(--primary-cyan);" id="bm-tn-val">--</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">False Positives (FP)</div>
+          <div class="metric-num" style="color: var(--accent-rose);" id="bm-fp-val">0</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">False Negatives (FN)</div>
+          <div class="metric-num" style="color: var(--accent-amber);" id="bm-fn-val">0</div>
+        </div>
+      </div>
+
+      <!-- Filter Bar -->
+      <div class="table-filter-bar">
+        <input type="text" id="bm-search-input" class="search-input" placeholder="🔍 Search scenario ID, type, species..." oninput="filterBenchmarkTable()">
+        <div style="display: flex; gap: 0.5rem;">
+          <select id="bm-status-filter" class="input-select" style="width: 160px;" onchange="filterBenchmarkTable()">
+            <option value="ALL">All Statuses</option>
+            <option value="PASS">PASS (Safe)</option>
+            <option value="REJECTED">REJECTED (Violations)</option>
+          </select>
+          <select id="bm-type-filter" class="input-select" style="width: 180px;" onchange="filterBenchmarkTable()">
+            <option value="ALL">All Test Types</option>
+            <option value="valid_combination">valid_combination</option>
+            <option value="valid_community">valid_community</option>
+            <option value="valid_single_species">valid_single_species</option>
+            <option value="tank_volume">tank_volume</option>
+            <option value="temperature_violation">temperature_violation</option>
+            <option value="predator_prey">predator_prey</option>
+            <option value="territorial_conflict">territorial_conflict</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Benchmark Table -->
+      <div class="benchmark-table-container">
+        <table class="benchmark-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Category</th>
+              <th>Aquarium</th>
+              <th>Telemetry</th>
+              <th>Species Included</th>
+              <th>Expected</th>
+              <th>Actual</th>
+              <th>Metric</th>
+            </tr>
+          </thead>
+          <tbody id="benchmark-table-body">
+            <tr>
+              <td colspan="8" style="text-align: center; color: var(--text-dim); padding: 2rem;">
+                Click "Run 100 Benchmark Scenarios" to evaluate the suite live.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TAB 4: SPECIES BIOLOGICAL CATALOG -->
+    <section id="tab-catalog" class="tab-panel">
+      <div class="glass-panel" style="margin-bottom: 2rem;">
+        <h2 class="section-title"><span>📖</span> Ornamental Fish Knowledge Base (Schema v2.0.0)</h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">
+          Source-reviewed biological profiles referenced directly from <em>Seriously Fish</em> ichthyological research.
+          Governs all thermal boundaries, footprint requirements, and social compatibility rules.
+        </p>
+      </div>
+
+      <div class="catalog-grid" id="species-catalog-grid">
+        <!-- Rendered by app.js -->
+      </div>
+    </section>
+
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

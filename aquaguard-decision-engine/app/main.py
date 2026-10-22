@@ -1,11 +1,9 @@
-"""
-Main FastAPI Application Entry Point for AquaGuard Decision Engine API.
-Phase 9: Decision & Simulation REST API Layer.
-"""
-
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import decision_routes, simulation_routes, species_routes
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+from app.api import decision_routes, simulation_routes, species_routes, benchmark_routes
 
 app = FastAPI(title="AquaGuard Decision Engine API", version="1.0.0")
 
@@ -22,6 +20,23 @@ app.add_middleware(
 app.include_router(decision_routes.router, prefix="/api/v1")
 app.include_router(simulation_routes.router, prefix="/api/v1")
 app.include_router(species_routes.router, prefix="/api/v1/species", tags=["Species"])
+app.include_router(benchmark_routes.router, prefix="/api/v1/benchmarks", tags=["Benchmarks"])
+
+# Static Files & Demo Dashboard
+static_dir = os.path.join(os.path.dirname(__file__), "static")
+if not os.path.exists(static_dir):
+    os.makedirs(static_dir, exist_ok=True)
+
+app.mount("/static", StaticFiles(directory=static_dir), name="static")
+
+
+@app.get("/demo", include_in_schema=False)
+@app.get("/dashboard", include_in_schema=False)
+def serve_demo():
+    index_file = os.path.join(static_dir, "index.html")
+    if os.path.exists(index_file):
+        return FileResponse(index_file)
+    return {"message": "AquaGuard Demo UI loading. Please ensure index.html exists in app/static."}
 
 
 @app.get("/", tags=["Health"])
@@ -30,6 +45,7 @@ def root():
         "service": "AquaGuard Decision Engine API",
         "status": "operational",
         "version": "1.0.0",
+        "demo_url": "/demo",
     }
 
 
