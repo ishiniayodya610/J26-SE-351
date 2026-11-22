@@ -1,23 +1,23 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  ScrollView, 
+  TouchableOpacity, 
   RefreshControl,
   ActivityIndicator,
   Alert
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import {
-  ShieldCheck,
-  ShieldAlert,
-  Thermometer,
-  Droplet,
-  Gauge,
-  Fish,
-  Zap,
+import { 
+  ShieldCheck, 
+  ShieldAlert, 
+  Thermometer, 
+  Droplet, 
+  Gauge, 
+  Fish, 
+  Zap, 
   ChevronRight,
   Flame,
   Power,
@@ -63,10 +63,10 @@ export default function TankHealthScreen() {
     if (!telemetry) return;
     const currentStatus = telemetry.system_status;
     const isRunaway = Boolean(telemetry.thermal_runaway?.active || telemetry.gatekeeper?.thermal_runaway);
-    const hasFault = currentStatus !== 'OPTIMAL' ||
-      Boolean(telemetry.gatekeeper?.heater_lockout) ||
-      Boolean(telemetry.gatekeeper?.ph_pump_lockout) ||
-      isRunaway;
+    const hasFault = currentStatus !== 'OPTIMAL' || 
+                     Boolean(telemetry.gatekeeper?.heater_lockout) || 
+                     Boolean(telemetry.gatekeeper?.ph_pump_lockout) ||
+                     isRunaway;
 
     if (prevStatusRef.current !== null) {
       const prevHadFault = prevStatusRef.current !== 'OPTIMAL';
@@ -101,8 +101,8 @@ export default function TankHealthScreen() {
   const pumpLocked = telemetry?.gatekeeper?.ph_pump_lockout;
 
   return (
-    <ScrollView
-      style={styles.container}
+    <ScrollView 
+      style={styles.container} 
       contentContainerStyle={styles.content}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#00E5FF" />}
     >
@@ -121,12 +121,8 @@ export default function TankHealthScreen() {
               {isThermalRunaway
                 ? "WELDED RUNAWAY"
                 : (telemetry?.system_status === 'DEGRADED_FAULT_MITIGATED'
-                  ? 'FAULT MITIGATED'
-              {isThermalRunaway
-                ? "WELDED RUNAWAY"
-                : (telemetry?.system_status === 'DEGRADED_FAULT_MITIGATED'
-                  ? 'FAULT MITIGATED'
-                  : (telemetry?.system_status || 'OPTIMAL'))}
+                    ? 'FAULT MITIGATED'
+                    : (telemetry?.system_status || 'OPTIMAL'))}
             </Text>
           </View>
         </View>
@@ -143,7 +139,7 @@ export default function TankHealthScreen() {
 
         {/* Dynamic Hardware vs. Simulator Source Banner */}
         <View style={[
-          styles.sourceBadge,
+          styles.sourceBadge, 
           telemetry?.data_source?.is_real_hardware ? styles.sourceBadgeReal : styles.sourceBadgeSim
         ]}>
           <Radio size={12} color={telemetry?.data_source?.is_real_hardware ? '#00E676' : '#00E5FF'} />
@@ -151,8 +147,8 @@ export default function TankHealthScreen() {
             styles.sourceBadgeText,
             telemetry?.data_source?.is_real_hardware ? styles.sourceTextReal : styles.sourceTextSim
           ]}>
-            {telemetry?.data_source?.label
-              ? telemetry.data_source.label.toUpperCase()
+            {telemetry?.data_source?.label 
+              ? telemetry.data_source.label.toUpperCase() 
               : (telemetry?.data_source?.is_real_hardware ? 'LIVE REMOTE ESP32 HARDWARE' : 'EVALUATOR TESTBED SIMULATOR')}
           </Text>
         </View>
@@ -160,7 +156,7 @@ export default function TankHealthScreen() {
 
       {/* 🚨 CRITICAL: Stuck Heater / Welded Relay Emergency Intervention Banner */}
       {isThermalRunaway && (
-        <TouchableOpacity
+        <TouchableOpacity 
           style={styles.runawayEmergencyCard}
           activeOpacity={0.88}
           onPress={() => {
@@ -206,7 +202,7 @@ export default function TankHealthScreen() {
 
       {/* ⚠️ Dynamic Anomaly Alert Banner with Haptic Indicator */}
       {(!isOptimal || heaterLocked || pumpLocked) && !isThermalRunaway && (
-        <TouchableOpacity
+        <TouchableOpacity 
           style={styles.anomalyCard}
           activeOpacity={0.88}
           onPress={() => {
@@ -222,21 +218,21 @@ export default function TankHealthScreen() {
           </View>
 
           <Text style={styles.anomalyTitle}>
-            {heaterLocked && pumpLocked
-              ? "Multiple Safety Interlocks Triggered"
-              : (heaterLocked
-                ? "Thermal Anomaly • Heater Relay Locked Out"
-                : (pumpLocked
-                  ? "pH Sensor Failure • Dosing Pump Locked Out"
-                  : "Anomalous Water Spike Sanitized"))}
+            {heaterLocked && pumpLocked 
+              ? "Multiple Safety Interlocks Triggered" 
+              : (heaterLocked 
+                  ? "Thermal Anomaly • Heater Relay Locked Out" 
+                  : (pumpLocked 
+                      ? "pH Sensor Failure • Dosing Pump Locked Out" 
+                      : "Anomalous Water Spike Sanitized"))}
           </Text>
 
           <Text style={styles.anomalyDescription}>
-            {heaterLocked
-              ? `Thermal rise exceeded gradient (+${(telemetry?.deltas?.delta_temp ?? 3.6).toFixed(1)}°C). AC heater power cut locally in 1 ms.`
-              : (pumpLocked
-                ? `pH jumped outside biological boundaries (${(telemetry?.telemetry?.ph ?? 2.2).toFixed(2)}). Chemical dosing pump disengaged.`
-                : "Unsafe sensor covariance detected. Edge TinyML imputed safe baselines to maintain cloud stability.")}
+            {heaterLocked 
+              ? `Thermal rise exceeded gradient (+${(telemetry?.deltas?.delta_temp ?? 3.6).toFixed(1)}°C). AC heater power cut locally in 1 ms.` 
+              : (pumpLocked 
+                  ? `pH jumped outside biological boundaries (${(telemetry?.telemetry?.ph ?? 2.2).toFixed(2)}). Chemical dosing pump disengaged.` 
+                  : "Unsafe sensor covariance detected. Edge TinyML imputed safe baselines to maintain cloud stability.")}
           </Text>
 
           <View style={styles.anomalyFooter}>
@@ -248,7 +244,7 @@ export default function TankHealthScreen() {
 
       {/* Water Telemetry Grid */}
       <Text style={styles.sectionTitle}>Real-Time Water Telemetry</Text>
-
+      
       <View style={styles.telemetryGrid}>
         {/* Temperature Card */}
         <View style={styles.telemetryCard}>
@@ -297,10 +293,7 @@ export default function TankHealthScreen() {
       </View>
 
       {/* Hardware Actuator Safety Status */}
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-        <Text style={styles.sectionTitle}>Edge Actuator Interlocks</Text>
-        <Text style={{ fontSize: 10, color: '#00E5FF', fontWeight: '600' }}>● HARDWARE SYNCED (ESP32)</Text>
-      </View>
+      <Text style={styles.sectionTitle}>Edge Actuator Interlocks</Text>
       <View style={styles.actuatorRow}>
         <View style={[styles.actuatorCard, isThermalRunaway ? styles.actuatorRunaway : (heaterLocked ? styles.actuatorLocked : styles.actuatorOk)]}>
           <Flame size={20} color={isThermalRunaway ? "#FF1744" : (heaterLocked ? "#FFB300" : "#00E676")} />
@@ -308,9 +301,6 @@ export default function TankHealthScreen() {
             <Text style={styles.actuatorName}>Heater Relay</Text>
             <Text style={[styles.actuatorState, (isThermalRunaway || heaterLocked) ? styles.textAlert : styles.textOk]}>
               {isThermalRunaway ? "🚨 WELDED (OFF CMD)" : (heaterLocked ? "LOCKED (SAFETY)" : "ENGAGED")}
-            </Text>
-            <Text style={{ fontSize: 10, color: '#64748B', marginTop: 2 }}>
-              ESP32 Relay #1: {(isThermalRunaway || heaterLocked) ? "🔴 Cutoff (LED OFF)" : "🟢 Powered (LED ON)"}
             </Text>
           </View>
         </View>
@@ -321,9 +311,6 @@ export default function TankHealthScreen() {
             <Text style={styles.actuatorName}>pH Dosing Pump</Text>
             <Text style={[styles.actuatorState, pumpLocked ? styles.textAlert : styles.textOk]}>
               {pumpLocked ? "LOCKED (SAFETY)" : "ENGAGED"}
-            </Text>
-            <Text style={{ fontSize: 10, color: '#64748B', marginTop: 2 }}>
-              ESP32 Relay #2: {pumpLocked ? "🔴 Cutoff (LED OFF)" : "🟢 Powered (LED ON)"}
             </Text>
           </View>
         </View>
@@ -348,302 +335,296 @@ const styles = StyleSheet.create({
   speciesRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    speciesRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: 8,
-    },
-    speciesTitleLeft: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      flexShrink: 0,
-    },
-    fishIconContainer: {
-      backgroundColor: '#0F2C4C',
-      width: 36,
-      height: 36,
-      borderRadius: 8,
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginRight: 10,
-    },
-    speciesTitle: {
-      color: '#F8FAFC',
-      fontSize: 16,
-      speciesTitle: {
-        color: '#F8FAFC',
-        fontSize: 16,
-        fontWeight: 'bold',
-        flexShrink: 0,
-      },
-      statusPill: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 16,
-        gap: 4,
-      },
-      statusPillOk: { backgroundColor: 'rgba(0, 230, 118, 0.12)' },
-      statusPillAlert: { backgroundColor: 'rgba(255, 23, 68, 0.15)' },
-      statusPillText: { fontSize: 11, fontWeight: '700' },
-      textOk: { color: '#00E676' },
-      textAlert: { color: '#FF1744' },
-      targetBar: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#0B0F19',
-        borderRadius: 8,
-        paddingHorizontal: 12,
-        paddingVertical: 8,
-        marginTop: 12,
-      },
-      targetLabel: { color: '#64748B', fontSize: 12, marginRight: 8 },
-      targetVal: { color: '#00E5FF', fontSize: 12, fontWeight: '600' },
-      targetDot: { color: '#475569', marginHorizontal: 6 },
-      sourceBadge: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 6,
-        paddingHorizontal: 10,
-        paddingVertical: 5,
-        borderRadius: 8,
-        marginTop: 10,
-        borderWidth: 1,
-        alignSelf: 'flex-start',
-      },
-      sourceBadgeReal: {
-        backgroundColor: 'rgba(0, 230, 118, 0.1)',
-        borderColor: 'rgba(0, 230, 118, 0.35)',
-      },
-      sourceBadgeSim: {
-        backgroundColor: 'rgba(0, 229, 255, 0.08)',
-        borderColor: 'rgba(0, 229, 255, 0.25)',
-      },
-      sourceBadgeText: {
-        fontSize: 10,
-        fontWeight: '800',
-        letterSpacing: 0.5,
-      },
-      sourceTextReal: { color: '#00E676' },
-      sourceTextSim: { color: '#00E5FF' },
-      sectionTitle: { color: '#E2E8F0', fontSize: 15, fontWeight: '700', marginBottom: 12 },
-      telemetryGrid: { flexDirection: 'row', gap: 10, marginBottom: 20 },
-      telemetryCard: {
-        flex: 1,
-        backgroundColor: '#131B2E',
-        borderRadius: 12,
-        padding: 12,
-        borderWidth: 1,
-        borderColor: '#1E293B',
-      },
-      cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
-      cardParam: { color: '#94A3B8', fontSize: 11, fontWeight: '600' },
-      cardValue: { color: '#F8FAFC', fontSize: 20, fontWeight: 'bold' },
-      cardTarget: { color: '#64748B', fontSize: 10, marginTop: 4 },
-      imputedBadge: {
-        backgroundColor: 'rgba(255, 179, 0, 0.15)',
-        paddingHorizontal: 6,
-        paddingVertical: 2,
-        borderRadius: 4,
-        marginTop: 6,
-        alignSelf: 'flex-start',
-      },
-      imputedText: { color: '#FFB300', fontSize: 9, fontWeight: '800' },
-      actuatorRow: { flexDirection: 'row', gap: 10, marginBottom: 20 },
-      actuatorCard: {
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderRadius: 12,
-        padding: 12,
-        borderWidth: 1,
-      },
-      actuatorOk: { backgroundColor: '#131B2E', borderColor: '#1E293B' },
-      actuatorLocked: { backgroundColor: 'rgba(255, 23, 68, 0.1)', borderColor: '#FF1744' },
-      actuatorName: { color: '#94A3B8', fontSize: 12, fontWeight: '600' },
-      actuatorState: { fontSize: 12, fontWeight: '800', marginTop: 2 },
-      testbedBanner: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: 'rgba(0, 229, 255, 0.08)',
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: 'rgba(0, 229, 255, 0.25)',
-        padding: 14,
-      },
-      testbedBannerTitle: { color: '#00E5FF', fontSize: 14, fontWeight: '700' },
-      testbedBannerSubtitle: { color: '#94A3B8', fontSize: 11, marginTop: 4 },
-      anomalyCard: {
-        backgroundColor: 'rgba(255, 23, 68, 0.1)',
-        borderRadius: 14,
-        padding: 16,
-        borderWidth: 1.5,
-        borderColor: '#FF1744',
-        marginBottom: 20,
-        shadowColor: '#FF1744',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.25,
-        shadowRadius: 10,
-        elevation: 4,
-      },
-      anomalyTopRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 10,
-      },
-      anomalyBadge: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: 'rgba(255, 23, 68, 0.2)',
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 6,
-        gap: 6,
-      },
-      anomalyBadgeText: {
-        color: '#FF1744',
-        fontSize: 10,
-        fontWeight: '800',
-        letterSpacing: 0.5,
-      },
-      hapticTag: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: 'rgba(255, 179, 0, 0.15)',
-        paddingHorizontal: 8,
-        paddingVertical: 3,
-        borderRadius: 12,
-        gap: 4,
-      },
-      hapticTagText: {
-        color: '#FFB300',
-        fontSize: 9,
-        fontWeight: '800',
-        letterSpacing: 0.5,
-      },
-      anomalyTitle: {
-        color: '#F8FAFC',
-        fontSize: 15,
-        fontWeight: '700',
-        marginBottom: 6,
-      },
-      anomalyDescription: {
-        color: '#CBD5E1',
-        fontSize: 12,
-        lineHeight: 18,
-        marginBottom: 12,
-      },
-      anomalyFooter: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'flex-end',
-        borderTopWidth: 1,
-        borderTopColor: 'rgba(255, 255, 255, 0.08)',
-        paddingTop: 10,
-        gap: 4,
-      },
-      anomalyLink: {
-        color: '#00E5FF',
-        fontSize: 12,
-        fontWeight: '700',
-      },
-      actuatorRunaway: {
-        backgroundColor: 'rgba(255, 23, 68, 0.2)',
-        borderColor: '#FF1744',
-        borderWidth: 1.5,
-      },
-      runawayEmergencyCard: {
-        backgroundColor: '#38000D',
-        borderRadius: 14,
-        padding: 16,
-        borderWidth: 2,
-        borderColor: '#FF1744',
-        marginBottom: 20,
-        shadowColor: '#FF1744',
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.45,
-        shadowRadius: 12,
-        elevation: 8,
-      },
-      runawayHeaderRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 10,
-      },
-      runawayBadge: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#FF1744',
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 6,
-        gap: 6,
-      },
-      runawayBadgeText: {
-        color: '#FFFFFF',
-        fontSize: 10,
-        fontWeight: '900',
-        letterSpacing: 0.5,
-      },
-      runawayCountdown: {
-        backgroundColor: 'rgba(255, 214, 0, 0.2)',
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#FFD600',
-      },
-      runawayCountdownText: {
-        color: '#FFD600',
-        fontSize: 10,
-        fontWeight: '800',
-      },
-      runawayTitle: {
-        color: '#FFCDD2',
-        fontSize: 16,
-        fontWeight: '800',
-        marginBottom: 6,
-      },
-      runawayDescription: {
-        color: '#FFEBEE',
-        fontSize: 12,
-        lineHeight: 18,
-        marginBottom: 12,
-      },
-      actionCalloutBox: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: 'rgba(255, 23, 68, 0.4)',
-        borderRadius: 8,
-        padding: 10,
-        gap: 8,
-        marginBottom: 12,
-        borderWidth: 1,
-        borderColor: '#FF5252',
-      },
-      actionCalloutText: {
-        flex: 1,
-        color: '#FFFFFF',
-        fontSize: 11,
-        fontWeight: '900',
-        letterSpacing: 0.3,
-      },
-      runawayFooter: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'flex-end',
-        borderTopWidth: 1,
-        borderTopColor: 'rgba(255, 255, 255, 0.12)',
-        paddingTop: 10,
-        gap: 4,
-      },
-      runawayLink: {
-        color: '#FF8A80',
-        fontSize: 12,
-        fontWeight: '700',
-      },
-    });
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  speciesTitleLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexShrink: 0,
+  },
+  fishIconContainer: {
+    backgroundColor: '#0F2C4C',
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  speciesTitle: {
+    color: '#F8FAFC',
+    fontSize: 16,
+    fontWeight: 'bold',
+    flexShrink: 0,
+  },
+  statusPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 16,
+    gap: 4,
+  },
+  statusPillOk: { backgroundColor: 'rgba(0, 230, 118, 0.12)' },
+  statusPillAlert: { backgroundColor: 'rgba(255, 23, 68, 0.15)' },
+  statusPillText: { fontSize: 11, fontWeight: '700' },
+  textOk: { color: '#00E676' },
+  textAlert: { color: '#FF1744' },
+  targetBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#0B0F19',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginTop: 12,
+  },
+  targetLabel: { color: '#64748B', fontSize: 12, marginRight: 8 },
+  targetVal: { color: '#00E5FF', fontSize: 12, fontWeight: '600' },
+  targetDot: { color: '#475569', marginHorizontal: 6 },
+  sourceBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+    marginTop: 10,
+    borderWidth: 1,
+    alignSelf: 'flex-start',
+  },
+  sourceBadgeReal: {
+    backgroundColor: 'rgba(0, 230, 118, 0.1)',
+    borderColor: 'rgba(0, 230, 118, 0.35)',
+  },
+  sourceBadgeSim: {
+    backgroundColor: 'rgba(0, 229, 255, 0.08)',
+    borderColor: 'rgba(0, 229, 255, 0.25)',
+  },
+  sourceBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  sourceTextReal: { color: '#00E676' },
+  sourceTextSim: { color: '#00E5FF' },
+  sectionTitle: { color: '#E2E8F0', fontSize: 15, fontWeight: '700', marginBottom: 12 },
+  telemetryGrid: { flexDirection: 'row', gap: 10, marginBottom: 20 },
+  telemetryCard: {
+    flex: 1,
+    backgroundColor: '#131B2E',
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#1E293B',
+  },
+  cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
+  cardParam: { color: '#94A3B8', fontSize: 11, fontWeight: '600' },
+  cardValue: { color: '#F8FAFC', fontSize: 20, fontWeight: 'bold' },
+  cardTarget: { color: '#64748B', fontSize: 10, marginTop: 4 },
+  imputedBadge: {
+    backgroundColor: 'rgba(255, 179, 0, 0.15)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    marginTop: 6,
+    alignSelf: 'flex-start',
+  },
+  imputedText: { color: '#FFB300', fontSize: 9, fontWeight: '800' },
+  actuatorRow: { flexDirection: 'row', gap: 10, marginBottom: 20 },
+  actuatorCard: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+  },
+  actuatorOk: { backgroundColor: '#131B2E', borderColor: '#1E293B' },
+  actuatorLocked: { backgroundColor: 'rgba(255, 23, 68, 0.1)', borderColor: '#FF1744' },
+  actuatorName: { color: '#94A3B8', fontSize: 12, fontWeight: '600' },
+  actuatorState: { fontSize: 12, fontWeight: '800', marginTop: 2 },
+  testbedBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 229, 255, 0.08)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 229, 255, 0.25)',
+    padding: 14,
+  },
+  testbedBannerTitle: { color: '#00E5FF', fontSize: 14, fontWeight: '700' },
+  testbedBannerSubtitle: { color: '#94A3B8', fontSize: 11, marginTop: 4 },
+  anomalyCard: {
+    backgroundColor: 'rgba(255, 23, 68, 0.1)',
+    borderRadius: 14,
+    padding: 16,
+    borderWidth: 1.5,
+    borderColor: '#FF1744',
+    marginBottom: 20,
+    shadowColor: '#FF1744',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 4,
+  },
+  anomalyTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  anomalyBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 23, 68, 0.2)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    gap: 6,
+  },
+  anomalyBadgeText: {
+    color: '#FF1744',
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  hapticTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 179, 0, 0.15)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 12,
+    gap: 4,
+  },
+  hapticTagText: {
+    color: '#FFB300',
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  anomalyTitle: {
+    color: '#F8FAFC',
+    fontSize: 15,
+    fontWeight: '700',
+    marginBottom: 6,
+  },
+  anomalyDescription: {
+    color: '#CBD5E1',
+    fontSize: 12,
+    lineHeight: 18,
+    marginBottom: 12,
+  },
+  anomalyFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.08)',
+    paddingTop: 10,
+    gap: 4,
+  },
+  anomalyLink: {
+    color: '#00E5FF',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  actuatorRunaway: {
+    backgroundColor: 'rgba(255, 23, 68, 0.2)',
+    borderColor: '#FF1744',
+    borderWidth: 1.5,
+  },
+  runawayEmergencyCard: {
+    backgroundColor: '#38000D',
+    borderRadius: 14,
+    padding: 16,
+    borderWidth: 2,
+    borderColor: '#FF1744',
+    marginBottom: 20,
+    shadowColor: '#FF1744',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.45,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  runawayHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  runawayBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FF1744',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    gap: 6,
+  },
+  runawayBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+  },
+  runawayCountdown: {
+    backgroundColor: 'rgba(255, 214, 0, 0.2)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FFD600',
+  },
+  runawayCountdownText: {
+    color: '#FFD600',
+    fontSize: 10,
+    fontWeight: '800',
+  },
+  runawayTitle: {
+    color: '#FFCDD2',
+    fontSize: 16,
+    fontWeight: '800',
+    marginBottom: 6,
+  },
+  runawayDescription: {
+    color: '#FFEBEE',
+    fontSize: 12,
+    lineHeight: 18,
+    marginBottom: 12,
+  },
+  actionCalloutBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 23, 68, 0.4)',
+    borderRadius: 8,
+    padding: 10,
+    gap: 8,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#FF5252',
+  },
+  actionCalloutText: {
+    flex: 1,
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '900',
+    letterSpacing: 0.3,
+  },
+  runawayFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.12)',
+    paddingTop: 10,
+    gap: 4,
+  },
+  runawayLink: {
+    color: '#FF8A80',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+});

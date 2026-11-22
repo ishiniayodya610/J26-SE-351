@@ -10,9 +10,11 @@ try:
         comp3_disease,
         comp4_xai,
         predictions,
-        aquio
+        aquio,
+        tank
     )
     from backend.app.services.aquio_bridge import aquio_bridge
+    from backend.app.services.database import db_manager
 except ImportError:
     from app.routers import (
         telemetry,
@@ -21,9 +23,11 @@ except ImportError:
         comp3_disease,
         comp4_xai,
         predictions,
-        aquio
+        aquio,
+        tank
     )
     from app.services.aquio_bridge import aquio_bridge
+    from app.services.database import db_manager
 
 app = FastAPI(
     title="AquaGuard AI Central Gateway",
