@@ -48,6 +48,7 @@ app.include_router(comp3_disease.router)
 app.include_router(comp4_xai.router)
 app.include_router(predictions.router)
 app.include_router(aquio.router)
+app.include_router(tank.router)
 
 # Burned-in annotated MP4s from POST /api/comp2/analyze-video?annotate=true
 ANNOTATED_DIR = Path(__file__).resolve().parent.parent / "static" / "annotated"
@@ -56,6 +57,8 @@ app.mount("/static/annotated", StaticFiles(directory=str(ANNOTATED_DIR)), name="
 
 @app.on_event("startup")
 async def startup_event():
+    # Attempt MongoDB connection if configured (or fallback to local SQLite)
+    await db_manager.connect_mongo()
     # Start Aquio remote sensor bridge if enabled in .env
     aquio_bridge.start()
 
@@ -88,3 +91,4 @@ async def root():
             "aquio_sync_now": "/api/aquio/sync-now"
         }
     }
+

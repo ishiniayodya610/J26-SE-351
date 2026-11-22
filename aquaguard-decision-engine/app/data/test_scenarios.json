@@ -1,0 +1,134 @@
+{
+  "scenarios": [
+    {
+      "scenario_id": "scenario_001_peaceful_community",
+      "description": "A compatible mix of Corydoras and Neon Tetras.",
+      "aquarium": {
+        "volume_liters": 100,
+        "dimensions_cm": {
+          "l": 80,
+          "w": 35,
+          "h": 40
+        },
+        "water_type": "freshwater",
+        "equipment": {
+          "heater": true,
+          "filter_type": "canister",
+          "aeration": true
+        }
+      },
+      "telemetry": {
+        "temperature_c": 24.5,
+        "ph": 6.8,
+        "tds_ppm": 120,
+        "diagnostics": {
+          "fault_detected": false,
+          "imputed": false
+        },
+        "gatekeeper": {
+          "heater_lockout": false,
+          "ph_pump_lockout": false
+        }
+      },
+      "fish": [
+        {
+          "species_id": "corydoras_aeneus",
+          "common_name": "Corydoras",
+          "male": 2,
+          "female": 4,
+          "confidence": 0.96,
+          "swimming_activity_pct": 60.0,
+          "lethargy_index_pct": 2.0,
+          "surface_piping": "None",
+          "feeding_response": "Active",
+          "status": "NORMAL_HEALTH"
+        },
+        {
+          "species_id": "paracheirodon_innesi",
+          "common_name": "Neon Tetra",
+          "male": 5,
+          "female": 5,
+          "confidence": 0.92,
+          "swimming_activity_pct": 85.0,
+          "lethargy_index_pct": 1.0,
+          "surface_piping": "None",
+          "feeding_response": "Active",
+          "status": "NORMAL_HEALTH"
+        }
+      ],
+      "forecast": {
+        "ammonia_spike_risk_pct": 2.0,
+        "ammonia_status": "STABLE",
+        "whitespot_disease_risk_pct": 1.0,
+        "disease_status": "LOW RISK",
+        "temperature_trend_c": 24.5,
+        "forecast_horizon_hours": 12
+      }
+    },
+    {
+      "scenario_id": "scenario_002_predator_conflict",
+      "description": "An incompatible mix containing Angelfish and Neon Tetras.",
+      "aquarium": {
+        "volume_liters": 150,
+        "dimensions_cm": {
+          "l": 100,
+          "w": 40,
+          "h": 50
+        },
+        "water_type": "freshwater",
+        "equipment": {
+          "heater": true,
+          "filter_type": "sump",
+          "aeration": true
+        }
+      },
+      "telemetry": {
+        "temperature_c": 27.0,
+        "ph": 7.0,
+        "tds_ppm": 150,
+        "diagnostics": {
+          "fault_detected": false,
+          "imputed": false
+        },
+        "gatekeeper": {
+          "heater_lockout": false,
+          "ph_pump_lockout": false
+        }
+      },
+      "fish": [
+        {
+          "species_id": "pterophyllum_scalare",
+          "common_name": "Angelfish",
+          "male": 1,
+          "female": 1,
+          "confidence": 0.98,
+          "swimming_activity_pct": 70.0,
+          "lethargy_index_pct": 5.0,
+          "surface_piping": "None",
+          "feeding_response": "Active",
+          "status": "NORMAL_HEALTH"
+        },
+        {
+          "species_id": "paracheirodon_innesi",
+          "common_name": "Neon Tetra",
+          "male": 8,
+          "female": 8,
+          "confidence": 0.85,
+          "swimming_activity_pct": 95.0,
+          "lethargy_index_pct": 0.0,
+          "surface_piping": "None",
+          "feeding_response": "Hesitant",
+          "status": "STRESSED"
+        }
+      ],
+      "forecast": {
+        "ammonia_spike_risk_pct": 15.0,
+        "ammonia_status": "WARNING",
+        "whitespot_disease_risk_pct": 10.0,
+        "disease_status": "LOW RISK",
+        "temperature_trend_c": 27.2,
+        "forecast_horizon_hours": 12
+      }
+    }
+  ]
+}

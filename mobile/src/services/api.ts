@@ -424,7 +424,7 @@ export const api = {
           new Promise<never>((_, reject) => {
             timer = setTimeout(() => {
               reject(new Error(timeoutMessage));
-              void task.cancelAsync().catch(() => {});
+              void task.cancelAsync().catch(() => { });
             }, VIDEO_TIMEOUT_MS);
           }),
         ]);
@@ -524,4 +524,55 @@ export const api = {
     if (!res.ok) throw new Error('Failed to trigger manual Aquio sync');
     return res.json();
   },
+
+  async getTankConfig(tankId: number = 5): Promise<TankConfig> {
+    const res = await fetch(`${API_BASE_URL}/api/tank/config?tank_id=${tankId}`);
+    if (!res.ok) throw new Error('Failed to fetch tank configuration');
+    return res.json();
+  },
+
+  async updateTankConfig(data: {
+    tank_id?: number;
+    tank_name?: string;
+    volume_liters: number;
+    fish_types: string[];
+    fish_count: number;
+  }): Promise<TankConfig> {
+    const res = await fetch(`${API_BASE_URL}/api/tank/config`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error('Failed to update tank configuration');
+    return res.json();
+  },
+
+  async getHardwareRelays(): Promise<any> {
+    const res = await fetch(`${API_BASE_URL}/api/aquio/relays`);
+    if (!res.ok) throw new Error('Failed to fetch hardware relays');
+    return res.json();
+  },
+
+  async toggleHardwareRelay(relayName: 'heater' | 'ph_pump', state?: boolean): Promise<any> {
+    const url = state !== undefined
+      ? `${API_BASE_URL}/api/aquio/relays/${relayName}/toggle?state=${state}`
+      : `${API_BASE_URL}/api/aquio/relays/${relayName}/toggle`;
+    const res = await fetch(url, { method: 'POST' });
+    if (!res.ok) throw new Error(`Failed to toggle ${relayName} relay`);
+    return res.json();
+  },
 };
+
+export interface TankConfig {
+  tank_id: number;
+  tank_name: string;
+  volume_liters: number;
+  fish_types: string[];
+  fish_count: number;
+  bioload_level: 'OPTIMAL' | 'MODERATE' | 'OVERSTOCKED' | string;
+  liters_per_fish: number;
+  bioload_desc?: string;
+  updated_at: string;
+  db_engine: string;
+}
+

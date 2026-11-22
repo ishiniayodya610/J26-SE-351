@@ -1,18 +1,19 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  ScrollView, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
   RefreshControl,
   ActivityIndicator,
   TouchableOpacity
+  TouchableOpacity
 } from 'react-native';
 import {
-  AlertTriangle, 
-  Biohazard, 
-  Clock, 
-  CheckCircle, 
+  AlertTriangle,
+  Biohazard,
+  Clock,
+  CheckCircle,
   Info,
   ShieldCheck,
   RefreshCw,
@@ -31,7 +32,15 @@ import {
   predictAmmonia,
   predictWhiteSpot,
   PredictionResponse
-} from '@/services/api';
+import {
+    api,
+    DiseaseRiskData,
+    TelemetryData,
+    FishProfile,
+    predictAmmonia,
+    predictWhiteSpot,
+    PredictionResponse
+  } from '@/services/api';
 
 // ---------------------------------------------------------------------------
 // Mini Line Chart Component (SVG-based, no extra dependencies)
@@ -262,8 +271,8 @@ export default function DiseasePredictionScreen() {
   const whitespotHigh = whitespotRiskPct > 40;
 
   return (
-    <ScrollView 
-      style={styles.container} 
+    <ScrollView
+      style={styles.container}
       contentContainerStyle={styles.content}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#00E5FF" />}
     >
@@ -324,6 +333,9 @@ export default function DiseasePredictionScreen() {
         <TouchableOpacity
           style={styles.refreshBtn}
           onPress={() => runMlPredictions()}
+        <TouchableOpacity
+          style={styles.refreshBtn}
+          onPress={() => runMlPredictions()}
           disabled={predictLoading}
         >
           {predictLoading ? (
@@ -355,315 +367,335 @@ export default function DiseasePredictionScreen() {
             />
             <Text style={[
               styles.riskStatus,
-              ammoniaPrediction?.prediction === 'high_risk' ? styles.textAlert : styles.textOk
+              styles.riskCard,
+              ammoniaPrediction?.prediction === 'high_risk' ? styles.cardAlert : styles.cardOk
             ]}>
-              {ammoniaPrediction ? ammoniaPrediction.prediction.toUpperCase().replace('_', ' ') : 'LOADING'}
-            </Text>
+              <View style={styles.riskHeader}>
+                <Biohazard
+                  size={20}
+                  color={ammoniaPrediction?.prediction === 'high_risk' ? "#FF1744" : "#00E676"}
+                />
+                <Text style={[
+                  styles.riskStatus,
+                  ammoniaPrediction?.prediction === 'high_risk' ? styles.textAlert : styles.textOk
+                ]}>
+                  {ammoniaPrediction ? ammoniaPrediction.prediction.toUpperCase().replace('_', ' ') : 'LOADING'}
+                </Text>
+              </View>
+              <Text style={styles.riskVal}>
+                {ammoniaPrediction ? `${(ammoniaPrediction.risk_probability * 100).toFixed(0)}%` : '--'}
+              </Text>
+              <Text style={styles.riskName}>Ammonia Spike</Text>
+              <Text style={styles.modelTag}>Model: {ammoniaPrediction?.model || 'random_forest'}</Text>
+              <Text style={styles.riskDetail}>
+                {ammoniaPrediction
+                  ? `Based on current water params (T: ${sensorValues.temperature.toFixed(1)}°C, pH: ${sensorValues.ph.toFixed(1)})`
+                  : 'Waiting for prediction...'}
+              </Text>
           </View>
-          <Text style={styles.riskVal}>
-            {ammoniaPrediction ? `${(ammoniaPrediction.risk_probability * 100).toFixed(0)}%` : '--'}
-          </Text>
-          <Text style={styles.riskName}>Ammonia Spike</Text>
-          <Text style={styles.modelTag}>Model: {ammoniaPrediction?.model || 'random_forest'}</Text>
-          <Text style={styles.riskDetail}>
-            {ammoniaPrediction
-              ? `Based on current water params (T: ${sensorValues.temperature.toFixed(1)}°C, pH: ${sensorValues.ph.toFixed(1)})`
-              : 'Waiting for prediction...'}
-          </Text>
-        </View>
 
-        {/* White Spot ML Model Card */}
-        <View style={[
-          styles.riskCard,
-          whitespotPrediction?.prediction === 'high_risk' ? styles.cardAlert : styles.cardOk
-        ]}>
-          <View style={styles.riskHeader}>
-            <AlertTriangle
-              size={20}
-              color={whitespotPrediction?.prediction === 'high_risk' ? "#FF1744" : "#00E676"}
-            />
-            <Text style={[
-              styles.riskStatus,
-              whitespotPrediction?.prediction === 'high_risk' ? styles.textAlert : styles.textOk
-            ]}>
-              {whitespotPrediction ? whitespotPrediction.prediction.toUpperCase().replace('_', ' ') : 'LOADING'}
-            </Text>
-          </View>
-          <Text style={styles.riskVal}>
-            {whitespotPrediction ? `${(whitespotPrediction.risk_probability * 100).toFixed(0)}%` : '--'}
-          </Text>
-          <Text style={styles.riskName}>White Spot (Ich)</Text>
-          <Text style={styles.modelTag}>Model: {whitespotPrediction?.model || 'random_forest'}</Text>
-          <Text style={styles.riskDetail}>
-            {whitespotPrediction
-              ? `Thermal sensitivity analysis (DO: ${sensorValues.dissolved_oxygen.toFixed(1)} mg/L)`
-              : 'Waiting for prediction...'}
-          </Text>
-        </View>
-      </View>
-
-      {/* ── Risk History Chart ── */}
-      {(ammoniaHistory.current.length > 0 || whitespotHistory.current.length > 0) && (
-        <>
-          <Text style={styles.sectionTitle}>Prediction History</Text>
-          <View style={styles.chartCard}>
-            <MiniLineChart
-              key={chartKey}
-              dataA={ammoniaHistory.current}
-              dataB={whitespotHistory.current}
-            />
-          </View>
-        </>
-      )}
-
-      {/* ── Predictive Risk Indices (from disease risk API) ── */}
-      <Text style={styles.sectionTitle}>Predictive Risk Indices</Text>
-      <View style={styles.riskGrid}>
-        {/* Ammonia Surge Card */}
-        <View style={[styles.riskCard, ammoniaHigh ? styles.cardAlert : styles.cardOk]}>
-          <View style={styles.riskHeader}>
-            <Biohazard size={22} color={ammoniaHigh ? "#FF1744" : "#00E676"} />
-            <Text style={[styles.riskStatus, ammoniaHigh ? styles.textAlert : styles.textOk]}>
-              {data?.ammonia_status || 'STABLE'}
-            </Text>
-          </View>
-          <Text style={styles.riskVal}>{ammoniaRiskPct.toFixed(1)}%</Text>
-          <Text style={styles.riskName}>Ammonia Surge Risk</Text>
-          <Text style={styles.riskDetail}>
-            {ammoniaHigh
-              ? 'Elevated ammonia toxicity — consider water change.'
-              : 'Ammonia within safe biological limits for current species.'}
-          </Text>
-        </View>
-
-        {/* Whitespot Outbreak Card */}
-        <View style={[styles.riskCard, whitespotHigh ? styles.cardAlert : styles.cardOk]}>
-          <View style={styles.riskHeader}>
-            <AlertTriangle size={22} color={whitespotHigh ? "#FF1744" : "#00E676"} />
-            <Text style={[styles.riskStatus, whitespotHigh ? styles.textAlert : styles.textOk]}>
-              {data?.disease_status || 'LOW RISK'}
-            </Text>
-          </View>
-          <Text style={styles.riskVal}>{whitespotRiskPct.toFixed(1)}%</Text>
-          <Text style={styles.riskName}>Whitespot (Ich) Risk</Text>
-          <Text style={styles.riskDetail}>
-            {whitespotHigh
-              ? 'Temperature instability increasing Ich outbreak risk.'
-              : 'Thermal conditions stable — low parasite risk.'}
-          </Text>
-        </View>
-      </View>
-
-      {/* ── Contributing Factors ── */}
-      <Text style={styles.sectionTitle}>Environmental Attribution Factors</Text>
-      <View style={styles.factorsCard}>
-        {data?.contributing_factors && data.contributing_factors.length > 0 ? (
-          data.contributing_factors.map((factor, idx) => (
-            <View key={idx} style={styles.factorRow}>
-              <Info size={16} color="#00E5FF" style={{ marginTop: 2 }} />
-              <Text style={styles.factorText}>{factor}</Text>
+          {/* White Spot ML Model Card */}
+          <View style={[
+            styles.riskCard,
+            whitespotPrediction?.prediction === 'high_risk' ? styles.cardAlert : styles.cardOk
+          ]}>
+            <View style={styles.riskHeader}>
+              <AlertTriangle
+                size={20}
+                color={whitespotPrediction?.prediction === 'high_risk' ? "#FF1744" : "#00E676"}
+              />
+              <Text style={[
+                styles.riskStatus,
+                styles.riskCard,
+                whitespotPrediction?.prediction === 'high_risk' ? styles.cardAlert : styles.cardOk
+              ]}>
+                <View style={styles.riskHeader}>
+                  <AlertTriangle
+                    size={20}
+                    color={whitespotPrediction?.prediction === 'high_risk' ? "#FF1744" : "#00E676"}
+                  />
+                  <Text style={[
+                    styles.riskStatus,
+                    whitespotPrediction?.prediction === 'high_risk' ? styles.textAlert : styles.textOk
+                  ]}>
+                    {whitespotPrediction ? whitespotPrediction.prediction.toUpperCase().replace('_', ' ') : 'LOADING'}
+                  </Text>
+                </View>
+                <Text style={styles.riskVal}>
+                  {whitespotPrediction ? `${(whitespotPrediction.risk_probability * 100).toFixed(0)}%` : '--'}
+                </Text>
+                <Text style={styles.riskName}>White Spot (Ich)</Text>
+                <Text style={styles.modelTag}>Model: {whitespotPrediction?.model || 'random_forest'}</Text>
+                <Text style={styles.riskDetail}>
+                  {whitespotPrediction
+                    ? `Thermal sensitivity analysis (DO: ${sensorValues.dissolved_oxygen.toFixed(1)} mg/L)`
+                    : 'Waiting for prediction...'}
+                </Text>
             </View>
-          ))
-        ) : (
-          <View style={styles.factorRow}>
-            <CheckCircle size={16} color="#00E676" style={{ marginTop: 2 }} />
-            <Text style={styles.factorText}>All parameters within safe limits.</Text>
           </View>
-        )}
-      </View>
 
-      {/* ── Edge Gatekeeper Protection Note (User's Research Value) ── */}
-      <View style={styles.shieldCard}>
-        <ShieldCheck size={26} color="#00E5FF" />
-        <View style={{ flex: 1, marginLeft: 12 }}>
-          <Text style={styles.shieldTitle}>Protected by Edge TinyML Gatekeeper</Text>
-          <Text style={styles.shieldDesc}>
-            Corrupted sensor spikes are sanitized at the hardware edge before reaching this predictive model, 
-            preventing false emergency alarms and unwarranted tank treatments.
-          </Text>
-        </View>
-      </View>
-    </ScrollView>
-  );
+          {/* ── Risk History Chart ── */}
+          {(ammoniaHistory.current.length > 0 || whitespotHistory.current.length > 0) && (
+            <>
+              <Text style={styles.sectionTitle}>Prediction History</Text>
+              <View style={styles.chartCard}>
+                <MiniLineChart
+                  key={chartKey}
+                  dataA={ammoniaHistory.current}
+                  dataB={whitespotHistory.current}
+                />
+              </View>
+            </>
+          )}
+
+          {/* ── Predictive Risk Indices (from disease risk API) ── */}
+          <Text style={styles.sectionTitle}>Predictive Risk Indices</Text>
+          <View style={styles.riskGrid}>
+            {/* Ammonia Surge Card */}
+            <View style={[styles.riskCard, ammoniaHigh ? styles.cardAlert : styles.cardOk]}>
+              <View style={styles.riskHeader}>
+                <Biohazard size={22} color={ammoniaHigh ? "#FF1744" : "#00E676"} />
+                <Text style={[styles.riskStatus, ammoniaHigh ? styles.textAlert : styles.textOk]}>
+                  {data?.ammonia_status || 'STABLE'}
+                </Text>
+              </View>
+              <Text style={styles.riskVal}>{ammoniaRiskPct.toFixed(1)}%</Text>
+              <Text style={styles.riskName}>Ammonia Surge Risk</Text>
+              <Text style={styles.riskDetail}>
+                {ammoniaHigh
+                  ? 'Elevated ammonia toxicity — consider water change.'
+                  : 'Ammonia within safe biological limits for current species.'}
+              </Text>
+            </View>
+
+            {/* Whitespot Outbreak Card */}
+            <View style={[styles.riskCard, whitespotHigh ? styles.cardAlert : styles.cardOk]}>
+              <View style={styles.riskHeader}>
+                <AlertTriangle size={22} color={whitespotHigh ? "#FF1744" : "#00E676"} />
+                <Text style={[styles.riskStatus, whitespotHigh ? styles.textAlert : styles.textOk]}>
+                  {data?.disease_status || 'LOW RISK'}
+                </Text>
+              </View>
+              <Text style={styles.riskVal}>{whitespotRiskPct.toFixed(1)}%</Text>
+              <Text style={styles.riskName}>Whitespot (Ich) Risk</Text>
+              <Text style={styles.riskDetail}>
+                {whitespotHigh
+                  ? 'Temperature instability increasing Ich outbreak risk.'
+                  : 'Thermal conditions stable — low parasite risk.'}
+              </Text>
+            </View>
+          </View>
+
+          {/* ── Contributing Factors ── */}
+          <Text style={styles.sectionTitle}>Environmental Attribution Factors</Text>
+          <View style={styles.factorsCard}>
+            {data?.contributing_factors && data.contributing_factors.length > 0 ? (
+              data.contributing_factors.map((factor, idx) => (
+                <View key={idx} style={styles.factorRow}>
+                  <Info size={16} color="#00E5FF" style={{ marginTop: 2 }} />
+                  <Text style={styles.factorText}>{factor}</Text>
+                </View>
+              ))
+            ) : (
+              <View style={styles.factorRow}>
+                <CheckCircle size={16} color="#00E676" style={{ marginTop: 2 }} />
+                <Text style={styles.factorText}>All parameters within safe limits.</Text>
+              </View>
+            )}
+          </View>
+
+          {/* ── Edge Gatekeeper Protection Note (User's Research Value) ── */}
+          <View style={styles.shieldCard}>
+            <ShieldCheck size={26} color="#00E5FF" />
+            <View style={{ flex: 1, marginLeft: 12 }}>
+              <Text style={styles.shieldTitle}>Protected by Edge TinyML Gatekeeper</Text>
+              <Text style={styles.shieldDesc}>
+                Corrupted sensor spikes are sanitized at the hardware edge before reaching this predictive model,
+                preventing false emergency alarms and unwarranted tank treatments.
+              </Text>
+            </View>
+          </View>
+        </ScrollView>
+        );
 }
 
-// ---------------------------------------------------------------------------
-// Styles
-// ---------------------------------------------------------------------------
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0B0F19' },
-  content: { padding: 16, paddingBottom: 32 },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0B0F19' },
+        // ---------------------------------------------------------------------------
+        // Styles
+        // ---------------------------------------------------------------------------
+        const styles = StyleSheet.create({
+          container: {flex: 1, backgroundColor: '#0B0F19' },
+        content: {padding: 16, paddingBottom: 32 },
+        center: {flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0B0F19' },
 
-  // Header Banner
-  headerBanner: {
-    backgroundColor: '#131B2E',
-    borderRadius: 14,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#1E293B',
-    marginBottom: 16,
+        // Header Banner
+        headerBanner: {
+          backgroundColor: '#131B2E',
+        borderRadius: 14,
+        padding: 16,
+        borderWidth: 1,
+        borderColor: '#1E293B',
+        marginBottom: 16,
   },
-  headerRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 },
-  headerTitle: { color: '#F8FAFC', fontSize: 15, fontWeight: 'bold' },
-  headerSubtitle: { color: '#94A3B8', fontSize: 12, lineHeight: 18 },
+        headerRow: {flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 },
+        headerTitle: {color: '#F8FAFC', fontSize: 15, fontWeight: 'bold' },
+        headerSubtitle: {color: '#94A3B8', fontSize: 12, lineHeight: 18 },
 
-  // Species Banner
-  speciesBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 229, 255, 0.06)',
-    borderRadius: 12,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 229, 255, 0.2)',
-    marginBottom: 16,
+        // Species Banner
+        speciesBanner: {
+          flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 229, 255, 0.06)',
+        borderRadius: 12,
+        padding: 12,
+        borderWidth: 1,
+        borderColor: 'rgba(0, 229, 255, 0.2)',
+        marginBottom: 16,
   },
-  speciesName: { color: '#F8FAFC', fontSize: 14, fontWeight: '700' },
-  speciesSci: { color: '#64748B', fontSize: 11, fontStyle: 'italic', marginTop: 1 },
-  speciesBadge: {
-    backgroundColor: 'rgba(0, 230, 118, 0.15)',
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 230, 118, 0.3)',
+        speciesName: {color: '#F8FAFC', fontSize: 14, fontWeight: '700' },
+        speciesSci: {color: '#64748B', fontSize: 11, fontStyle: 'italic', marginTop: 1 },
+        speciesBadge: {
+          backgroundColor: 'rgba(0, 230, 118, 0.15)',
+        borderRadius: 6,
+        paddingHorizontal: 8,
+        paddingVertical: 3,
+        borderWidth: 1,
+        borderColor: 'rgba(0, 230, 118, 0.3)',
   },
-  speciesBadgeText: { color: '#00E676', fontSize: 10, fontWeight: '700' },
+        speciesBadgeText: {color: '#00E676', fontSize: 10, fontWeight: '700' },
 
-  // Sensor Grid
-  sensorGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 20,
+        // Sensor Grid
+        sensorGrid: {
+          flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 8,
+        marginBottom: 20,
   },
-  sensorPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#131B2E',
-    borderRadius: 10,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: '#1E293B',
-    width: '48%',
-    minWidth: 140,
-    flexGrow: 1,
+        sensorPill: {
+          flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#131B2E',
+        borderRadius: 10,
+        padding: 10,
+        borderWidth: 1,
+        borderColor: '#1E293B',
+        width: '48%',
+        minWidth: 140,
+        flexGrow: 1,
   },
-  sensorLabel: { color: '#64748B', fontSize: 10, fontWeight: '600' },
-  sensorValue: { color: '#F8FAFC', fontSize: 15, fontWeight: '700', marginTop: 1 },
-  sensorUnit: { color: '#64748B', fontSize: 11, fontWeight: '500' },
+        sensorLabel: {color: '#64748B', fontSize: 10, fontWeight: '600' },
+        sensorValue: {color: '#F8FAFC', fontSize: 15, fontWeight: '700', marginTop: 1 },
+        sensorUnit: {color: '#64748B', fontSize: 11, fontWeight: '500' },
 
-  // Section headers
-  sectionHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
+        // Section headers
+        sectionHeaderRow: {
+          flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 12,
   },
-  sectionTitle: { color: '#E2E8F0', fontSize: 15, fontWeight: '700', marginBottom: 10 },
-  refreshBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: 'rgba(0, 229, 255, 0.1)',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 229, 255, 0.3)',
+        sectionTitle: {color: '#E2E8F0', fontSize: 15, fontWeight: '700', marginBottom: 10 },
+        refreshBtn: {
+          flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        backgroundColor: 'rgba(0, 229, 255, 0.1)',
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: 'rgba(0, 229, 255, 0.3)',
   },
-  refreshBtnText: {
-    color: '#00E5FF',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-
-  // Errors
-  errorBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: 'rgba(255, 82, 82, 0.12)',
-    borderColor: '#FF5252',
-    borderWidth: 1,
-    borderRadius: 10,
-    padding: 10,
-    marginBottom: 14,
-  },
-  errorText: {
-    color: '#FF8A80',
-    fontSize: 11,
-    flex: 1,
+        refreshBtnText: {
+          color: '#00E5FF',
+        fontSize: 12,
+        fontWeight: '600',
   },
 
-  // Risk Cards
-  riskGrid: { flexDirection: 'row', gap: 10, marginBottom: 20 },
-  riskCard: {
-    flex: 1,
-    backgroundColor: '#131B2E',
-    borderRadius: 14,
-    padding: 14,
-    borderWidth: 1,
+        // Errors
+        errorBanner: {
+          flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        backgroundColor: 'rgba(255, 82, 82, 0.12)',
+        borderColor: '#FF5252',
+        borderWidth: 1,
+        borderRadius: 10,
+        padding: 10,
+        marginBottom: 14,
   },
-  cardOk: { borderColor: '#1E293B' },
-  cardAlert: { borderColor: '#FF1744', backgroundColor: 'rgba(255, 23, 68, 0.08)' },
-  riskHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
-  riskStatus: { fontSize: 11, fontWeight: '800' },
-  riskVal: { color: '#F8FAFC', fontSize: 26, fontWeight: 'bold' },
-  riskName: { color: '#E2E8F0', fontSize: 13, fontWeight: '600', marginTop: 4 },
-  modelTag: { color: '#38BDF8', fontSize: 10, fontWeight: '600', marginTop: 4 },
-  riskDetail: { color: '#64748B', fontSize: 10, marginTop: 4, lineHeight: 14 },
-  textOk: { color: '#00E676' },
-  textAlert: { color: '#FF1744' },
+        errorText: {
+          color: '#FF8A80',
+        fontSize: 11,
+        flex: 1,
+  },
 
-  // Chart
-  chartCard: {
-    backgroundColor: '#131B2E',
-    borderRadius: 14,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#1E293B',
-    marginBottom: 20,
-    alignItems: 'center',
+        // Risk Cards
+        riskGrid: {flexDirection: 'row', gap: 10, marginBottom: 20 },
+        riskCard: {
+          flex: 1,
+        backgroundColor: '#131B2E',
+        borderRadius: 14,
+        padding: 14,
+        borderWidth: 1,
   },
-  chartContainer: {
-    width: '100%',
-    alignItems: 'center',
-  },
-  chartLegend: {
-    flexDirection: 'row',
-    gap: 16,
-    marginBottom: 8,
-    alignSelf: 'flex-start',
-  },
-  legendItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  legendDot: { width: 8, height: 8, borderRadius: 4 },
-  legendText: { color: '#94A3B8', fontSize: 10 },
+        cardOk: {borderColor: '#1E293B' },
+        cardAlert: {borderColor: '#FF1744', backgroundColor: 'rgba(255, 23, 68, 0.08)' },
+        riskHeader: {flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
+        riskStatus: {fontSize: 11, fontWeight: '800' },
+        riskVal: {color: '#F8FAFC', fontSize: 26, fontWeight: 'bold' },
+        riskName: {color: '#E2E8F0', fontSize: 13, fontWeight: '600', marginTop: 4 },
+        modelTag: {color: '#38BDF8', fontSize: 10, fontWeight: '600', marginTop: 4 },
+        riskDetail: {color: '#64748B', fontSize: 10, marginTop: 4, lineHeight: 14 },
+        textOk: {color: '#00E676' },
+        textAlert: {color: '#FF1744' },
 
-  // Factors
-  factorsCard: {
-    backgroundColor: '#131B2E',
-    borderRadius: 14,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#1E293B',
-    marginBottom: 20,
-    gap: 12,
+        // Chart
+        chartCard: {
+          backgroundColor: '#131B2E',
+        borderRadius: 14,
+        padding: 12,
+        borderWidth: 1,
+        borderColor: '#1E293B',
+        marginBottom: 20,
+        alignItems: 'center',
   },
-  factorRow: { flexDirection: 'row', gap: 10, alignItems: 'flex-start' },
-  factorText: { color: '#94A3B8', fontSize: 12, flex: 1, lineHeight: 18 },
+        chartContainer: {
+          width: '100%',
+        alignItems: 'center',
+  },
+        chartLegend: {
+          flexDirection: 'row',
+        gap: 16,
+        marginBottom: 8,
+        alignSelf: 'flex-start',
+  },
+        legendItem: {flexDirection: 'row', alignItems: 'center', gap: 4 },
+        legendDot: {width: 8, height: 8, borderRadius: 4 },
+        legendText: {color: '#94A3B8', fontSize: 10 },
 
-  // Shield
-  shieldCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 229, 255, 0.08)',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 229, 255, 0.25)',
-    padding: 16,
+        // Factors
+        factorsCard: {
+          backgroundColor: '#131B2E',
+        borderRadius: 14,
+        padding: 16,
+        borderWidth: 1,
+        borderColor: '#1E293B',
+        marginBottom: 20,
+        gap: 12,
   },
-  shieldTitle: { color: '#00E5FF', fontSize: 13, fontWeight: 'bold' },
-  shieldDesc: { color: '#94A3B8', fontSize: 11, marginTop: 4, lineHeight: 16 },
+        factorRow: {flexDirection: 'row', gap: 10, alignItems: 'flex-start' },
+        factorText: {color: '#94A3B8', fontSize: 12, flex: 1, lineHeight: 18 },
+
+        // Shield
+        shieldCard: {
+          flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 229, 255, 0.08)',
+        borderRadius: 14,
+        borderWidth: 1,
+        borderColor: 'rgba(0, 229, 255, 0.25)',
+        padding: 16,
+  },
+        shieldTitle: {color: '#00E5FF', fontSize: 13, fontWeight: 'bold' },
+        shieldDesc: {color: '#94A3B8', fontSize: 11, marginTop: 4, lineHeight: 16 },
 });
