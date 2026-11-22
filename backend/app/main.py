@@ -1,4 +1,6 @@
+from pathlib import Path
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 try:
     from backend.app.routers import (
@@ -42,7 +44,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include All Component Routers + Prediction Router + Remote Aquio Bridge + Tank DB
+# Include All Component Routers + Prediction Router + Remote Aquio Bridge
 app.include_router(telemetry.router)
 app.include_router(fish_profile.router)
 app.include_router(comp2_vision.router)
@@ -51,6 +53,11 @@ app.include_router(comp4_xai.router)
 app.include_router(predictions.router)
 app.include_router(aquio.router)
 app.include_router(tank.router)
+
+# Burned-in annotated MP4s from POST /api/comp2/analyze-video?annotate=true
+ANNOTATED_DIR = Path(__file__).resolve().parent.parent / "static" / "annotated"
+ANNOTATED_DIR.mkdir(parents=True, exist_ok=True)
+app.mount("/static/annotated", StaticFiles(directory=str(ANNOTATED_DIR)), name="annotated")
 
 @app.on_event("startup")
 async def startup_event():

@@ -3,3 +3,4 @@ opencv-python
 numpy
 pandas
 torch
+lap>=0.5.12

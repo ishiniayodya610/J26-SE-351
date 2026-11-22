@@ -118,10 +118,10 @@ export default function TankHealthScreen() {
           <View style={[styles.statusPill, isOptimal ? styles.statusPillOk : styles.statusPillAlert]}>
             {isOptimal ? <ShieldCheck size={13} color="#00E676" /> : <ShieldAlert size={13} color="#FF1744" />}
             <Text style={[styles.statusPillText, isOptimal ? styles.textOk : styles.textAlert]} numberOfLines={1}>
-              {isThermalRunaway 
-                ? "WELDED RUNAWAY" 
-                : (telemetry?.system_status === 'DEGRADED_FAULT_MITIGATED' 
-                    ? 'FAULT MITIGATED' 
+              {isThermalRunaway
+                ? "WELDED RUNAWAY"
+                : (telemetry?.system_status === 'DEGRADED_FAULT_MITIGATED'
+                    ? 'FAULT MITIGATED'
                     : (telemetry?.system_status || 'OPTIMAL'))}
             </Text>
           </View>
@@ -293,10 +293,7 @@ export default function TankHealthScreen() {
       </View>
 
       {/* Hardware Actuator Safety Status */}
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-        <Text style={styles.sectionTitle}>Edge Actuator Interlocks</Text>
-        <Text style={{ fontSize: 10, color: '#00E5FF', fontWeight: '600' }}>● HARDWARE SYNCED (ESP32)</Text>
-      </View>
+      <Text style={styles.sectionTitle}>Edge Actuator Interlocks</Text>
       <View style={styles.actuatorRow}>
         <View style={[styles.actuatorCard, isThermalRunaway ? styles.actuatorRunaway : (heaterLocked ? styles.actuatorLocked : styles.actuatorOk)]}>
           <Flame size={20} color={isThermalRunaway ? "#FF1744" : (heaterLocked ? "#FFB300" : "#00E676")} />
@@ -304,9 +301,6 @@ export default function TankHealthScreen() {
             <Text style={styles.actuatorName}>Heater Relay</Text>
             <Text style={[styles.actuatorState, (isThermalRunaway || heaterLocked) ? styles.textAlert : styles.textOk]}>
               {isThermalRunaway ? "🚨 WELDED (OFF CMD)" : (heaterLocked ? "LOCKED (SAFETY)" : "ENGAGED")}
-            </Text>
-            <Text style={{ fontSize: 10, color: '#64748B', marginTop: 2 }}>
-              ESP32 Relay #1: {(isThermalRunaway || heaterLocked) ? "🔴 Cutoff (LED OFF)" : "🟢 Powered (LED ON)"}
             </Text>
           </View>
         </View>
@@ -317,9 +311,6 @@ export default function TankHealthScreen() {
             <Text style={styles.actuatorName}>pH Dosing Pump</Text>
             <Text style={[styles.actuatorState, pumpLocked ? styles.textAlert : styles.textOk]}>
               {pumpLocked ? "LOCKED (SAFETY)" : "ENGAGED"}
-            </Text>
-            <Text style={{ fontSize: 10, color: '#64748B', marginTop: 2 }}>
-              ESP32 Relay #2: {pumpLocked ? "🔴 Cutoff (LED OFF)" : "🟢 Powered (LED ON)"}
             </Text>
           </View>
         </View>
@@ -341,9 +332,9 @@ const styles = StyleSheet.create({
     borderColor: '#1E293B',
     marginBottom: 20,
   },
-  speciesRow: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
+  speciesRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
     gap: 8,
   },
@@ -361,9 +352,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 10,
   },
-  speciesTitle: { 
-    color: '#F8FAFC', 
-    fontSize: 16, 
+  speciesTitle: {
+    color: '#F8FAFC',
+    fontSize: 16,
     fontWeight: 'bold',
     flexShrink: 0,
   },

@@ -1,16 +1,19 @@
-import { Platform } from 'react-native';
+import { NativeModules, Platform } from 'react-native';
 import Constants from 'expo-constants';
 
-// Auto-detect the development machine's IP (e.g. 192.168.1.107) from Expo Metro bundler
-// Set MANUAL_DEV_IP to e.g. '192.168.1.107' or '10.0.2.2' (Android emulator) if manual override is needed
+// Native Xcode builds may not populate expoConfig.hostUri. Use Metro's
+// actual bundle URL as the fallback so physical devices follow the current Mac.
 export const MANUAL_DEV_IP: string | null = null;
-
+const sourceCode = NativeModules.SourceCode;
+const scriptURL = sourceCode?.getConstants?.().scriptURL || sourceCode?.scriptURL;
 const debuggerHost = Constants.expoConfig?.hostUri;
-const detectedIp = MANUAL_DEV_IP || (debuggerHost ? debuggerHost.split(':')[0] : '192.168.1.107');
+const detectedHost = MANUAL_DEV_IP || debuggerHost || scriptURL;
+const detectedIp = detectedHost
+  ? new URL(detectedHost.includes('://') ? detectedHost : `http://${detectedHost}`).hostname
+  : (Platform.OS === 'android' ? '10.0.2.2' : 'localhost');
 
-export let API_BASE_URL = Platform.OS === 'android' && !debuggerHost && !MANUAL_DEV_IP
-  ? 'http://10.0.2.2:8000'
-  : (Platform.OS === 'web' ? 'http://localhost:8000' : `http://${detectedIp}:8000`);
+export let API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || `http://${detectedIp}:8000`;
+const VIDEO_TIMEOUT_MS = 120_000;
 
 export function setCustomApiHost(host: string) {
   API_BASE_URL = host.startsWith('http') ? host : `http://${host}:8000`;
@@ -196,6 +199,126 @@ export interface VideoAnalysisData {
   health_status: string;
   target_parameters: { temp: number; ph: number; tds: number };
   care_notes: string;
+  // v2 multi-track fields (optional so older backend responses still parse)
+  video?: VideoMeta;
+  summary?: TrackSummaryCounts;
+  tracks?: TrackResult[];
+  timeline?: TimelineEntry[];
+  annotated_video_url?: string | null;
+}
+
+export type TrackBehaviorStatus =
+  | 'PROTOTYPE_NORMAL'
+  | 'PROTOTYPE_ABNORMAL'
+  | 'INSUFFICIENT_DATA'
+  | 'UNKNOWN_SPECIES';
+export type TrackPosition = 'Top' | 'Middle' | 'Bottom';
+export type TrackDirection = 'Left' | 'Right' | 'Up' | 'Down' | 'Stationary';
+/** Normalised [x1, y1, x2, y2], each 0–1 of the source frame. */
+export type NormBox = [number, number, number, number];
+
+export interface VideoMeta {
+  width: number;
+  height: number;
+  fps: number;
+  analyzed_fps: number;
+  duration_s: number;
+  truncated?: boolean;
+}
+
+export interface TrackSummaryCounts {
+  tracked: number;
+  normal: number;
+  abnormal: number;
+  insufficient: number;
+  /** Tracks dropped as non-fish (low confidence / implausible shape). Older responses omit it. */
+  filtered?: number;
+}
+
+export interface TrackResult {
+  track_id: number;
+  species: string;
+  species_confidence: number;
+  first_t: number;
+  last_t: number;
+  frames: number;
+  avg_speed_bl_s: number;
+  max_speed_bl_s: number;
+  stationary_percent: number;
+  position: TrackPosition;
+  direction: TrackDirection;
+  behavior_status: TrackBehaviorStatus;
+  reason: string[];
+}
+
+export interface TimelineBox {
+  id: number;
+  xyxy: NormBox;
+  species?: string;
+  speed?: number;
+  dir?: TrackDirection;
+  status?: string;
+}
+
+export interface TimelineEntry {
+  t: number;
+  boxes: TimelineBox[];
+}
+
+/** One box in a live `tracks` WS message. `status` is ANALYSING until ≥ 3 s history. */
+export interface LiveBox extends TimelineBox {
+  confidence?: number;
+  position?: TrackPosition;
+  reason?: string[];
+}
+
+export type LiveServerMessage =
+  | { type: 'tracks'; t: number; analysis_fps: number; frame_w: number; frame_h: number; boxes: LiveBox[] }
+  | { type: 'error'; detail: string };
+
+export function resolveApiUrl(path: string): string {
+  return /^https?:\/\//.test(path) ? path : `${API_BASE_URL}${path.startsWith('/') ? '' : '/'}${path}`;
+}
+
+/** WS URL for live tracking, derived from the current API base URL. */
+export function liveTrackingWsUrl(): string {
+  return `${API_BASE_URL.replace(/^http/, 'ws').replace(/\/$/, '')}/api/comp2/live`;
+}
+
+export interface LiveTrackingClient {
+  sendFrame(jpegB64: string, t: number): boolean;
+  reset(): void;
+  close(): void;
+}
+
+/** Thin WS client for `/api/comp2/live`. Only sends when the socket is open. */
+export function connectLiveTracking(handlers: {
+  onMessage: (msg: LiveServerMessage) => void;
+  onOpen?: () => void;
+  onClose?: () => void;
+  onError?: (detail: string) => void;
+}): LiveTrackingClient {
+  const ws = new WebSocket(liveTrackingWsUrl());
+  ws.onopen = () => handlers.onOpen?.();
+  ws.onclose = () => handlers.onClose?.();
+  ws.onerror = () => handlers.onError?.(`Live tracking socket error (${liveTrackingWsUrl()})`);
+  ws.onmessage = (ev) => {
+    try {
+      handlers.onMessage(JSON.parse(String(ev.data)) as LiveServerMessage);
+    } catch {
+      handlers.onError?.('Malformed live tracking message');
+    }
+  };
+  const send = (obj: object) => {
+    if (ws.readyState !== WebSocket.OPEN) return false;
+    ws.send(JSON.stringify(obj));
+    return true;
+  };
+  return {
+    sendFrame: (jpegB64, t) => send({ type: 'frame', t, jpeg_b64: jpegB64 }),
+    reset: () => void send({ type: 'reset' }),
+    close: () => ws.close(),
+  };
 }
 
 export interface BehaviorData {
@@ -266,64 +389,74 @@ export const api = {
     return res.json();
   },
 
-  async analyzeVideo(uri: string, filename?: string): Promise<VideoAnalysisData> {
-    const targetUrl = `${API_BASE_URL}/api/comp2/analyze-video`;
+  async analyzeVideo(uri: string, filename?: string, annotate = false): Promise<VideoAnalysisData> {
+    const targetUrl = `${API_BASE_URL}/api/comp2/analyze-video${annotate ? '?annotate=true' : ''}`;
     const name = filename || uri.split('/').pop() || 'captured_tank_video.mp4';
 
-    // 1. On iOS & Android Native: Use Expo FileSystem native multipart uploader
-    // This streams the file directly from device storage, avoiding FormDataPart crashes
-    if (Platform.OS !== 'web') {
-      try {
-        const { uploadAsync, FileSystemUploadType } = require('expo-file-system/legacy');
-        if (uploadAsync && FileSystemUploadType) {
-          const isMov = name.toLowerCase().endsWith('.mov');
-          const isWebm = name.toLowerCase().endsWith('.webm');
-          const uploadRes = await uploadAsync(targetUrl, uri, {
-            httpMethod: 'POST',
-            uploadType: FileSystemUploadType.MULTIPART,
-            fieldName: 'file',
-            mimeType: isMov ? 'video/quicktime' : (isWebm ? 'video/webm' : 'video/mp4'),
-            parameters: {},
-          });
+    const connection = new AbortController();
+    const connectionTimer = setTimeout(() => connection.abort(), 15_000);
+    try {
+      const status = await fetch(`${API_BASE_URL}/`, { signal: connection.signal });
+      if (!status.ok) throw new Error(`Backend returned ${status.status}.`);
+    } catch {
+      throw new Error(`Cannot reach the backend at ${API_BASE_URL}. Start the backend and connect both devices to the same Wi-Fi.`);
+    } finally {
+      clearTimeout(connectionTimer);
+    }
 
-          if (uploadRes.status >= 200 && uploadRes.status < 300) {
-            const parsed = JSON.parse(uploadRes.body);
-            return parsed.data;
-          } else {
-            throw new Error(`Upload failed (${uploadRes.status}): ${uploadRes.body}`);
-          }
+    const type = name.toLowerCase().endsWith('.mov') ? 'video/quicktime'
+      : name.toLowerCase().endsWith('.webm') ? 'video/webm' : 'video/mp4';
+    const timeoutMessage = 'Video analysis timed out after 2 minutes. Check the backend connection or try a shorter clip.';
+
+    if (Platform.OS !== 'web') {
+      const { createUploadTask, FileSystemUploadType, FileSystemSessionType } = await import('expo-file-system/legacy');
+      const task = createUploadTask(targetUrl, uri, {
+        httpMethod: 'POST',
+        uploadType: FileSystemUploadType.MULTIPART,
+        sessionType: FileSystemSessionType.FOREGROUND,
+        fieldName: 'file',
+        mimeType: type,
+      });
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      try {
+        const response = await Promise.race([
+          task.uploadAsync(),
+          new Promise<never>((_, reject) => {
+            timer = setTimeout(() => {
+              reject(new Error(timeoutMessage));
+              void task.cancelAsync().catch(() => { });
+            }, VIDEO_TIMEOUT_MS);
+          }),
+        ]);
+        if (!response) throw new Error('Video upload was cancelled.');
+        const result = JSON.parse(response.body);
+        if (response.status < 200 || response.status >= 300 || !result.success || !result.data) {
+          throw new Error(result.detail || `Video analysis failed (${response.status}).`);
         }
-      } catch (nativeErr: any) {
-        console.warn('Native uploadAsync failed, falling back to Blob upload:', nativeErr?.message);
+        return result.data;
+      } finally {
+        clearTimeout(timer);
       }
     }
 
-    // 2. On Web or Fallback: Standard fetch with real Blob
-    const formData = new FormData();
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), VIDEO_TIMEOUT_MS);
     try {
-      const res = await fetch(uri);
-      const blob = await res.blob();
-      formData.append('file', blob, name);
-    } catch (blobErr) {
-      console.warn('Could not convert URI to blob:', blobErr);
-      formData.append('file', {
-        uri,
-        name,
-        type: name.toLowerCase().endsWith('.mov') ? 'video/quicktime' : 'video/mp4',
-      } as any);
+      const file = await fetch(uri, { signal: controller.signal });
+      const formData = new FormData();
+      formData.append('file', await file.blob(), name);
+      const response = await fetch(targetUrl, { method: 'POST', body: formData, signal: controller.signal });
+      const result = await response.json();
+      if (!response.ok || !result.success || !result.data) {
+        throw new Error(result.detail || `Video analysis failed (${response.status}).`);
+      }
+      return result.data;
+    } catch (error) {
+      if (controller.signal.aborted) throw new Error(timeoutMessage);
+      throw error;
+    } finally {
+      clearTimeout(timer);
     }
-
-    const res = await fetch(targetUrl, {
-      method: 'POST',
-      body: formData,
-    });
-
-    if (!res.ok) {
-      const errText = await res.text();
-      throw new Error(`Video behavioral analysis failed: ${res.status} ${errText}`);
-    }
-    const result = await res.json();
-    return result.data;
   },
 
   async identifyFish(uri: string, filename?: string): Promise<any> {
@@ -421,7 +554,7 @@ export const api = {
   },
 
   async toggleHardwareRelay(relayName: 'heater' | 'ph_pump', state?: boolean): Promise<any> {
-    const url = state !== undefined 
+    const url = state !== undefined
       ? `${API_BASE_URL}/api/aquio/relays/${relayName}/toggle?state=${state}`
       : `${API_BASE_URL}/api/aquio/relays/${relayName}/toggle`;
     const res = await fetch(url, { method: 'POST' });

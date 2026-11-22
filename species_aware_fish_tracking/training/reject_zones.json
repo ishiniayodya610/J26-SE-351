@@ -1,0 +1,128 @@
+{
+  "_doc": "Per-clip regions (normalised x0,y0,x1,y1) that contain NO fish: wood, floor, sky, shelves. Pre-label boxes whose centre falls inside are removed; the frame stays as a background example. Reviewed by eye 2026-10-22.",
+  "_global": {
+    "max_box_w": 0.85
+  },
+  "Betta01.mp4": [
+    [
+      0,
+      0,
+      1,
+      0.14
+    ]
+  ],
+  "66187f92-2f36-42b7-9b83-96e2e2405628.MP4": [
+    [
+      0,
+      0,
+      1,
+      0.14
+    ]
+  ],
+  "Betta02.mp4": [
+    [
+      0,
+      0.62,
+      1,
+      1
+    ]
+  ],
+  "Betta03.mp4": [
+    [
+      0,
+      0.78,
+      1,
+      1
+    ]
+  ],
+  "Guppy01.mp4": [
+    [
+      0,
+      0.76,
+      1,
+      1
+    ]
+  ],
+  "IMG_7409.MP4": [
+    [
+      0,
+      0.72,
+      0.3,
+      0.92
+    ]
+  ],
+  "Swordtail01.mp4": [
+    [
+      0,
+      0,
+      1,
+      0.05
+    ]
+  ],
+  "WhatsApp Video 2026-10-22 at 14.25.32.mp4": [
+    [
+      0,
+      0,
+      1,
+      0.05
+    ]
+  ],
+  "Swordtail02.mp4": [
+    [
+      0,
+      0.73,
+      1,
+      1
+    ],
+    [
+      0,
+      0,
+      1,
+      0.3
+    ]
+  ],
+  "WhatsApp Video 2026-10-22 at 14.37.57.mp4": [
+    [
+      0,
+      0.73,
+      1,
+      1
+    ],
+    [
+      0,
+      0,
+      1,
+      0.3
+    ]
+  ],
+  "Guppy 1.MP4": [
+    [
+      0,
+      0,
+      1,
+      0.1
+    ]
+  ],
+  "Guppy 2.MP4": [
+    [
+      0,
+      0,
+      0.42,
+      0.45
+    ],
+    [
+      0,
+      0.66,
+      1,
+      1
+    ]
+  ],
+  "Swordtail.mp4": [
+    [
+      0,
+      0,
+      1,
+      0.1
+    ]
+  ]
+}

@@ -1,0 +1,9 @@
+# AquaGuard ByteTrack config — tuned for crowded aquarium footage (ultralytics 8.4).
+# Defaults (bytetrack.yaml) lost IDs after 2 s and spawned a new track on every weak detection.
+tracker_type: bytetrack
+track_high_thresh: 0.35   # first-stage match: only confident detections drive tracks
+track_low_thresh: 0.1     # second stage recovers briefly occluded fish
+new_track_thresh: 0.5     # start a new ID only for a confident, unmatched detection
+track_buffer: 90          # keep lost tracks ~6 s at 15 analysed FPS (fish cross/overlap often)
+match_thresh: 0.85        # slightly more lenient association than default 0.8
+fuse_score: True
