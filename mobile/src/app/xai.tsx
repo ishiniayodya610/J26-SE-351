@@ -11,6 +11,7 @@ import {
   TextInput,
   Alert
 } from 'react-native';
+import { useFocusEffect } from 'expo-router';
 import { 
   Sparkles, 
   Cpu, 
@@ -28,7 +29,8 @@ import {
   CheckCircle,
   AlertCircle
 } from 'lucide-react-native';
-import { api, XAIExplanationData, TankConfig } from '@/services/api';
+import { api, XAIExplanationData, TankConfig, checkHasAssignedHub, TankItem } from '@/services/api';
+import HubRequiredBanner from '@/components/HubRequiredBanner';
 
 const AVAILABLE_SPECIES = ['Guppy', 'Swordtail', 'Betta'];
 
@@ -37,6 +39,8 @@ export default function XAIHubScreen() {
   const [tankConfig, setTankConfig] = useState<TankConfig | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [hasHub, setHasHub] = useState<boolean | null>(null);
+  const [activeTank, setActiveTank] = useState<TankItem | null>(null);
 
   // Modal edit state
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -47,17 +51,25 @@ export default function XAIHubScreen() {
 
   const loadData = useCallback(async () => {
     try {
-      const [xaiRes, tankRes] = await Promise.allSettled([
-        api.getXAIExplanation(),
-        api.getTankConfig(5),
-      ]);
+      const hubInfo = await checkHasAssignedHub();
+      setHasHub(hubInfo.hasHub);
+      setActiveTank(hubInfo.activeTank);
 
-      if (xaiRes.status === 'fulfilled') setData(xaiRes.value);
-      if (tankRes.status === 'fulfilled') {
-        setTankConfig(tankRes.value);
-        setEditVolume(String(tankRes.value.volume_liters));
-        setEditFishCount(tankRes.value.fish_count);
-        setEditSpecies(tankRes.value.fish_types);
+      if (hubInfo.hasHub) {
+        const [xaiRes, tankRes] = await Promise.allSettled([
+          api.getXAIExplanation(),
+          api.getTankConfig(5),
+        ]);
+
+        if (xaiRes.status === 'fulfilled') setData(xaiRes.value);
+        if (tankRes.status === 'fulfilled') {
+          setTankConfig(tankRes.value);
+          setEditVolume(String(tankRes.value.volume_liters));
+          setEditFishCount(tankRes.value.fish_count);
+          setEditSpecies(tankRes.value.fish_types);
+        }
+      } else {
+        setData(null);
       }
     } catch (err) {
       console.error('Error loading XAI or Tank config:', err);
@@ -67,11 +79,21 @@ export default function XAIHubScreen() {
     }
   }, []);
 
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [loadData])
+  );
+
   useEffect(() => {
     loadData();
-    const interval = setInterval(loadData, 3000);
+    const interval = setInterval(() => {
+      if (hasHub) {
+        loadData();
+      }
+    }, 3000);
     return () => clearInterval(interval);
-  }, [loadData]);
+  }, [loadData, hasHub]);
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -132,6 +154,27 @@ export default function XAIHubScreen() {
       setSaving(false);
     }
   };
+
+  // IoT Hardware Gate: Require assigned ESP32 Hub or Simulator
+  if (hasHub === false) {
+    return (
+      <ScrollView 
+        style={styles.container} 
+        contentContainerStyle={styles.content}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#00E5FF" />}
+      >
+        <HubRequiredBanner 
+          activeTank={activeTank}
+          featureName="Explainable AI (XAI) Causality Hub"
+          onDeviceBound={() => {
+            setHasHub(true);
+            setLoading(true);
+            loadData();
+          }}
+        />
+      </ScrollView>
+    );
+  }
 
   if (loading && !data && !tankConfig) {
     return (

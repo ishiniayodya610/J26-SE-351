@@ -513,18 +513,6 @@ export const api = {
     return res.json();
   },
 
-  async getAquioStatus(): Promise<any> {
-    const res = await fetch(`${API_BASE_URL}/api/aquio/status`);
-    if (!res.ok) throw new Error('Failed to fetch Aquio bridge status');
-    return res.json();
-  },
-
-  async syncAquioNow(): Promise<any> {
-    const res = await fetch(`${API_BASE_URL}/api/aquio/sync-now`, { method: 'POST' });
-    if (!res.ok) throw new Error('Failed to trigger manual Aquio sync');
-    return res.json();
-  },
-
   async getTankConfig(tankId: number = 5): Promise<TankConfig> {
     const res = await fetch(`${API_BASE_URL}/api/tank/config?tank_id=${tankId}`);
     if (!res.ok) throw new Error('Failed to fetch tank configuration');
@@ -546,21 +534,6 @@ export const api = {
     if (!res.ok) throw new Error('Failed to update tank configuration');
     return res.json();
   },
-
-  async getHardwareRelays(): Promise<any> {
-    const res = await fetch(`${API_BASE_URL}/api/aquio/relays`);
-    if (!res.ok) throw new Error('Failed to fetch hardware relays');
-    return res.json();
-  },
-
-  async toggleHardwareRelay(relayName: 'heater' | 'ph_pump', state?: boolean): Promise<any> {
-    const url = state !== undefined
-      ? `${API_BASE_URL}/api/aquio/relays/${relayName}/toggle?state=${state}`
-      : `${API_BASE_URL}/api/aquio/relays/${relayName}/toggle`;
-    const res = await fetch(url, { method: 'POST' });
-    if (!res.ok) throw new Error(`Failed to toggle ${relayName} relay`);
-    return res.json();
-  },
 };
 
 export interface TankConfig {
@@ -575,4 +548,268 @@ export interface TankConfig {
   updated_at: string;
   db_engine: string;
 }
+
+// ---------------------------------------------------------------------------
+// Phase 2: Auth, Multi-Tank & Device Provisioning Interfaces & Client
+// ---------------------------------------------------------------------------
+
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+let authToken: string | null = null;
+const TOKEN_KEY = '@aquaguard_auth_token';
+
+export async function initAuthSession(): Promise<string | null> {
+  try {
+    const saved = await AsyncStorage.getItem(TOKEN_KEY);
+    authToken = saved;
+    return saved;
+  } catch {
+    return null;
+  }
+}
+
+export async function setAuthToken(token: string | null) {
+  authToken = token;
+  try {
+    if (token) {
+      await AsyncStorage.setItem(TOKEN_KEY, token);
+    } else {
+      await AsyncStorage.removeItem(TOKEN_KEY);
+    }
+  } catch {
+    // Storage fallback
+  }
+}
+
+export function getAuthToken(): string | null {
+  return authToken;
+}
+
+export function getAuthHeaders(): Record<string, string> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  if (authToken) {
+    headers['Authorization'] = `Bearer ${authToken}`;
+  }
+  return headers;
+}
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  full_name: string;
+  is_active: boolean;
+}
+
+export interface AuthResponse {
+  access_token: string;
+  refresh_token: string;
+  token_type: string;
+  user: UserProfile;
+}
+
+export interface TankCreatePayload {
+  name: string;
+  dimensions?: { length_cm: number; width_cm: number; height_cm: number };
+  volume_liters: number;
+  fish_types: string[];
+  fish_count: number;
+  tank_type: 'HOME' | 'FARMING';
+  target_temp_c?: number;
+  target_ph?: number;
+  target_tds_ppm?: number;
+}
+
+export interface TankItem {
+  id: string;
+  owner_id: string;
+  name: string;
+  dimensions?: { length_cm: number; width_cm: number; height_cm: number };
+  volume_liters: number;
+  fish_types: string[];
+  fish_count: number;
+  tank_type: string;
+  target_temp_c: number;
+  target_ph: number;
+  target_tds_ppm: number;
+  bioload: {
+    liters_per_fish: number;
+    level: 'OPTIMAL' | 'MODERATE' | 'OVERSTOCKED';
+    description: string;
+  };
+  device_id: string | null;
+  created_at: string;
+}
+
+export interface ProvisionDeviceResponse {
+  provision_token: string;
+  device_uid_prefix: string;
+  expires_in_seconds: number;
+  qr_payload: string;
+}
+
+export const authApi = {
+  async register(data: { full_name: string; email: string; password: string }): Promise<UserProfile> {
+    const res = await fetch(`${API_BASE_URL}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || 'Registration failed');
+    }
+    return res.json();
+  },
+
+  async login(data: { email: string; password: string }): Promise<AuthResponse> {
+    const res = await fetch(`${API_BASE_URL}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || 'Invalid email or password');
+    }
+    const result: AuthResponse = await res.json();
+    setAuthToken(result.access_token);
+    return result;
+  },
+
+  async getMe(): Promise<UserProfile> {
+    const res = await fetch(`${API_BASE_URL}/auth/me`, {
+      headers: getAuthHeaders(),
+    });
+    if (!res.ok) throw new Error('Failed to fetch profile');
+    return res.json();
+  },
+
+  async logout(): Promise<void> {
+    await fetch(`${API_BASE_URL}/auth/logout`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+    }).catch(() => {});
+    setAuthToken(null);
+  },
+};
+
+export const tankManagementApi = {
+  async listTanks(): Promise<TankItem[]> {
+    const res = await fetch(`${API_BASE_URL}/tanks`, {
+      headers: getAuthHeaders(),
+    });
+    if (!res.ok) throw new Error('Failed to fetch tanks');
+    return res.json();
+  },
+
+  async createTank(data: TankCreatePayload): Promise<TankItem> {
+    const res = await fetch(`${API_BASE_URL}/tanks`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || 'Failed to create tank');
+    }
+    return res.json();
+  },
+
+  async getTank(tankId: string): Promise<TankItem> {
+    const res = await fetch(`${API_BASE_URL}/tanks/${tankId}`, {
+      headers: getAuthHeaders(),
+    });
+    if (!res.ok) throw new Error('Failed to fetch tank details');
+    return res.json();
+  },
+
+  async updateTank(tankId: string, data: Partial<TankCreatePayload>): Promise<TankItem> {
+    const res = await fetch(`${API_BASE_URL}/tanks/${tankId}`, {
+      method: 'PATCH',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error('Failed to update tank');
+    return res.json();
+  },
+
+  async deleteTank(tankId: string): Promise<void> {
+    const res = await fetch(`${API_BASE_URL}/tanks/${tankId}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders(),
+    });
+    if (!res.ok) throw new Error('Failed to delete tank');
+  },
+};
+
+export const deviceProvisionApi = {
+  async generateProvisionToken(tankId: string): Promise<ProvisionDeviceResponse> {
+    const res = await fetch(`${API_BASE_URL}/devices/provision`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ tank_id: tankId }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || 'Failed to generate device provision token');
+    }
+    return res.json();
+  },
+
+  async getDeviceForTank(tankId: string): Promise<any> {
+    const res = await fetch(`${API_BASE_URL}/devices/tank/${tankId}`, {
+      headers: getAuthHeaders(),
+    });
+    if (!res.ok) return null;
+    return res.json();
+  },
+
+  async bindDeviceManually(tankId: string, deviceUid: string): Promise<any> {
+    const res = await fetch(`${API_BASE_URL}/devices/bind`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ tank_id: tankId, device_uid: deviceUid }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || 'Failed to bind device to tank');
+    }
+    return res.json();
+  },
+};
+
+const ACTIVE_TANK_KEY = '@aquaguard_active_tank_id';
+
+export async function getActiveTankId(): Promise<string | null> {
+  try {
+    return await AsyncStorage.getItem(ACTIVE_TANK_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export async function setActiveTankId(tankId: string): Promise<void> {
+  try {
+    await AsyncStorage.setItem(ACTIVE_TANK_KEY, tankId);
+  } catch {}
+}
+
+export async function checkHasAssignedHub(): Promise<{ hasHub: boolean; activeTank: TankItem | null; allTanks: TankItem[] }> {
+  try {
+    const tanks = await tankManagementApi.listTanks();
+    if (!tanks || tanks.length === 0) {
+      return { hasHub: false, activeTank: null, allTanks: [] };
+    }
+    const savedTankId = await getActiveTankId();
+    const activeTank = tanks.find((t) => t.id === savedTankId) || tanks[0];
+    const hasHub = Boolean(activeTank && activeTank.device_id);
+    return { hasHub, activeTank, allTanks: tanks };
+  } catch {
+    return { hasHub: false, activeTank: null, allTanks: [] };
+  }
+}
+
+
 

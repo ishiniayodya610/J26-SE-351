@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   View, 
   Text, 
@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
   Alert
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { 
   ShieldCheck, 
   ShieldAlert, 
@@ -25,7 +25,16 @@ import {
   Radio,
   SlidersHorizontal
 } from 'lucide-react-native';
-import { api, TelemetryData, FishProfile } from '@/services/api';
+import { 
+  api, 
+  TelemetryData, 
+  FishProfile, 
+  initAuthSession, 
+  authApi, 
+  checkHasAssignedHub, 
+  TankItem 
+} from '@/services/api';
+import HubRequiredBanner from '@/components/HubRequiredBanner';
 import { triggerAnomalyHaptic, triggerResolvedHaptic, triggerSelectionHaptic } from '@/services/haptics';
 
 export default function TankHealthScreen() {
@@ -34,16 +43,58 @@ export default function TankHealthScreen() {
   const [activeFish, setActiveFish] = useState<FishProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [authChecking, setAuthChecking] = useState(true);
+  const [hasHub, setHasHub] = useState<boolean | null>(null);
+  const [activeTank, setActiveTank] = useState<TankItem | null>(null);
   const prevStatusRef = useRef<string | null>(null);
+
+  // 1. Auth Guard: Verify session and redirect to /auth if not logged in
+  useEffect(() => {
+    let isMounted = true;
+    const verifySession = async () => {
+      const token = await initAuthSession();
+      if (!token) {
+        if (isMounted) {
+          setAuthChecking(false);
+          router.replace('/auth');
+        }
+        return;
+      }
+      try {
+        await authApi.getMe();
+        const hubInfo = await checkHasAssignedHub();
+        if (isMounted) {
+          setHasHub(hubInfo.hasHub);
+          setActiveTank(hubInfo.activeTank);
+          setAuthChecking(false);
+        }
+      } catch {
+        if (isMounted) {
+          setAuthChecking(false);
+          router.replace('/auth');
+        }
+      }
+    };
+    verifySession();
+    return () => { isMounted = false; };
+  }, []);
 
   const loadData = async () => {
     try {
-      const [tData, pData] = await Promise.all([
-        api.getLatestTelemetry().catch(() => null),
-        api.getFishProfiles().then(p => p[0]).catch(() => null)
-      ]);
-      if (tData) setTelemetry(tData);
-      if (pData) setActiveFish(pData);
+      const hubInfo = await checkHasAssignedHub();
+      setHasHub(hubInfo.hasHub);
+      setActiveTank(hubInfo.activeTank);
+
+      if (hubInfo.hasHub) {
+        const [tData, pData] = await Promise.all([
+          api.getLatestTelemetry().catch(() => null),
+          api.getFishProfiles().then(p => p[0]).catch(() => null)
+        ]);
+        if (tData) setTelemetry(tData);
+        if (pData) setActiveFish(pData);
+      } else {
+        setTelemetry(null);
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -52,11 +103,24 @@ export default function TankHealthScreen() {
     }
   };
 
+  useFocusEffect(
+    useCallback(() => {
+      if (!authChecking) {
+        loadData();
+      }
+    }, [authChecking])
+  );
+
   useEffect(() => {
+    if (authChecking) return;
     loadData();
-    const interval = setInterval(loadData, 2500);
+    const interval = setInterval(() => {
+      if (hasHub) {
+        loadData();
+      }
+    }, 2500);
     return () => clearInterval(interval);
-  }, []);
+  }, [authChecking, hasHub]);
 
   // Monitor for anomaly occurrences to trigger Haptic vibration feedback
   useEffect(() => {
@@ -85,6 +149,36 @@ export default function TankHealthScreen() {
     setRefreshing(true);
     loadData();
   };
+
+  if (authChecking) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color="#00E5FF" />
+        <Text style={styles.loadingText}>Authenticating with AquaGuard Cloud...</Text>
+      </View>
+    );
+  }
+
+  // 2. IoT Hardware Check: Require assigned ESP32 Hub or Simulator
+  if (hasHub === false) {
+    return (
+      <ScrollView 
+        style={styles.container} 
+        contentContainerStyle={styles.content}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#00E5FF" />}
+      >
+        <HubRequiredBanner 
+          activeTank={activeTank}
+          featureName="Live Telemetry & TinyML Supervisor"
+          onDeviceBound={() => {
+            setHasHub(true);
+            setLoading(true);
+            loadData();
+          }}
+        />
+      </ScrollView>
+    );
+  }
 
   if (loading && !telemetry) {
     return (

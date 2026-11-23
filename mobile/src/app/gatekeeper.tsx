@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   View, 
   Text, 
@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   TouchableOpacity
 } from 'react-native';
+import { useFocusEffect } from 'expo-router';
 import { 
   Cpu, 
   Timer, 
@@ -21,19 +22,30 @@ import {
   AlertTriangle,
   Radio
 } from 'lucide-react-native';
-import { api, TelemetryData } from '@/services/api';
+import { api, TelemetryData, checkHasAssignedHub, TankItem } from '@/services/api';
+import HubRequiredBanner from '@/components/HubRequiredBanner';
 import { triggerAnomalyHaptic, triggerResolvedHaptic, triggerSelectionHaptic } from '@/services/haptics';
 
 export default function GatekeeperScreen() {
   const [telemetry, setTelemetry] = useState<TelemetryData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [hasHub, setHasHub] = useState<boolean | null>(null);
+  const [activeTank, setActiveTank] = useState<TankItem | null>(null);
   const prevStatusRef = useRef<string | null>(null);
 
   const loadData = async () => {
     try {
-      const data = await api.getLatestTelemetry();
-      setTelemetry(data);
+      const hubInfo = await checkHasAssignedHub();
+      setHasHub(hubInfo.hasHub);
+      setActiveTank(hubInfo.activeTank);
+
+      if (hubInfo.hasHub) {
+        const data = await api.getLatestTelemetry();
+        setTelemetry(data);
+      } else {
+        setTelemetry(null);
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -42,11 +54,21 @@ export default function GatekeeperScreen() {
     }
   };
 
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [])
+  );
+
   useEffect(() => {
     loadData();
-    const interval = setInterval(loadData, 2000);
+    const interval = setInterval(() => {
+      if (hasHub) {
+        loadData();
+      }
+    }, 2000);
     return () => clearInterval(interval);
-  }, []);
+  }, [hasHub]);
 
   // Trigger hardware haptic burst when anomaly is detected
   useEffect(() => {
@@ -71,6 +93,27 @@ export default function GatekeeperScreen() {
     setRefreshing(true);
     loadData();
   };
+
+  // IoT Hardware Gate: Require assigned ESP32 Hub or Simulator
+  if (hasHub === false) {
+    return (
+      <ScrollView 
+        style={styles.container} 
+        contentContainerStyle={styles.content}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#00E5FF" />}
+      >
+        <HubRequiredBanner 
+          activeTank={activeTank}
+          featureName="TinyML Edge Gatekeeper"
+          onDeviceBound={() => {
+            setHasHub(true);
+            setLoading(true);
+            loadData();
+          }}
+        />
+      </ScrollView>
+    );
+  }
 
   if (loading && !telemetry) {
     return (

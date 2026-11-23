@@ -216,15 +216,6 @@ async def execute_edge_inference(
         latest_telemetry_state["system_status"] = "CRITICAL_THERMAL_RUNAWAY"
         latest_telemetry_state["gatekeeper"]["heater_lockout"] = True
 
-    # Asynchronously synchronize physical ESP32 relays based on TinyML Gatekeeper lockouts
-    try:
-        from backend.app.services.aquio_bridge import aquio_bridge
-        final_heater_locked = latest_telemetry_state["gatekeeper"].get("heater_lockout", False)
-        final_ph_locked = latest_telemetry_state["gatekeeper"].get("ph_pump_lockout", False)
-        asyncio.create_task(aquio_bridge.sync_hardware_actuators(final_heater_locked, final_ph_locked))
-    except Exception:
-        pass
-
     return latest_telemetry_state
 
 class TelemetryIngestPayload(BaseModel):
@@ -273,15 +264,6 @@ async def ingest_edge_telemetry(payload: Dict[str, Any]):
     if runaway_info["active"]:
         latest_telemetry_state["system_status"] = "CRITICAL_THERMAL_RUNAWAY"
         latest_telemetry_state["gatekeeper"]["heater_lockout"] = True
-
-    # Asynchronously synchronize physical ESP32 relays based on TinyML Gatekeeper lockouts
-    try:
-        from backend.app.services.aquio_bridge import aquio_bridge
-        final_heater_locked = latest_telemetry_state["gatekeeper"].get("heater_lockout", False)
-        final_ph_locked = latest_telemetry_state["gatekeeper"].get("ph_pump_lockout", False)
-        asyncio.create_task(aquio_bridge.sync_hardware_actuators(final_heater_locked, final_ph_locked))
-    except Exception:
-        pass
 
     await manager.broadcast(latest_telemetry_state)
     return {"status": "ACK", "received": True, "species": active_profile.common_name, "thermal_runaway": runaway_info["active"]}

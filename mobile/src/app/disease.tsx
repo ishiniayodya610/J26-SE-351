@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   TouchableOpacity
 } from 'react-native';
+import { useFocusEffect } from 'expo-router';
 import {
   AlertTriangle, 
   Biohazard, 
@@ -30,8 +31,11 @@ import {
   FishProfile,
   predictAmmonia,
   predictWhiteSpot,
-  PredictionResponse
+  PredictionResponse,
+  checkHasAssignedHub,
+  TankItem,
 } from '@/services/api';
+import HubRequiredBanner from '@/components/HubRequiredBanner';
 
 // ---------------------------------------------------------------------------
 // Mini Line Chart Component (SVG-based, no extra dependencies)
@@ -152,6 +156,8 @@ export default function DiseasePredictionScreen() {
   const [activeSpecies, setActiveSpecies] = useState<FishProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [hasHub, setHasHub] = useState<boolean | null>(null);
+  const [activeTank, setActiveTank] = useState<TankItem | null>(null);
 
   // Machine Learning (Random Forest) live prediction states
   const [ammoniaPrediction, setAmmoniaPrediction] = useState<PredictionResponse | null>(null);
@@ -219,15 +225,26 @@ export default function DiseasePredictionScreen() {
 
   const loadData = useCallback(async () => {
     try {
-      const [riskRes, telRes, speciesRes] = await Promise.allSettled([
-        api.getDiseaseRisk(),
-        api.getLatestTelemetry(),
-        api.getActiveProfile(),
-      ]);
+      const hubInfo = await checkHasAssignedHub();
+      setHasHub(hubInfo.hasHub);
+      setActiveTank(hubInfo.activeTank);
 
-      if (riskRes.status === 'fulfilled') setData(riskRes.value);
-      if (telRes.status === 'fulfilled') setTelemetry(telRes.value);
-      if (speciesRes.status === 'fulfilled') setActiveSpecies(speciesRes.value);
+      if (hubInfo.hasHub) {
+        const [riskRes, telRes, speciesRes] = await Promise.allSettled([
+          api.getDiseaseRisk(),
+          api.getLatestTelemetry(),
+          api.getActiveProfile(),
+        ]);
+
+        if (riskRes.status === 'fulfilled') setData(riskRes.value);
+        if (telRes.status === 'fulfilled') setTelemetry(telRes.value);
+        if (speciesRes.status === 'fulfilled') setActiveSpecies(speciesRes.value);
+      } else {
+        setData(null);
+        setTelemetry(null);
+        setAmmoniaPrediction(null);
+        setWhitespotPrediction(null);
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -236,16 +253,53 @@ export default function DiseasePredictionScreen() {
     }
   }, []);
 
+  useFocusEffect(
+    useCallback(() => {
+      loadData().then(() => {
+        if (hasHub) runMlPredictions();
+      });
+    }, [loadData, hasHub, runMlPredictions])
+  );
+
   useEffect(() => {
-    loadData().then(() => runMlPredictions());
-    const interval = setInterval(loadData, 5000);
+    loadData().then(() => {
+      if (hasHub) runMlPredictions();
+    });
+    const interval = setInterval(() => {
+      if (hasHub) {
+        loadData().then(() => runMlPredictions());
+      }
+    }, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [loadData, hasHub, runMlPredictions]);
 
   const onRefresh = () => {
     setRefreshing(true);
-    loadData().then(() => runMlPredictions());
+    loadData().then(() => {
+      if (hasHub) runMlPredictions();
+    });
   };
+
+  // IoT Hardware Gate: Require assigned ESP32 Hub or Simulator
+  if (hasHub === false) {
+    return (
+      <ScrollView 
+        style={styles.container} 
+        contentContainerStyle={styles.content}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#00E5FF" />}
+      >
+        <HubRequiredBanner 
+          activeTank={activeTank}
+          featureName="Random Forest Disease & Ammonia Predictor"
+          onDeviceBound={() => {
+            setHasHub(true);
+            setLoading(true);
+            loadData().then(() => runMlPredictions());
+          }}
+        />
+      </ScrollView>
+    );
+  }
 
   if (loading && !data && !ammoniaPrediction) {
     return (

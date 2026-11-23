@@ -6,7 +6,9 @@ import {
   Camera, 
   AlertTriangle, 
   Sparkles, 
-  SlidersHorizontal 
+  SlidersHorizontal,
+  Fish,
+  User
 } from 'lucide-react-native';
 
 export default function TabLayout() {
@@ -42,9 +44,17 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Tank Health',
+          title: 'Live Telemetry',
           headerTitle: 'AquaGuard • Live Telemetry',
           tabBarIcon: ({ color, size }) => <Activity color={color} size={20} />,
+        }}
+      />
+      <Tabs.Screen
+        name="tanks"
+        options={{
+          title: 'Aquariums',
+          headerTitle: 'AquaGuard • My Aquariums',
+          tabBarIcon: ({ color, size }) => <Fish color={color} size={20} />,
         }}
       />
       <Tabs.Screen
@@ -79,7 +89,22 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => <Sparkles color={color} size={20} />,
         }}
       />
-      {/* Hide unused screens */}
+      <Tabs.Screen
+        name="auth"
+        options={{
+          title: 'Account',
+          headerTitle: 'AquaGuard • User Account',
+          tabBarIcon: ({ color, size }) => <User color={color} size={20} />,
+        }}
+      />
+      {/* Non-tab modal and utility screens */}
+      <Tabs.Screen
+        name="provision"
+        options={{
+          href: null,
+          headerTitle: 'Pair ESP32 IoT Device',
+        }}
+      />
       <Tabs.Screen
         name="testbed"
         options={{
