@@ -11,8 +11,13 @@ import cv2
 import numpy as np
 import pytest
 
-ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-TRACKING_DIR = os.path.join(ROOT, "species_aware_fish_tracking")
+BACKEND_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+ROOT = os.path.abspath(os.path.join(BACKEND_ROOT, ".."))
+TRACKING_DIR = (
+    os.path.join(BACKEND_ROOT, "species_aware_fish_tracking")
+    if os.path.isdir(os.path.join(BACKEND_ROOT, "species_aware_fish_tracking"))
+    else os.path.join(ROOT, "species_aware_fish_tracking")
+)
 if TRACKING_DIR not in sys.path:
     sys.path.insert(0, TRACKING_DIR)
 

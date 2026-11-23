@@ -110,5 +110,9 @@ async def root():
             "comp_4_xai_engine":     "READY",
             "comp_3_predictions":    "READY",
         },
+        "endpoints": {
+            "predict_ammonia": "/predict/ammonia",
+            "predict_whitespot": "/predict/whitespot",
+        },
         "docs": "/docs",
     }

@@ -20,4 +20,4 @@ python-jose[cryptography]>=3.3.0
 aiomqtt>=2.0.0
 
 # Vision endpoint
--r ../species_aware_fish_tracking/requirements.txt
+-r ./species_aware_fish_tracking/requirements.txt

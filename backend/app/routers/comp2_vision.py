@@ -18,17 +18,33 @@ from backend.app.routers.fish_profile import SPECIES_DATABASE, active_profile, s
 
 router = APIRouter(prefix="/api/comp2", tags=["Comp 2: Fish ID & Behavior"])
 
-# Add species_aware_fish_tracking directory to sys.path
-BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
-TRACKING_DIR = BASE_DIR / "species_aware_fish_tracking"
+# Locate tracking modules and models within backend (with root fallback)
+BACKEND_DIR = Path(__file__).resolve().parent.parent.parent
+BASE_DIR = BACKEND_DIR.parent
+TRACKING_DIR = (
+    BACKEND_DIR / "species_aware_fish_tracking"
+    if (BACKEND_DIR / "species_aware_fish_tracking").exists()
+    else BASE_DIR / "species_aware_fish_tracking"
+)
 if str(TRACKING_DIR) not in sys.path:
     sys.path.insert(0, str(TRACKING_DIR))
 
 from multi_track import analyze_multi
 from live_tracker import LiveTrackerSession
 
-MODEL_PATH = TRACKING_DIR / "aquaguard_yolo11n_best.pt"
-ANNOTATED_DIR = BASE_DIR / "backend" / "static" / "annotated"
+VISION_MODELS_DIR = BACKEND_DIR / "models" / "vision"
+MODEL_PATH = (
+    VISION_MODELS_DIR / "aquaguard_yolo11n_best.pt"
+    if (VISION_MODELS_DIR / "aquaguard_yolo11n_best.pt").exists()
+    else TRACKING_DIR / "aquaguard_yolo11n_best.pt"
+)
+BEHAVIOR_PROFILE_PATH = (
+    TRACKING_DIR / "species_behavior_profiles.json"
+    if (TRACKING_DIR / "species_behavior_profiles.json").exists()
+    else BASE_DIR / "species_aware_fish_tracking" / "species_behavior_profiles.json"
+)
+
+ANNOTATED_DIR = BACKEND_DIR / "static" / "annotated"
 UPLOAD_SAMPLE_EVERY = 2
 MAX_ANALYSED_SECONDS = 60
 
@@ -37,8 +53,8 @@ _video_analyzer = None
 try:
     from aquaguard_video_analyzer import AquaGuardVideoAnalyzer
     _video_analyzer = AquaGuardVideoAnalyzer(
-        model_path=str(TRACKING_DIR / "aquaguard_yolo11n_best.pt"),
-        profile_path=str(TRACKING_DIR / "species_behavior_profiles.json"),
+        model_path=str(MODEL_PATH),
+        profile_path=str(BEHAVIOR_PROFILE_PATH),
         device="cpu"
     )
     print("✅ [Component 2] AquaGuard YOLO11n Video Analyzer initialized successfully.")
