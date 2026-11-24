@@ -36,6 +36,7 @@ import {
   TankItem,
 } from '@/services/api';
 import HubRequiredBanner from '@/components/HubRequiredBanner';
+import AiSuiteSwitcher from '@/components/AiSuiteSwitcher';
 
 // ---------------------------------------------------------------------------
 // Mini Line Chart Component (SVG-based, no extra dependencies)
@@ -321,6 +322,9 @@ export default function DiseasePredictionScreen() {
       contentContainerStyle={styles.content}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#00E5FF" />}
     >
+      {/* AI Intelligence Suite Switcher */}
+      <AiSuiteSwitcher activeTab="disease" />
+
       {/* Forecast Header Banner */}
       <View style={styles.headerBanner}>
         <View style={styles.headerRow}>

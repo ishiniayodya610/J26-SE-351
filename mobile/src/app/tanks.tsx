@@ -36,6 +36,7 @@ import {
   setActiveTankId,
   deviceProvisionApi,
 } from '@/services/api';
+import { showAlert } from '@/services/alert';
 
 export default function TanksScreen() {
   const router = useRouter();
@@ -109,17 +110,17 @@ export default function TanksScreen() {
 
   const handleCreateTank = async () => {
     if (!name.trim()) {
-      Alert.alert('Required', 'Please enter a name for your tank.');
+      showAlert('Required', 'Please enter a name for your tank.');
       return;
     }
     const vol = parseFloat(volumeLiters);
     const count = parseInt(fishCount, 10);
     if (isNaN(vol) || vol <= 0) {
-      Alert.alert('Invalid Volume', 'Please enter a valid tank volume in liters.');
+      showAlert('Invalid Volume', 'Please enter a valid tank volume in liters.');
       return;
     }
     if (isNaN(count) || count < 1) {
-      Alert.alert('Invalid Fish Count', 'Please specify at least 1 fish.');
+      showAlert('Invalid Fish Count', 'Please specify at least 1 fish.');
       return;
     }
 
@@ -150,16 +151,16 @@ export default function TanksScreen() {
       setModalVisible(false);
       setName('');
       loadTanks();
-      Alert.alert('Success', 'Aquarium tank created successfully!');
+      showAlert('Success', 'Aquarium tank created successfully!');
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to create tank.');
+      showAlert('Error', err.message || 'Failed to create tank.');
     } finally {
       setCreating(false);
     }
   };
 
   const handleDeleteTank = (tankId: string, tankName: string) => {
-    Alert.alert('Delete Tank', `Are you sure you want to delete "${tankName}"?`, [
+    showAlert('Delete Tank', `Are you sure you want to delete "${tankName}"?`, [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete',
@@ -169,7 +170,7 @@ export default function TanksScreen() {
             await tankManagementApi.deleteTank(tankId);
             loadTanks();
           } catch (err: any) {
-            Alert.alert('Error', err.message);
+            showAlert('Error', err.message);
           }
         },
       },
@@ -204,16 +205,17 @@ export default function TanksScreen() {
       >
         {/* Top Header */}
         <View style={styles.headerRow}>
-          <View>
+          <View style={{ flex: 1, marginRight: 12 }}>
             <Text style={styles.title}>My Aquariums</Text>
-            <Text style={styles.subtitle}>Manage tanks & pair custom ESP32 IoT controllers</Text>
+            <Text style={styles.subtitle} numberOfLines={1}>Manage tanks & pair custom ESP32 IoT controllers</Text>
           </View>
           <TouchableOpacity
             style={styles.addBtn}
             onPress={() => setModalVisible(true)}
+            activeOpacity={0.8}
           >
-            <Plus size={18} color="#0B0F19" />
-            <Text style={styles.addBtnText}>Add Tank</Text>
+            <Plus size={16} color="#0B0F19" />
+            <Text style={styles.addBtnText}>+ Add Tank</Text>
           </TouchableOpacity>
         </View>
 
@@ -542,9 +544,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#00E5FF',
     paddingHorizontal: 14,
-    paddingVertical: 8,
+    paddingVertical: 9,
     borderRadius: 8,
     gap: 6,
+    flexShrink: 0,
+    cursor: 'pointer' as any,
   },
   addBtnText: { color: '#0B0F19', fontSize: 12, fontWeight: '800' },
   emptyTitle: { color: '#F8FAFC', fontSize: 18, fontWeight: '800', marginBottom: 6 },
@@ -576,6 +580,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginTop: 18,
     gap: 6,
+    cursor: 'pointer' as any,
   },
   createFirstBtnText: { color: '#0B0F19', fontSize: 13, fontWeight: '800' },
   tankCard: {
@@ -619,7 +624,7 @@ const styles = StyleSheet.create({
   bioOver: { backgroundColor: 'rgba(255, 23, 68, 0.2)' },
   bioloadText: { color: '#F8FAFC', fontSize: 9, fontWeight: '800' },
   tankName: { fontSize: 18, fontWeight: '800', color: '#F8FAFC' },
-  deleteBtn: { padding: 8 },
+  deleteBtn: { padding: 8, cursor: 'pointer' as any },
   statsRow: {
     flexDirection: 'row',
     backgroundColor: '#0B0F19',
@@ -678,6 +683,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 8,
     gap: 6,
+    cursor: 'pointer' as any,
   },
   pairBtnText: { color: '#00E5FF', fontSize: 11, fontWeight: '700' },
   modalOverlay: {
@@ -729,6 +735,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
+    cursor: 'pointer' as any,
   },
   cancelBtnText: { color: '#94A3B8', fontWeight: '700', fontSize: 13 },
   saveBtn: {
@@ -738,6 +745,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
+    cursor: 'pointer' as any,
   },
   saveBtnText: { color: '#0B0F19', fontWeight: '800', fontSize: 14 },
 });

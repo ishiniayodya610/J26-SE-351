@@ -39,6 +39,7 @@ import { LiveTrackingView } from '@/components/vision/LiveTrackingView';
 import { VisionMonitor } from '@/components/vision/VisionMonitor';
 import fixtureV2 from '@/features/vision/__fixtures__/analyze-video-v2.json';
 import { triggerAnomalyHaptic, triggerResolvedHaptic, triggerSelectionHaptic } from '@/services/haptics';
+import { showAlert } from '@/services/alert';
 
 export interface LiveTargetData {
   id?: number;
@@ -310,6 +311,8 @@ export default function CameraVisionScreen() {
             const data = await api.sendLiveFrame(b64);
             applyDetectionResult(data);
           }
+        } else {
+          setScanFeedbackMsg('Webcam stream not active. Please grant camera access in browser or click "Load Fixture" below.');
         }
       } else {
         // Native iOS / Android (Single lightweight snapshot on demand)
@@ -369,7 +372,7 @@ export default function CameraVisionScreen() {
     if (Platform.OS === 'web') {
       try {
         if (!webStreamRef.current) {
-          Alert.alert('Webcam Error', 'Webcam stream not active. Please check browser permissions.');
+          showAlert('Webcam Error', 'Webcam stream not active. Please check browser permissions.');
           setIsRecording(false);
           return;
         }
@@ -446,9 +449,14 @@ export default function CameraVisionScreen() {
   const handleLaunchExternalCamera = async () => {
     try {
       triggerSelectionHaptic();
+      if (Platform.OS === 'web') {
+        // External camera capture is mobile-only; on desktop web, use video file picker
+        await handlePickVideo();
+        return;
+      }
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('Camera Permission Required', 'Please enable camera access to record tank behavior videos.');
+        showAlert('Camera Permission Required', 'Please enable camera access to record tank behavior videos.');
         return;
       }
 
@@ -467,7 +475,7 @@ export default function CameraVisionScreen() {
       }
     } catch (err) {
       console.error('External camera error:', err);
-      Alert.alert('Recording Note', 'Use the live viewfinder above or select from gallery.');
+      showAlert('Recording Note', 'Use the live viewfinder above or select from gallery.');
     }
   };
 
@@ -489,7 +497,7 @@ export default function CameraVisionScreen() {
       }
     } catch (err) {
       console.error('Library pick error:', err);
-      Alert.alert('Picker Error', 'Could not open video library.');
+      showAlert('Picker Error', 'Could not open video library.');
     }
   };
 
@@ -505,7 +513,7 @@ export default function CameraVisionScreen() {
       triggerResolvedHaptic();
     } catch (err) {
       console.error('Video analysis failed:', err);
-      Alert.alert('Analysis failed', err instanceof Error ? err.message : 'Could not analyze this video. Check the backend connection and try again.');
+      showAlert('Analysis failed', err instanceof Error ? err.message : 'Could not analyze this video. Check the backend connection and try again.');
     } finally {
       analysisInFlightRef.current = false;
       setAnalyzing(false);
@@ -1418,6 +1426,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.35,
     shadowRadius: 8,
     elevation: 4,
+    cursor: 'pointer' as any,
   },
   scanActionBtnBusy: {
     backgroundColor: 'rgba(0, 229, 255, 0.65)',
@@ -1438,6 +1447,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
+    cursor: 'pointer' as any,
   },
   recordActionMiniBtn: {
     flexDirection: 'row',
@@ -1450,6 +1460,7 @@ const styles = StyleSheet.create({
     gap: 6,
     borderWidth: 1.5,
     borderColor: '#FFFFFF',
+    cursor: 'pointer' as any,
   },
   recordActionMiniText: {
     color: '#FFFFFF',
@@ -1473,6 +1484,7 @@ const styles = StyleSheet.create({
     elevation: 4,
     borderWidth: 2,
     borderColor: '#FFFFFF',
+    cursor: 'pointer' as any,
   },
   innerRecordCircle: {
     width: 12,
@@ -1497,6 +1509,7 @@ const styles = StyleSheet.create({
     gap: 10,
     borderWidth: 2,
     borderColor: '#FFD600',
+    cursor: 'pointer' as any,
   },
   stopActionText: {
     color: '#FFFFFF',
@@ -1524,6 +1537,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 10,
     gap: 6,
+    cursor: 'pointer' as any,
   },
   btnSecondaryText: {
     flexShrink: 1,

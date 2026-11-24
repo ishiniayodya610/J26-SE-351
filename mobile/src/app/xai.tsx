@@ -31,6 +31,8 @@ import {
 } from 'lucide-react-native';
 import { api, XAIExplanationData, TankConfig, checkHasAssignedHub, TankItem } from '@/services/api';
 import HubRequiredBanner from '@/components/HubRequiredBanner';
+import AiSuiteSwitcher from '@/components/AiSuiteSwitcher';
+import { showAlert } from '@/services/alert';
 
 const AVAILABLE_SPECIES = ['Guppy', 'Swordtail', 'Betta'];
 
@@ -112,7 +114,7 @@ export default function XAIHubScreen() {
   const handleToggleSpecies = (species: string) => {
     if (editSpecies.includes(species)) {
       if (editSpecies.length === 1) {
-        Alert.alert('Required', 'At least one species must be present in the tank.');
+        showAlert('Required', 'At least one species must be present in the tank.');
         return;
       }
       setEditSpecies(editSpecies.filter(s => s !== species));
@@ -124,15 +126,15 @@ export default function XAIHubScreen() {
   const handleSaveTankConfig = async () => {
     const volNum = parseFloat(editVolume);
     if (isNaN(volNum) || volNum < 10 || volNum > 5000) {
-      Alert.alert('Invalid Volume', 'Please enter a valid tank volume between 10 and 5000 Liters.');
+      showAlert('Invalid Volume', 'Please enter a valid tank volume between 10 and 5000 Liters.');
       return;
     }
     if (editFishCount < 1) {
-      Alert.alert('Invalid Count', 'Fish count must be at least 1.');
+      showAlert('Invalid Count', 'Fish count must be at least 1.');
       return;
     }
     if (editSpecies.length === 0) {
-      Alert.alert('Select Species', 'Please select at least one species.');
+      showAlert('Select Species', 'Please select at least one species.');
       return;
     }
 
@@ -149,7 +151,7 @@ export default function XAIHubScreen() {
       setIsEditModalOpen(false);
       loadData();
     } catch (err: any) {
-      Alert.alert('Database Error', err?.message || 'Failed to update tank configuration in database.');
+      showAlert('Database Error', err?.message || 'Failed to update tank configuration in database.');
     } finally {
       setSaving(false);
     }
@@ -195,6 +197,9 @@ export default function XAIHubScreen() {
       contentContainerStyle={styles.content}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#00E5FF" />}
     >
+      {/* AI Intelligence Suite Switcher */}
+      <AiSuiteSwitcher activeTab="xai" />
+
       {/* ── Tank Database Configuration Card ── */}
       <View style={styles.tankCard}>
         <View style={styles.tankCardHeader}>

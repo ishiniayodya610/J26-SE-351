@@ -6,11 +6,11 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Cpu, QrCode, Zap, ShieldAlert, ArrowRight, Fish } from 'lucide-react-native';
+import { Cpu, QrCode, Zap, ShieldAlert, ArrowRight, Fish, CheckCircle2, AlertCircle } from 'lucide-react-native';
 import { deviceProvisionApi, TankItem } from '@/services/api';
+import { showAlert } from '@/services/alert';
 
 interface HubRequiredBannerProps {
   activeTank: TankItem | null;
@@ -26,32 +26,43 @@ export default function HubRequiredBanner({
   const router = useRouter();
   const [deviceUid, setDeviceUid] = useState('AG-ESP32-DEV01');
   const [binding, setBinding] = useState(false);
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   const handleQuickBind = async () => {
     if (!activeTank) {
-      Alert.alert('No Aquarium', 'Please create an aquarium first.', [
+      setFeedback({ type: 'error', message: 'Please create an aquarium first.' });
+      showAlert('No Aquarium', 'Please create an aquarium first.', [
         { text: 'Create Aquarium', onPress: () => router.push('/tanks' as any) },
       ]);
       return;
     }
 
     if (!deviceUid.trim()) {
-      Alert.alert('Required', 'Please enter a device UID.');
+      setFeedback({ type: 'error', message: 'Please enter a device UID.' });
+      showAlert('Required', 'Please enter a device UID.');
       return;
     }
 
     setBinding(true);
+    setFeedback(null);
     try {
-      await deviceProvisionApi.bindDeviceManually(activeTank.id, deviceUid.trim());
-      Alert.alert(
+      const cleanUid = deviceUid.trim().toUpperCase();
+      await deviceProvisionApi.bindDeviceManually(activeTank.id, cleanUid);
+      setFeedback({
+        type: 'success',
+        message: `Hub ${cleanUid} assigned to ${activeTank.name}! Loading AI Telemetry...`,
+      });
+      showAlert(
         'Hub Assigned!',
-        `Device ${deviceUid.trim().toUpperCase()} is now registered to ${activeTank.name}. ${featureName} is now active!`
+        `Device ${cleanUid} is now registered to ${activeTank.name}. ${featureName} is now active!`
       );
       if (onDeviceBound) {
         onDeviceBound();
       }
     } catch (err: any) {
-      Alert.alert('Binding Error', err.message || 'Failed to bind device.');
+      const errDetail = err.message || 'Failed to bind device.';
+      setFeedback({ type: 'error', message: errDetail });
+      showAlert('Binding Error', errDetail);
     } finally {
       setBinding(false);
     }
@@ -87,7 +98,10 @@ export default function HubRequiredBanner({
           <TextInput
             style={styles.input}
             value={deviceUid}
-            onChangeText={setDeviceUid}
+            onChangeText={(text) => {
+              setDeviceUid(text);
+              if (feedback) setFeedback(null);
+            }}
             placeholder="e.g. AG-ESP32-DEV01"
             placeholderTextColor="#475569"
             autoCapitalize="characters"
@@ -96,6 +110,7 @@ export default function HubRequiredBanner({
             style={[styles.bindBtn, binding && { opacity: 0.6 }]}
             onPress={handleQuickBind}
             disabled={binding}
+            activeOpacity={0.8}
           >
             {binding ? (
               <ActivityIndicator color="#0B0F19" size="small" />
@@ -109,19 +124,51 @@ export default function HubRequiredBanner({
         <View style={styles.presetRow}>
           <TouchableOpacity
             style={styles.presetBtn}
-            onPress={() => setDeviceUid('AG-ESP32-DEV01')}
+            onPress={() => {
+              setDeviceUid('AG-ESP32-DEV01');
+              if (feedback) setFeedback(null);
+            }}
+            activeOpacity={0.7}
           >
             <Zap size={11} color="#00E5FF" />
             <Text style={styles.presetBtnText}>Default: AG-ESP32-DEV01</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.presetBtn}
-            onPress={() => setDeviceUid('AG-ESP32-TESTBED')}
+            onPress={() => {
+              setDeviceUid('AG-ESP32-TESTBED');
+              if (feedback) setFeedback(null);
+            }}
+            activeOpacity={0.7}
           >
             <Zap size={11} color="#FFB300" />
             <Text style={styles.presetBtnText}>Simulator: AG-ESP32-TESTBED</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Inline Feedback Banner */}
+        {feedback && (
+          <View
+            style={[
+              styles.feedbackBanner,
+              feedback.type === 'success' ? styles.feedbackSuccess : styles.feedbackError,
+            ]}
+          >
+            {feedback.type === 'success' ? (
+              <CheckCircle2 size={14} color="#00E676" />
+            ) : (
+              <AlertCircle size={14} color="#FF5252" />
+            )}
+            <Text
+              style={[
+                styles.feedbackText,
+                feedback.type === 'success' ? styles.feedbackTextSuccess : styles.feedbackTextError,
+              ]}
+            >
+              {feedback.message}
+            </Text>
+          </View>
+        )}
       </View>
 
       {/* Alternative Options */}
@@ -135,6 +182,7 @@ export default function HubRequiredBanner({
                 params: { tank_id: activeTank.id, tank_name: activeTank.name },
               })
             }
+            activeOpacity={0.8}
           >
             <QrCode size={14} color="#00E5FF" />
             <Text style={styles.qrBtnText}>Provision via QR Code</Text>
@@ -144,6 +192,7 @@ export default function HubRequiredBanner({
         <TouchableOpacity
           style={styles.manageBtn}
           onPress={() => router.push('/tanks' as any)}
+          activeOpacity={0.7}
         >
           <Text style={styles.manageBtnText}>Manage Aquariums</Text>
           <ArrowRight size={13} color="#94A3B8" />
@@ -228,6 +277,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     height: 42,
+    cursor: 'pointer' as any,
   },
   bindBtnText: { color: '#0B0F19', fontSize: 12, fontWeight: '900' },
   presetRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
@@ -239,14 +289,45 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     gap: 4,
+    cursor: 'pointer' as any,
   },
   presetBtnText: { color: '#CBD5E1', fontSize: 10, fontWeight: '600' },
+  feedbackBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 10,
+    padding: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  feedbackSuccess: {
+    backgroundColor: 'rgba(0, 230, 118, 0.1)',
+    borderColor: 'rgba(0, 230, 118, 0.3)',
+  },
+  feedbackError: {
+    backgroundColor: 'rgba(255, 82, 82, 0.1)',
+    borderColor: 'rgba(255, 82, 82, 0.3)',
+  },
+  feedbackText: {
+    fontSize: 11,
+    fontWeight: '600',
+    flex: 1,
+  },
+  feedbackTextSuccess: {
+    color: '#00E676',
+  },
+  feedbackTextError: {
+    color: '#FF5252',
+  },
   actionRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '100%',
     alignItems: 'center',
     paddingTop: 8,
+    flexWrap: 'wrap',
+    gap: 10,
   },
   qrBtn: {
     flexDirection: 'row',
@@ -258,8 +339,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,
+    cursor: 'pointer' as any,
   },
   qrBtnText: { color: '#00E5FF', fontSize: 11, fontWeight: '700' },
-  manageBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 8 },
+  manageBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 8,
+    cursor: 'pointer' as any,
+  },
   manageBtnText: { color: '#94A3B8', fontSize: 11, fontWeight: '600' },
 });

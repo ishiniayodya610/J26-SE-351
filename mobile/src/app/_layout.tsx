@@ -44,7 +44,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Live Telemetry',
+          title: 'Live',
           headerTitle: 'AquaGuard • Live Telemetry',
           tabBarIcon: ({ color, size }) => <Activity color={color} size={20} />,
         }}
@@ -52,49 +52,48 @@ export default function TabLayout() {
       <Tabs.Screen
         name="tanks"
         options={{
-          title: 'Aquariums',
+          title: 'Tanks',
           headerTitle: 'AquaGuard • My Aquariums',
           tabBarIcon: ({ color, size }) => <Fish color={color} size={20} />,
-        }}
-      />
-      <Tabs.Screen
-        name="gatekeeper"
-        options={{
-          title: 'TinyML Edge',
-          headerTitle: 'Edge Impulse TinyML Gatekeeper',
-          tabBarIcon: ({ color, size }) => <Cpu color={color} size={20} />,
         }}
       />
       <Tabs.Screen
         name="camera"
         options={{
           title: 'Vision',
-          headerTitle: 'Vision Monitor',
+          headerTitle: 'AquaGuard • Vision Monitor',
           tabBarIcon: ({ color, size }) => <Camera color={color} size={20} />,
         }}
       />
       <Tabs.Screen
         name="disease"
         options={{
-          title: 'Disease Risk',
-          headerTitle: 'Ammonia & Whitespot Predictor',
+          title: 'AI Health',
+          headerTitle: 'AquaGuard • AI Disease & Risk',
           tabBarIcon: ({ color, size }) => <AlertTriangle color={color} size={20} />,
-        }}
-      />
-      <Tabs.Screen
-        name="xai"
-        options={{
-          title: 'XAI Hub',
-          headerTitle: 'Explainable AI Root Cause Hub',
-          tabBarIcon: ({ color, size }) => <Sparkles color={color} size={20} />,
         }}
       />
       <Tabs.Screen
         name="auth"
         options={{
           title: 'Account',
-          headerTitle: 'AquaGuard • User Account',
+          headerTitle: 'AquaGuard • User Profile',
           tabBarIcon: ({ color, size }) => <User color={color} size={20} />,
+        }}
+      />
+      {/* Secondary & Diagnostic Screens (Accessible via in-app links & AI Suite Switcher) */}
+      <Tabs.Screen
+        name="gatekeeper"
+        options={{
+          href: null,
+          headerTitle: 'AquaGuard • TinyML Gatekeeper',
+        }}
+      />
+      <Tabs.Screen
+        name="xai"
+        options={{
+          href: null,
+          headerTitle: 'AquaGuard • Explainable AI (XAI)',
         }}
       />
       {/* Non-tab modal and utility screens */}

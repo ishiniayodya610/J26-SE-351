@@ -23,7 +23,9 @@ import {
   Power,
   AlertTriangle,
   Radio,
-  SlidersHorizontal
+  SlidersHorizontal,
+  Cpu,
+  Sparkles
 } from 'lucide-react-native';
 import { 
   api, 
@@ -409,6 +411,55 @@ export default function TankHealthScreen() {
           </View>
         </View>
       </View>
+
+      {/* 🧠 AI Intelligence & Diagnostics Quick Access */}
+      <Text style={[styles.sectionTitle, { marginTop: 8 }]}>AI Intelligence & Diagnostics</Text>
+      <View style={styles.aiGrid}>
+        <TouchableOpacity 
+          style={styles.aiCard}
+          activeOpacity={0.8}
+          onPress={() => router.push('/disease')}
+        >
+          <View style={[styles.aiIconBadge, { backgroundColor: 'rgba(255, 179, 0, 0.15)' }]}>
+            <AlertTriangle size={18} color="#FFB300" />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.aiCardTitle}>Disease & Ammonia Risk</Text>
+            <Text style={styles.aiCardDesc}>12h Random Forest predictive horizon</Text>
+          </View>
+          <ChevronRight size={16} color="#64748B" />
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={styles.aiCard}
+          activeOpacity={0.8}
+          onPress={() => router.push('/gatekeeper')}
+        >
+          <View style={[styles.aiIconBadge, { backgroundColor: 'rgba(0, 229, 255, 0.15)' }]}>
+            <Cpu size={18} color="#00E5FF" />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.aiCardTitle}>TinyML Edge Gatekeeper</Text>
+            <Text style={styles.aiCardDesc}>1s rate-of-change neural interlock & deltas</Text>
+          </View>
+          <ChevronRight size={16} color="#64748B" />
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={styles.aiCard}
+          activeOpacity={0.8}
+          onPress={() => router.push('/xai')}
+        >
+          <View style={[styles.aiIconBadge, { backgroundColor: 'rgba(124, 77, 255, 0.15)' }]}>
+            <Sparkles size={18} color="#7C4DFF" />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.aiCardTitle}>Explainable AI (XAI)</Text>
+            <Text style={styles.aiCardDesc}>Biomass attribution & causal explanations</Text>
+          </View>
+          <ChevronRight size={16} color="#64748B" />
+        </TouchableOpacity>
+      </View>
     </ScrollView>
   );
 }
@@ -720,5 +771,36 @@ const styles = StyleSheet.create({
     color: '#FF8A80',
     fontSize: 12,
     fontWeight: '700',
+  },
+  aiGrid: {
+    gap: 10,
+    marginBottom: 20,
+  },
+  aiCard: {
+    backgroundColor: '#131B2E',
+    borderRadius: 12,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: '#1E293B',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  aiIconBadge: {
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  aiCardTitle: {
+    color: '#F8FAFC',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  aiCardDesc: {
+    color: '#94A3B8',
+    fontSize: 11,
+    marginTop: 2,
   },
 });

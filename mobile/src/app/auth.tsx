@@ -14,6 +14,7 @@ import {
 import { useRouter } from 'expo-router';
 import { User, Lock, Mail, ShieldCheck, LogOut, CheckCircle, AlertCircle, ArrowRight } from 'lucide-react-native';
 import { authApi, setAuthToken, getAuthToken, initAuthSession, UserProfile } from '@/services/api';
+import { showAlert } from '@/services/alert';
 
 export default function AuthScreen() {
   const router = useRouter();
@@ -69,7 +70,7 @@ export default function AuthScreen() {
           password: password,
         });
         setCurrentUser(res.user);
-        Alert.alert('Welcome Back!', `Logged in as ${res.user.full_name}`, [
+        showAlert('Welcome Back!', `Logged in as ${res.user.full_name}`, [
           { text: 'Go to Dashboard', onPress: () => router.replace('/') },
         ]);
       } else {
@@ -84,7 +85,7 @@ export default function AuthScreen() {
           password: password,
         });
         setCurrentUser(loginRes.user);
-        Alert.alert('Account Created!', `Welcome to AquaGuard, ${registered.full_name}!`, [
+        showAlert('Account Created!', `Welcome to AquaGuard, ${registered.full_name}!`, [
           { text: 'Go to Dashboard', onPress: () => router.replace('/') },
         ]);
       }
@@ -99,7 +100,7 @@ export default function AuthScreen() {
   };
 
   const handleLogout = async () => {
-    Alert.alert('Log Out', 'Are you sure you want to log out of your AquaGuard account?', [
+    showAlert('Log Out', 'Are you sure you want to log out of your AquaGuard account?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Log Out',
@@ -320,6 +321,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     alignItems: 'center',
     borderRadius: 8,
+    cursor: 'pointer' as any,
   },
   switchBtnActive: {
     backgroundColor: '#00E5FF',
@@ -371,6 +373,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 10,
+    cursor: 'pointer' as any,
   },
   submitBtnDisabled: { opacity: 0.6 },
   submitBtnText: { color: '#0B0F19', fontSize: 15, fontWeight: '800' },
@@ -416,6 +419,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginTop: 16,
     gap: 8,
+    cursor: 'pointer' as any,
   },
   dashboardBtnText: { color: '#0B0F19', fontSize: 12, fontWeight: '800' },
   infoCard: {
@@ -440,6 +444,7 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 10,
     gap: 8,
+    cursor: 'pointer' as any,
   },
   logoutBtnText: { color: '#FF5252', fontSize: 14, fontWeight: '700' },
 });

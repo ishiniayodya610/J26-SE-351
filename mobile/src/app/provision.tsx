@@ -28,13 +28,14 @@ import {
 } from 'lucide-react-native';
 import { deviceProvisionApi } from '@/services/api';
 import { triggerResolvedHaptic, triggerSelectionHaptic } from '@/services/haptics';
+import { showAlert } from '@/services/alert';
 
 export default function DeviceProvisionScreen() {
   const router = useRouter();
   const { tank_id, tank_name } = useLocalSearchParams<{ tank_id: string; tank_name: string }>();
 
   // Mode: 'SCAN' (Camera Scanner) or 'MANUAL' (UID input)
-  const [activeTab, setActiveTab] = useState<'SCAN' | 'MANUAL'>('SCAN');
+  const [activeTab, setActiveTab] = useState<'SCAN' | 'MANUAL'>(Platform.OS === 'web' ? 'MANUAL' : 'SCAN');
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const [binding, setBinding] = useState(false);
@@ -60,7 +61,7 @@ export default function DeviceProvisionScreen() {
   // Execute device binding with target tank
   const executeBind = async (rawUid: string) => {
     if (!tank_id) {
-      Alert.alert('Missing Tank', 'No active aquarium selected.');
+      showAlert('Missing Tank', 'No active aquarium selected.');
       return;
     }
 
@@ -76,7 +77,7 @@ export default function DeviceProvisionScreen() {
     } catch {}
 
     if (!uid) {
-      Alert.alert('Invalid QR Code', 'Could not read a valid device UID from the QR code.');
+      showAlert('Invalid QR Code', 'Could not read a valid device UID from the QR code.');
       setScanned(false);
       return;
     }
@@ -87,7 +88,7 @@ export default function DeviceProvisionScreen() {
       triggerResolvedHaptic();
       setPairingStatus('CLAIMED');
       setAssignedUid(uid);
-      Alert.alert(
+      showAlert(
         'IoT Hub Registered!',
         `Device ${uid.toUpperCase()} is now officially assigned to ${tank_name || 'your aquarium'}.\n\nAll AI features (Live Telemetry, TinyML Edge Gatekeeper, Disease Risk Predictor, and XAI Hub) are now live!`,
         [
@@ -98,7 +99,7 @@ export default function DeviceProvisionScreen() {
         ]
       );
     } catch (err: any) {
-      Alert.alert('Registration Failed', err.message || 'Failed to bind device to tank.');
+      showAlert('Registration Failed', err.message || 'Failed to bind device to tank.');
       setScanned(false);
     } finally {
       setBinding(false);
@@ -334,7 +335,7 @@ export default function DeviceProvisionScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0B0F19' },
   content: { padding: 18, paddingBottom: 40 },
-  backBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 14 },
+  backBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 14, cursor: 'pointer' as any },
   backBtnText: { color: '#00E5FF', fontSize: 13, fontWeight: '700' },
   header: { alignItems: 'center', marginBottom: 18 },
   badgeIcon: {
@@ -370,6 +371,7 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingVertical: 10,
     borderRadius: 8,
+    cursor: 'pointer' as any,
   },
   tabBtnActive: {
     backgroundColor: '#00E5FF',
@@ -441,6 +443,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 10,
     borderRadius: 8,
+    cursor: 'pointer' as any,
   },
   permBtnText: { color: '#0B0F19', fontSize: 12, fontWeight: '800' },
   rescanBtn: {
@@ -450,6 +453,7 @@ const styles = StyleSheet.create({
     gap: 6,
     marginTop: 12,
     paddingVertical: 6,
+    cursor: 'pointer' as any,
   },
   rescanBtnText: { color: '#00E5FF', fontSize: 12, fontWeight: '700' },
 
@@ -483,6 +487,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 8,
+    cursor: 'pointer' as any,
   },
   bindBtnText: { color: '#0B0F19', fontSize: 13, fontWeight: '800' },
   presetsRow: { flexDirection: 'row', gap: 8, marginTop: 12 },
@@ -496,6 +501,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
+    cursor: 'pointer' as any,
   },
   presetPillText: { color: '#CBD5E1', fontSize: 11, fontWeight: '600' },
 
@@ -521,6 +527,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 10,
     marginTop: 10,
+    cursor: 'pointer' as any,
   },
   dashboardBtnText: { color: '#0B0F19', fontSize: 13, fontWeight: '800' },
 

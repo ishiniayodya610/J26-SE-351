@@ -24,6 +24,7 @@ import {
 } from 'lucide-react-native';
 import { api, TelemetryData, checkHasAssignedHub, TankItem } from '@/services/api';
 import HubRequiredBanner from '@/components/HubRequiredBanner';
+import AiSuiteSwitcher from '@/components/AiSuiteSwitcher';
 import { triggerAnomalyHaptic, triggerResolvedHaptic, triggerSelectionHaptic } from '@/services/haptics';
 
 export default function GatekeeperScreen() {
@@ -135,6 +136,8 @@ export default function GatekeeperScreen() {
       contentContainerStyle={styles.content}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#00E5FF" />}
     >
+      {/* AI Intelligence Suite Switcher */}
+      <AiSuiteSwitcher activeTab="gatekeeper" />
       {/* Proof of TinyML Hardware Execution */}
       <View style={styles.banner}>
         <View style={styles.bannerHeader}>
