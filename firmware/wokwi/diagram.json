@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "author": "AquaGuard IoT Systems",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": 0, "left": 0, "attrs": {} },
+    { "type": "board-ssd1306", "id": "oled", "top": -160, "left": 40, "attrs": { "i2cAddress": "0x3c" } },
+    { "type": "wokwi-relay-module", "id": "relay_heater", "top": 140, "left": -120, "attrs": {} },
+    { "type": "wokwi-relay-module", "id": "relay_pump", "top": 140, "left": 100, "attrs": {} },
+    { "type": "wokwi-pushbutton", "id": "btn_reset", "top": -60, "left": -100, "attrs": { "color": "red" } },
+    { "type": "wokwi-potentiometer", "id": "pot_ph", "top": 30, "left": -220, "attrs": { "label": "pH Probe" } },
+    { "type": "wokwi-potentiometer", "id": "pot_tds", "top": 30, "left": 240, "attrs": { "label": "TDS Probe" } }
+  ],
+  "connections": [
+    [ "esp:TX", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX", "$serialMonitor:TX", "", [] ],
+    [ "esp:GND.1", "oled:GND", "black", [ "v0" ] ],
+    [ "esp:3V3", "oled:VCC", "red", [ "v0" ] ],
+    [ "esp:21", "oled:SDA", "green", [ "v0" ] ],
+    [ "esp:22", "oled:SCL", "blue", [ "v0" ] ],
+    [ "esp:18", "relay_heater:IN", "orange", [ "v0" ] ],
+    [ "esp:5V", "relay_heater:VCC", "red", [ "v0" ] ],
+    [ "esp:GND.2", "relay_heater:GND", "black", [ "v0" ] ],
+    [ "esp:19", "relay_pump:IN", "purple", [ "v0" ] ],
+    [ "esp:5V", "relay_pump:VCC", "red", [ "v0" ] ],
+    [ "esp:GND.2", "relay_pump:GND", "black", [ "v0" ] ],
+    [ "esp:12", "btn_reset:1.l", "gray", [ "v0" ] ],
+    [ "esp:GND.1", "btn_reset:2.l", "black", [ "v0" ] ],
+    [ "esp:34", "pot_ph:SIG", "yellow", [ "v0" ] ],
+    [ "esp:3V3", "pot_ph:VCC", "red", [ "v0" ] ],
+    [ "esp:GND.1", "pot_ph:GND", "black", [ "v0" ] ],
+    [ "esp:35", "pot_tds:SIG", "cyan", [ "v0" ] ],
+    [ "esp:3V3", "pot_tds:VCC", "red", [ "v0" ] ],
+    [ "esp:GND.1", "pot_tds:GND", "black", [ "v0" ] ]
+  ],
+  "dependencies": {}
+}

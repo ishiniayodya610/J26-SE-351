@@ -40,6 +40,11 @@ class ConnectionManager:
 
 manager = ConnectionManager()
 
+# Queue of pending downlink commands dispatched to remote ESP32 edge device
+pending_edge_commands: Dict[str, Any] = {
+    "clear_lockout": False
+}
+
 # Rolling historical buffer of (timestamp, temperature_c) for rate-of-rise (dT/dt) analysis
 temperature_history: List[Tuple[float, float]] = []
 
@@ -266,7 +271,46 @@ async def ingest_edge_telemetry(payload: Dict[str, Any]):
         latest_telemetry_state["gatekeeper"]["heater_lockout"] = True
 
     await manager.broadcast(latest_telemetry_state)
-    return {"status": "ACK", "received": True, "species": active_profile.common_name, "thermal_runaway": runaway_info["active"]}
+
+    # Deliver pending downlink commands (e.g. mobile app cleared safety fault)
+    should_clear = pending_edge_commands.get("clear_lockout", False)
+    if should_clear:
+        pending_edge_commands["clear_lockout"] = False
+
+    return {
+        "status": "ACK",
+        "received": True,
+        "species": active_profile.common_name,
+        "thermal_runaway": runaway_info["active"],
+        "target_params": {
+            "target_temp": target_temp,
+            "target_ph": active_profile.water_requirements.ph,
+            "target_tds": active_profile.water_requirements.tds_ppm
+        },
+        "commands": {
+            "clear_lockout": should_clear
+        }
+    }
+
+@router.post("/clear-lockout")
+async def clear_device_lockout():
+    """
+    Called by mobile app when user clicks 'Acknowledge & Clear Alarm'.
+    Queues a downlink command to the remote ESP32 to clear its relay lockouts
+    and re-anchor its baseline references.
+    """
+    global pending_edge_commands, temperature_history
+    pending_edge_commands["clear_lockout"] = True
+    temperature_history.clear()
+    if "thermal_runaway" in latest_telemetry_state:
+        latest_telemetry_state["thermal_runaway"]["active"] = False
+    if "gatekeeper" in latest_telemetry_state:
+        latest_telemetry_state["gatekeeper"]["heater_lockout"] = False
+        latest_telemetry_state["gatekeeper"]["ph_pump_lockout"] = False
+        latest_telemetry_state["gatekeeper"]["thermal_runaway"] = False
+    latest_telemetry_state["system_status"] = "OPTIMAL"
+    await manager.broadcast(latest_telemetry_state)
+    return {"status": "SUCCESS", "message": "Fault lockout clearance command queued for remote IoT device."}
 
 @router.post("/reset-history")
 async def reset_temperature_history():
